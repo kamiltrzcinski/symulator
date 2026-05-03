@@ -1,8 +1,9 @@
 # Initial architecture
 
-## Core principle
+## Core principles
 
-The simulation engine and domain model are independent from the presentation layer.
+- The simulation engine and domain model are independent from the presentation layer.
+- SOLID principles apply at every level: individual classes/functions and the overall module/system decomposition. This keeps each component independently testable, replaceable, and extensible without cascade rewrites.
 
 ## Components
 
@@ -15,6 +16,8 @@ The simulation engine and domain model are independent from the presentation lay
    - client synchronization,
    - session lifecycle and command queue handling.
 3. Client UI
+   - tab-based multi-panel display (one tab per assigned station),
+   - operator can switch active station without launching a second client instance,
    - panel/state visualization,
    - operator command input,
    - alarms and logs view.
@@ -22,9 +25,14 @@ The simulation engine and domain model are independent from the presentation lay
    - station configuration storage,
    - event log,
    - session snapshots.
-5. AI Worker (optional after MVP)
-   - traffic suggestions,
-   - handling of LCS boundary interactions.
+5. AI Module (separate process/service, post-MVP)
+   - designed as an independent module from day one; not embedded in the engine,
+   - communicates with the Session Server via the engine API (see F-010),
+   - traffic planning and movement management,
+   - handling of LCS boundary interactions,
+   - optional random events generation.
+
+   Rationale: keeping AI decoupled means the engine remains deterministic and testable without an AI runtime; the AI can be developed, replaced, or disabled independently.
 
 ## Proposed flow
 
@@ -40,6 +48,19 @@ The simulation engine and domain model are independent from the presentation lay
 - Domain Event: accepted command result or autonomous state change.
 - Snapshot: full session state for reconnect.
 - Heartbeat: liveness signal for client and server.
+
+## Transport layer options
+
+### Option T-A: TCP / WebSocket (default)
+- Simpler implementation, reliable delivery.
+- Higher per-message overhead; may be acceptable for initial load profile.
+
+### Option T-B: UDP with custom framing
+- Lower overhead and potentially lower latency.
+- Requires manual frame assembly and lost-packet recovery strategy.
+- Candidate for optimization once baseline latency is measured against N-001 (≤ 100 ms).
+
+Current decision: start with TCP/WebSocket; evaluate UDP if profiling shows N-001 is at risk.
 
 ## Minimum deployment layout
 

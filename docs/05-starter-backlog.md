@@ -10,6 +10,8 @@
 - [ ] Confirm rendering model after UI prototype (default candidate: client-side rendering).
 - [ ] Define MVP load profile (sessions, clients, update rate, payload size).
 - [ ] Define server SLO targets for p95 latency, loop time, and packet loss tolerance.
+- [ ] Confirm final station list (include or exclude Naterki) and define default station-to-player assignment.
+- [ ] Define station ownership and takeover protocol (request, grant, revoke).
 
 ## Priority P1
 
@@ -20,6 +22,8 @@
 - [ ] Benchmark dedicated server on 2 vCPU and 4 GB RAM baseline.
 - [ ] Benchmark dedicated server on 4 vCPU and 8 GB RAM reference tier.
 - [ ] Define alert thresholds and scaling trigger points.
+- [ ] Design tabbed multi-panel client layout (number of tabs, active-station switching UX, state refresh per tab).
+- [ ] Evaluate TCP vs UDP transport: measure baseline latency under simulated load; decide whether custom UDP framing is needed to meet N-001.
 
 ## Priority P2
 

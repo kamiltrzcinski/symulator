@@ -12,6 +12,10 @@
 - F-008: Session state and station configuration are persisted in a database.
 - F-009: A client can request a full snapshot when joining/rejoining a session.
 - F-010: The system exposes a basic API for an external AI/traffic module.
+- F-011: A single operator client displays all stations assigned to that player as switchable tabs; no additional client instance is required per station.
+- F-012: An operator can request and obtain permission to take over management of another station (e.g., a boundary or LCS area) within the same session.
+- F-013: The system enforces station-level ownership; only the current station owner can issue commands for that station.
+- F-014: Device behavior rules (interlocking logic, signal dependencies) are enforced by the engine independent of regulatory compliance.
 
 ## Non-functional requirements
 
@@ -22,6 +26,8 @@
 - N-005: Architecture must separate UX/UI from simulation engine logic.
 - N-006: Network communication must support client reconnection.
 - N-007: The database must support historical session replay.
+- N-008: The architecture must follow SOLID principles at both class/function and module/system level to allow independent development, testing, and replacement of components.
+- N-009: The transport layer must be replaceable; UDP with custom framing is a candidate for reducing synchronization overhead compared to TCP-based alternatives.
 
 ## Data requirements
 
@@ -32,7 +38,9 @@
 
 ## Open questions
 
-1. Is AI part of MVP, or only a post-MVP iteration?
+1. ~~Is AI part of MVP, or only a post-MVP iteration?~~ **Resolved:** AI is a separate module from the start; it is not embedded in the engine. It communicates via the engine API (F-010). Planned for post-MVP delivery.
 2. How detailed should train behavior be (physics-based vs. simplified route traversal)?
-3. Are multi-level permissions required (operator, admin, observer)?
+3. ~~Are multi-level permissions required?~~ **Partially resolved:** station-level ownership and takeover is required (F-012, F-013). Full role hierarchy (admin, observer) is post-MVP.
 4. What should be the initial station config format (JSON/YAML/protobuf)?
+5. Should UDP with custom framing replace or supplement the default TCP transport? Tradeoffs: lower latency and overhead vs. manual packet loss handling and frame assembly.
+6. Is Naterki station included? Final station count affects default assignment and map scope.

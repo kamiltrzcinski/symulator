@@ -11,6 +11,20 @@ Entry format:
 
 ---
 
+## [0.1.2] — 2026-05-03
+
+### Added
+- Vision and scope: station assignment model (5-6 stations, default 3 per player, tabbed client, permission-based takeover)
+- System requirements: F-011 tabbed multi-panel client, F-012/F-013 station ownership and takeover, F-014 device behavior rules
+- System requirements: N-008 SOLID at code and architecture level, N-009 replaceable transport layer (UDP candidate)
+- System requirements: resolved open questions for AI module and permissions; added Naterki and UDP open questions
+- Initial architecture: SOLID/modularity as core principles
+- Initial architecture: tabbed panel design in Client UI component
+- Initial architecture: AI Module defined as separate process from day one with explicit rationale
+- Initial architecture: Transport layer options section (TCP/WS default vs UDP with custom framing, working decision)
+- Starter backlog: P0 items for station list confirmation and station ownership protocol
+- Starter backlog: P1 items for tabbed client layout and TCP vs UDP evaluation
+
 ## [0.1.1] — 2026-05-03
 
 ### Changed

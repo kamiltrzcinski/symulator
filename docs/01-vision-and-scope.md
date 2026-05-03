@@ -20,8 +20,15 @@ Create a stable foundation for shared gameplay and traffic scenario testing, whi
 2. Signaling state engine (switches, signals, track sections).
 3. Track occupancy simulation for train movement.
 4. Basic timetable and checkpoint execution.
-5. Session server supporting 2 operator clients.
+5. Session server supporting up to 2 operator clients, each managing multiple stations via tabbed panels.
 6. Persistent storage for session state and event history.
+
+## Station assignment model
+
+- The scenario covers 5-6 stations total (exact count depends on whether Naterki is included).
+- Default assignment: player 1 gets 3 stations, player 2 gets 2-3 stations.
+- A single client displays all assigned stations as tabs; the operator switches between panels without launching additional client instances.
+- An operator can request permission to take over another station (e.g., boundary/LCS area) and manage it from the same tabbed client.
 
 ## Out of MVP scope
 
