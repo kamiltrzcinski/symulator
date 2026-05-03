@@ -12,10 +12,13 @@
 - F-008: Session state and station configuration are persisted in a database.
 - F-009: A client can request a full snapshot when joining/rejoining a session.
 - F-010: The system exposes a basic API for an external AI/traffic module.
-- F-011: A single operator client displays all stations assigned to that player as switchable tabs; no additional client instance is required per station.
+- F-011: A single native C++ desktop application serves both the station panel (Pulpity) and EDR functional areas. Station panels are displayed as tabs labelled by station name; the EDR area uses the same tab pattern per station. No second client instance or browser client is required.
 - F-012: An operator can request and obtain permission to take over management of another station (e.g., a boundary or LCS area) within the same session.
 - F-013: The system enforces station-level ownership; only the current station owner can issue commands for that station.
 - F-014: Device behavior rules (interlocking logic, signal dependencies) are enforced by the engine independent of regulatory compliance.
+- F-015: The EDR (Electronic Traffic Register) component runs on the server and communicates with the simulation engine as a master data provider (train definitions, routes, timetable inputs).
+- F-016: The EDR functional area is part of the native C++ client application, not a separate browser-based interface.
+- F-017: Inter-module communication on the server (EDR↔engine, future AI↔engine) uses the same TCP framing protocol or direct in-process calls depending on deployment topology. No separate HTTP/REST layer is introduced for MVP.
 
 ## Non-functional requirements
 
@@ -27,7 +30,7 @@
 - N-006: Network communication must support client reconnection.
 - N-007: The database must support historical session replay.
 - N-008: The architecture must follow SOLID principles at both class/function and module/system level to allow independent development, testing, and replacement of components.
-- N-009: The transport layer must be replaceable; UDP with custom framing is a candidate for reducing synchronization overhead compared to TCP-based alternatives.
+- N-009: A single TCP persistent socket with custom binary framing is the network communication protocol for the system. It is used for client↔server real-time sync. Intra-server modules (EDR↔engine) on the same host communicate via direct in-process calls or a Unix socket. No separate REST/HTTP layer is introduced for MVP; this avoids maintaining two protocol stacks and two serialization formats.
 
 ## Data requirements
 
@@ -35,6 +38,7 @@
 - D-002: Timetable data stores trains, timing, and control points.
 - D-003: Event log stores timestamp, type, source, and payload.
 - D-004: Session snapshot stores current state and model version.
+- D-005: Master train database stores fleet-wide train definitions and route data independent of active session state (exact relationship to session database — separate instance or separate schema — is an open question).
 
 ## Open questions
 
@@ -42,5 +46,8 @@
 2. How detailed should train behavior be (physics-based vs. simplified route traversal)?
 3. ~~Are multi-level permissions required?~~ **Partially resolved:** station-level ownership and takeover is required (F-012, F-013). Full role hierarchy (admin, observer) is post-MVP.
 4. What should be the initial station config format (JSON/YAML/protobuf)?
-5. Should UDP with custom framing replace or supplement the default TCP transport? Tradeoffs: lower latency and overhead vs. manual packet loss handling and frame assembly.
+5. ~~Operator client↔server transport: TCP vs UDP?~~ **Resolved:** TCP persistent socket. Domain events are safety-critical and must all be delivered; UDP + mandatory ACK adds complexity with no gain at this traffic volume and frequency.
 6. Is Naterki station included? Final station count affects default assignment and map scope.
+7. Database topology: single database instance with separate schemas for master train data and session state, or two distinct database instances? What are the consistency and operational tradeoffs?
+8. EDR integration path: adapt and wrap the existing C# prototype, or rewrite as a native server-side component? Criteria: language consistency, maintainability, interface contract stability.
+9. Supervisor/monitoring module: is a dedicated module needed to coordinate EDR↔engine data flow and oversee session integrity? What is its scope and placement?

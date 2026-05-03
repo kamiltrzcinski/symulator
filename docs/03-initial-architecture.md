@@ -15,19 +15,33 @@
    - authoritative state owner,
    - client synchronization,
    - session lifecycle and command queue handling.
-3. Client UI
-   - tab-based multi-panel display (one tab per assigned station),
-   - operator can switch active station without launching a second client instance,
-   - panel/state visualization,
-   - operator command input,
-   - alarms and logs view.
-4. Persistence Layer
+3. Client Application (native C++ desktop)
+   A single application with two functional areas, both tab-based:
+
+   **Pulpity (station panels):**
+   - one tab per assigned station, labelled by station name,
+   - clicking a tab switches the active dispatcher panel,
+   - panel state visualization, operator command input, alarms and logs view.
+
+   **EDR (Electronic Traffic Register):**
+   - separate top-level area within the same application,
+   - one tab per station for train register data,
+   - operator can switch station context without leaving the application.
+
+   The operator client communicates with the Session Server over a persistent connection; native runtime allows TCP or UDP (see Channel 1).
+4. EDR — Electronic Traffic Register (server-side)
+   - master train data provider for the simulation engine (train definitions, routes, timetable inputs),
+   - runs as a server-side process and communicates with the Core Simulation Engine via REST API,
+   - the client-side EDR view is part of the native C++ application (see component 3); no separate browser interface,
+   - existing C# prototype (Tymon) is the integration candidate; path (adapt vs rewrite) is an open question,
+   - a supervisor/monitoring sub-module may be needed to coordinate EDR↔engine data flow (open question).
+5. Persistence Layer
    - station configuration storage,
    - event log,
    - session snapshots.
-5. AI Module (separate process/service, post-MVP)
+6. AI Module (separate process/service, post-MVP)
    - designed as an independent module from day one; not embedded in the engine,
-   - communicates with the Session Server via the engine API (see F-010),
+   - communicates with the Core Simulation Engine via REST API (see F-010, F-017),
    - traffic planning and movement management,
    - handling of LCS boundary interactions,
    - optional random events generation.
@@ -49,24 +63,30 @@
 - Snapshot: full session state for reconnect.
 - Heartbeat: liveness signal for client and server.
 
-## Transport layer options
+## Transport layer per communication channel
 
-### Option T-A: TCP / WebSocket (default)
-- Simpler implementation, reliable delivery.
-- Higher per-message overhead; may be acceptable for initial load profile.
+### Channel 1: Operator Client ↔ Session Server (real-time game state)
+- Protocol: **TCP persistent socket with custom binary framing**.
+- Rationale: every domain event (switch state, signal change, track occupancy) must be delivered exactly once and in order — none can be dropped. This rules out lossy UDP. UDP with mandatory per-packet ACK would be a manual reimplementation of TCP without its battle-tested congestion control and retransmit logic. At 1–10 Hz and ~500 bytes per update, TCP overhead is negligible and N-001 (≤ 100 ms) is easily achievable.
 
-### Option T-B: UDP with custom framing
-- Lower overhead and potentially lower latency.
-- Requires manual frame assembly and lost-packet recovery strategy.
-- Candidate for optimization once baseline latency is measured against N-001 (≤ 100 ms).
+### Channel 2: EDR ↔ Engine (server-side, same host)
+- Protocol: **direct in-process call or Unix socket** (if separated into distinct processes on the same machine).
+- Rationale: both components run on the same server. Introducing HTTP/REST would add a second protocol stack and a second serialization format with no benefit. The same binary framing used for client↔server can be reused if a socket boundary is needed; more likely a direct function call or message bus suffices.
 
-Current decision: start with TCP/WebSocket; evaluate UDP if profiling shows N-001 is at risk.
+### Channel 3: AI Module ↔ Engine (post-MVP)
+- Protocol: **deferred.** Decided when the AI module is actually being designed. If co-located: same approach as Channel 2. If remote: TCP with the existing framing is the default candidate; REST only if interoperability with an external system requires it.
+
+### Channel 4: Engine ↔ Session Server (intra-server)
+- Same process or same host: direct function call or in-process event bus — no network protocol needed.
+
+**Protocol consolidation decision: one network protocol (TCP + custom binary framing) for all socket-based communication. No REST/HTTP layer in MVP. Intra-server components use direct calls.**
 
 ## Minimum deployment layout
 
-- One server process.
-- 2+ operator clients.
-- One database instance (local or same VPS).
+- One server process (engine + session server).
+- EDR process on the same server.
+- 2+ operator clients (native C++ desktop application; one per player machine; contains both Pulpity and EDR views).
+- One database instance (local or same VPS); two-instance topology under evaluation (see open question 7 in requirements).
 
 ## Deployment options for server and engine
 
@@ -117,12 +137,13 @@ Cons:
 
 - Deployment model: Option A (Dedicated authoritative server).
 - Engine placement: simulation engine runs on the authoritative server.
-- Rendering direction: client-side panel rendering is the default candidate for MVP.
+- Client: single native C++ desktop application per player; contains both Pulpity (station panel tabs) and EDR (register tabs). No browser client anywhere.
+- Operator client transport: TCP persistent socket (see Channel 1 rationale).
 
 Rationale:
 - dedicated authority avoids host disconnect issues,
 - engine on server prevents state divergence between players,
-- client-side rendering keeps bandwidth low and UI responsive.
+- native C++ client keeps rendering and state management fast and self-contained.
 
 ## Dedicated server minimum requirements (MVP baseline)
 
@@ -169,38 +190,14 @@ Assumptions for this baseline:
 - Average CPU usage under 65% during peak test load.
 - Average memory usage under 70% during peak test load.
 
-## Display/rendering options
+## Display/rendering decision
 
-### Rendering option 1: Client-side panel rendering (recommended)
+**Selected: client-side panel rendering with server-pushed state deltas/events (Option 1).**
 
-- Server sends state deltas/events.
+- Server sends state deltas and domain events over the TCP persistent socket.
 - Client renders panel from local layout config + live state.
-
-Pros:
-- low bandwidth,
-- responsive UX,
-- easy to support multiple UI styles on the same engine.
-
-### Rendering option 2: Server-side rendered stream
-
-- Server renders frames and streams image/video to clients.
-
-Pros:
-- fully centralized visual consistency.
-
-Cons:
-- high bandwidth and latency pressure,
-- poor fit for operator interaction,
-- unnecessary complexity for MVP.
-
-### Rendering option 3: Hybrid static layout + dynamic overlays
-
-- Layout is static asset distributed to clients.
-- Dynamic signaling/occupancy state comes from server events.
-
-Pros:
-- clean split between content and runtime,
-- straightforward cache/version strategy.
+- Low bandwidth, responsive UX, easy to support multiple UI styles on the same engine.
+- Server-side rendered stream (Option 2) and hybrid static overlay (Option 3) are not pursued: unnecessary bandwidth and complexity at MVP scale.
 
 ## Technical risks
 
@@ -211,9 +208,9 @@ Pros:
 
 ## Decisions to make
 
-1. Transport: WebSocket or gRPC?
+1. ~~Transport: WebSocket or gRPC?~~ **Resolved:** TCP persistent socket with custom binary framing for all socket communication; direct calls for intra-server. No REST/HTTP in MVP.
 2. Message format: JSON first, or protobuf from day one?
 3. Database: PostgreSQL (preferred) or SQLite for bootstrap?
 4. Engine timing: fixed tick or purely event-driven model?
-5. Deployment model: dedicated server, player-hosted, or hybrid migration?
-6. Rendering model: client-side, server-streamed, or hybrid static layout?
+5. ~~Deployment model~~ **Resolved:** dedicated authoritative server (Option A).
+6. ~~Rendering model~~ **Resolved:** client-side rendering with server-pushed events.

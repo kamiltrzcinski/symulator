@@ -21,7 +21,17 @@ Create a stable foundation for shared gameplay and traffic scenario testing, whi
 3. Track occupancy simulation for train movement.
 4. Basic timetable and checkpoint execution.
 5. Session server supporting up to 2 operator clients, each managing multiple stations via tabbed panels.
-6. Persistent storage for session state and event history.
+6. EDR (Electronic Traffic Register) as a server-side train data provider for the engine; client-side EDR view integrated into the C++ desktop application.
+7. Persistent storage for session state and event history.
+
+## Client delivery model
+
+A single native C++ desktop application serves both functional areas:
+
+- **Pulpity (station panels):** one tab per station name; clicking a tab switches the active dispatcher panel.
+- **EDR (Electronic Traffic Register):** separate top-level area within the same application, also tab-based with one tab per station.
+
+No browser-based client. All operator interaction and train register management happen inside the same C++ application.
 
 ## Station assignment model
 
