@@ -6,9 +6,10 @@ The repository is currently in planning mode. The first documentation baseline i
 
 ## Getting started
 
-1. Read the documentation index in `docs/README.md`.
-2. Align on open technical decisions from the architecture document.
-3. Break the MVP into issues and assign owners.
+1. After cloning, activate the commit hook once: `git config core.hooksPath .githooks`
+2. Read the documentation index in `docs/README.md`.
+3. Align on open technical decisions from the architecture document.
+4. Break the MVP into issues and assign owners.
 
 ## Goal
 

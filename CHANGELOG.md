@@ -11,6 +11,11 @@ Entry format:
 
 ---
 
+## [0.1.1] — 2026-05-03
+
+### Changed
+- README: added one-time hook setup step for new contributors
+
 ## [0.1.0] — 2026-05-03
 
 ### Added
