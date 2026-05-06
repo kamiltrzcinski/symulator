@@ -8,7 +8,7 @@
 - [ ] Prepare one reference traffic scenario for testing.
 - [x] Choose deployment model: dedicated authoritative server.
 - [x] Confirm client delivery model: single native C++ desktop application per player, containing both Pulpity (station panel tabs) and EDR (register tabs). No browser client.
-- [ ] Define MVP load profile (sessions, clients, update rate, payload size).
+- [ ] Define MVP load profile (sessions, clients, update rate, payload size). **Note:** multi-operator per station (posterunki) increases expected client count per session.
 - [ ] Define server SLO targets for p95 latency, loop time, and packet loss tolerance.
 - [ ] Confirm final station list (include or exclude Naterki) and define default station-to-player assignment.
 - [ ] Define station ownership and takeover protocol (request, grant, revoke).

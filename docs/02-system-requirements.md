@@ -19,7 +19,9 @@
 - F-015: The EDR (Electronic Traffic Register) component runs on the server and communicates with the simulation engine as a master data provider (train definitions, routes, timetable inputs).
 - F-016: The EDR functional area is part of the native C++ client application, not a separate browser-based interface.
 - F-017: Inter-module communication on the server (EDR↔engine, future AI↔engine) uses the same TCP framing protocol or direct in-process calls depending on deployment topology. No separate HTTP/REST layer is introduced for MVP.
-- F-018: The binary protocol uses a 16-byte frame header (magic 0x5352, msg_type, flags, seq_id, payload_len, CRC-32) with FlatBuffers-serialized payloads. Schema files in `proto/` are the canonical contract. Message types: HANDSHAKE, HEARTBEAT, COMMAND, COMMAND_ACK, COMMAND_NAK, DOMAIN_EVENT, SNAPSHOT_CHUNK, SESSION_NOTICE, TAKEOVER_REQUEST, TAKEOVER_RESPONSE. Details in `09-communication-contract.md`.
+- F-018: The binary protocol uses a 16-byte frame header (magic 0x5352, msg_type, flags, seq_id, payload_len, CRC-32) with FlatBuffers-serialized payloads. Schema files in `proto/` are the canonical contract. Message types: HANDSHAKE, HEARTBEAT, COMMAND, COMMAND_ACK, COMMAND_NAK, DOMAIN_EVENT, SNAPSHOT_CHUNK, SESSION_NOTICE, TAKEOVER_REQUEST, TAKEOVER_RESPONSE, CHAT_MESSAGE, VOICE_CHAN_JOIN/LEAVE/STATE. Details in `09-communication-contract.md`.
+- F-019: Operators are assigned to posterunki (sub-posts) within a station. Multiple operators may work the same station simultaneously, each controlling objects within their posterunek scope. For MVP with single-posterunek stations the model degenerates to per-station ownership.
+- F-020: A train is a `std::vector<Vehicle>` assembled from ordered vehicle `gID` references in a composition JSON. Each vehicle has `lengthM` and `axleCount`; the engine derives section occupancy from axle counting at `It`/`iz` devices. Physics v1 uses constant acceleration; v2 (post-MVP) uses locomotive `powerKW` and `tractionForceKN` with total consist mass. Details in `10-vehicle-model.md`.
 
 ## Non-functional requirements
 

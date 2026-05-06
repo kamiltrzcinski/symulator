@@ -11,6 +11,25 @@ Entry format:
 
 ---
 
+## [0.1.9] — 2026-05-06
+
+### Added
+- Communication contract extended (`09-communication-contract.md`):
+  - Message types: `CHAT_MESSAGE (0x60)`, `VOICE_CHAN_JOIN/LEAVE/STATE (0x70-0x72)`; range 0x80–0xFF reserved
+  - Multi-operator model: posterunek (sub-post) concept; `HANDSHAKE_ACK` now returns `assigned_posterunki[]`; `TAKEOVER_REQUEST` targets a `posterunek_id`
+  - `PosterunekOwnershipChanged (0x0E)` replaces `StationOwnershipChanged`; `TrainComposed (0x0E)`, `TrainDecomposed (0x0F)` added to domain event catalog
+  - Player communication section: chat payload spec; voice architecture decision (audio on separate UDP/DTLS, TCP reserved for signaling only)
+  - External access path: TLS 1.3 wraps TCP frame unchanged; auth_token hook already present in HANDSHAKE
+  - Frame design validation table: all extensions confirmed compatible with 16-byte header
+  - Open questions Q-COM-5 and Q-COM-6 added; Q-COM-2 resolved
+- Vehicle and train model document (`10-vehicle-model.md`): vehicle JSON definition (gID, type, lengthM, axleCount, massEmptyT, powerKW, tractionForceKN), train composition JSON (ordered vehicle list), derived properties (total_length_m, total_axles, total_mass_t), axle-counting occupancy model, physics v1 (constant acceleration, MVP) and v2 (F=P/v minus resistances, post-MVP), DOMAIN_EVENT integration table, three open questions (Q-VEH-1 through Q-VEH-3)
+
+### Changed
+- `09-communication-contract.md`: `train_gID` added to TrackSection and Switch occupancy events; `speed_kmh` added to TrainMovement event; snapshot updated with `posterunek_assignments`
+- `docs/README.md` index updated
+
+---
+
 ## [0.1.8] — 2026-05-06
 
 ### Added
