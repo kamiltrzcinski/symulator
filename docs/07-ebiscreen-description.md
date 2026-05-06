@@ -57,3 +57,23 @@ Format:
 - area: `LCS_Or`
 - pID: `RS_Tm22`
 - UUID: `0000001`
+
+---
+
+## ID generation function
+
+```cpp
+string generateGID(string type, string area, string pID)
+{
+    string idNumber = padLeft(to_string(globalCounter), 7, '0');
+
+    string gID =
+        type + "-" +
+        area + "-" +
+        pID + "-" +
+        idNumber;
+
+    globalCounter++;
+
+    return gID;
+}
