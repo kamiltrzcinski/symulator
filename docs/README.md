@@ -12,6 +12,7 @@ This folder contains the agreed scope and implementation plan.
 - `06-server-sizing-baseline.md` - dedicated server hardware/network baseline and validation plan.
 - `07-ebiscreen-description.md` - decription about ebiscreen device
 - `08-track-topology-model.md` - track section and switch object model; file format decision for station configuration.
+- `09-communication-contract.md` - binary frame layout, message type catalog, FlatBuffers serialization decision, command/event/snapshot/ownership payloads.
 ## Update rules
 
 - Every major project decision should be captured in the relevant document.

@@ -3,7 +3,7 @@
 ## Priority P0
 
 - [x] Agree on station map configuration format. **Resolved:** split JSON — `meta.json`, `topology.json`, `objects.json` per station; engine loads via nlohmann/json; schema validated by editor. Details in `08-track-topology-model.md`.
-- [ ] Define command/event/snapshot communication contract.
+- [x] Define command/event/snapshot communication contract. **Resolved:** 16-byte binary frame (magic + type + flags + seq_id + payload_len + CRC32); FlatBuffers payloads; message catalog: COMMAND / COMMAND_ACK / COMMAND_NAK / DOMAIN_EVENT / SNAPSHOT_CHUNK / HEARTBEAT / HANDSHAKE / TAKEOVER. Details in `09-communication-contract.md`.
 - [ ] Define minimal database model.
 - [ ] Prepare one reference traffic scenario for testing.
 - [x] Choose deployment model: dedicated authoritative server.

@@ -11,6 +11,20 @@ Entry format:
 
 ---
 
+## [0.1.8] — 2026-05-06
+
+### Added
+- Communication contract document (`09-communication-contract.md`): 16-byte binary frame layout (magic 0x5352, msg_type, flags, seq_id, payload_len, CRC-32), full message type catalog with direction arrows, command catalog (7 types), domain event catalog (13 types), snapshot structure, ownership protocol, handshake/reconnect flow, heartbeat rules, sequencing and error handling rules
+- Serialization format decision: FlatBuffers selected (zero-copy, schema = contract document, forward-compatible, C++20 native); `.fbs` schema files in `proto/` as single source of truth
+- F-018 added to system requirements covering binary frame and FlatBuffers decision
+- Four open questions recorded (Q-COM-1 through Q-COM-4)
+
+### Changed
+- Starter backlog P0: command/event/snapshot contract item marked resolved
+- `docs/README.md` index updated
+
+---
+
 ## [0.1.7] — 2026-05-06
 
 ### Added

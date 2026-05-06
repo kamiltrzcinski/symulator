@@ -19,6 +19,7 @@
 - F-015: The EDR (Electronic Traffic Register) component runs on the server and communicates with the simulation engine as a master data provider (train definitions, routes, timetable inputs).
 - F-016: The EDR functional area is part of the native C++ client application, not a separate browser-based interface.
 - F-017: Inter-module communication on the server (EDR↔engine, future AI↔engine) uses the same TCP framing protocol or direct in-process calls depending on deployment topology. No separate HTTP/REST layer is introduced for MVP.
+- F-018: The binary protocol uses a 16-byte frame header (magic 0x5352, msg_type, flags, seq_id, payload_len, CRC-32) with FlatBuffers-serialized payloads. Schema files in `proto/` are the canonical contract. Message types: HANDSHAKE, HEARTBEAT, COMMAND, COMMAND_ACK, COMMAND_NAK, DOMAIN_EVENT, SNAPSHOT_CHUNK, SESSION_NOTICE, TAKEOVER_REQUEST, TAKEOVER_RESPONSE. Details in `09-communication-contract.md`.
 
 ## Non-functional requirements
 
