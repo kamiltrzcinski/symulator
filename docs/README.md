@@ -14,6 +14,7 @@ This folder contains the agreed scope and implementation plan.
 - `08-track-topology-model.md` - track section and switch object model; file format decision for station configuration.
 - `09-communication-contract.md` - binary frame layout, message type catalog, FlatBuffers serialization decision, command/event/snapshot/ownership payloads.
 - `10-vehicle-model.md` - vehicle definition JSON, train composition, axle-counting occupancy model, physics v1/v2.
+- `11-database-model.md` - PostgreSQL schema (`fleet` + `session`), EDR live model, retention policy.
 ## Update rules
 
 - Every major project decision should be captured in the relevant document.

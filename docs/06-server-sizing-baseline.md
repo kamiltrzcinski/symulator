@@ -4,18 +4,54 @@
 
 Provide a baseline for selecting a server machine. Every number here is derived from a first-principles load analysis for the chosen stack (C/C++ engine, PostgreSQL, WebSocket or gRPC transport), not from generic rules of thumb.
 
-## Load assumptions used in calculations
+## MVP load profile
+
+Resolves P0 backlog item "Define MVP load profile".
+
+### Scenario: full Trójmiasto corridor (9 stations)
+
+| Parameter | MVP minimum | Full Trójmiasto | Notes |
+|---|---|---|---|
+| Concurrent sessions | 1 | 1 | One shared simulation |
+| Stations in session | 1 reference | 9 | Gdynia Chylonia → Gdańsk Orunia |
+| Posterunki per station (avg) | 1 | 2–3 | Nastawnia A, B, etc. |
+| Operator clients (signaling) | 2 | 18–27 | One per posterunek |
+| Operator clients (EDR) | 1 | 9 | One per station |
+| **Total clients (peak)** | **3** | **~36** | |
+| Active trains in session | 2–5 | 20–30 | Rush-hour peak |
+| Engine tick rate | 10 Hz | 20 Hz | 50 ms cycle |
+| DOMAIN_EVENTs per second (steady) | 5–10 | 20–50 | Occupancy + signal changes |
+| DOMAIN_EVENTs per second (burst) | 30 | 100 | Train entering busy throat |
+| Commands per second (steady) | 1–2 | 5–15 | All operators combined |
+| Avg event payload (FlatBuffers) | 40–120 bytes | 40–120 bytes | Per-object full state |
+| Snapshot size | ~10 kB | ~50 kB | Single chunk |
+| EDR rows per session | ~10 | ~1 020 | From `11-database-model.md` |
+
+### Broadcast fanout (worst case)
+
+At 36 clients and 100 events/s: **3 600 frame writes/s**, ~120 bytes each = **3.4 Mbps outbound**.
+Still well within the 50 Mbps recommended uplink. PostgreSQL event log at 100 writes/s is trivial.
+
+The session server must handle 36 simultaneous TCP connections in a single select/epoll loop — straightforward for a C++ server.
+
+### Design target
+
+The architecture is sized for full Trójmiasto from the start. MVP will be validated with 2–3 clients; the server hardware (recommended 4 vCPU / 8 GB) handles the full scenario without changes.
+
+---
+
+## Load assumptions used in sizing calculations
 
 | Parameter | Value | Rationale |
 |---|---|---|
-| Concurrent sessions | 2 | Practical MVP target for two players |
-| Operator clients total | 8 | 4 per session, upper realistic estimate |
+| Concurrent sessions | 1 | Single shared session |
+| Operator clients total | 36 | Full Trójmiasto peak (see table above) |
 | Engine tick rate | 20 Hz | 50 ms per cycle, enough for signaling state changes |
-| State pushes per second (per session) | 20 | One push per engine tick on change |
-| Average state payload | 500 bytes | Estimated JSON or binary delta for ~10 changed elements |
-| Average command payload | 200 bytes | Single command with metadata |
+| State pushes per second (per session) | 100 | Burst during train movement through complex throat |
+| Average event payload | 120 bytes | FlatBuffers binary (replaces JSON estimate) |
+| Average command payload | 80 bytes | FlatBuffers binary |
 | Peak operator commands per second | 2 per client | Realistic burst for an active operator |
-| TCP/WebSocket framing overhead factor | 1.4 | Headers, framing, and ACKs |
+| TCP framing overhead factor | 1.1 | Binary framing (16-byte header); much lower than JSON/WebSocket |
 
 ## What actually loads the machine
 

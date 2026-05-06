@@ -51,6 +51,6 @@
 4. ~~What should be the initial station config format (JSON/YAML/protobuf)?~~ **Resolved:** split JSON (three files per station: `meta.json`, `topology.json`, `objects.json`). Engine loads via nlohmann/json. Schema validated by the editor. Details in `08-track-topology-model.md`.
 5. ~~Operator client↔server transport: TCP vs UDP?~~ **Resolved:** TCP persistent socket. Domain events are safety-critical and must all be delivered; UDP + mandatory ACK adds complexity with no gain at this traffic volume and frequency.
 6. Is Naterki station included? Final station count affects default assignment and map scope.
-7. Database topology: single database instance with separate schemas for master train data and session state, or two distinct database instances? What are the consistency and operational tradeoffs?
-8. EDR integration path: adapt and wrap the existing C# prototype, or rewrite as a native server-side component? Criteria: language consistency, maintainability, interface contract stability.
+7. ~~Database topology: single database instance with separate schemas for master train data and session state, or two distinct database instances?~~ **Resolved:** one PostgreSQL instance, two schemas — `fleet` and `session`. Details in `11-database-model.md`.
+8. ~~EDR integration path: adapt and wrap the existing C# prototype, or rewrite as a native server-side component?~~ **Resolved:** new native C++ component. Owns timetable templates and live EDR data. Communicates with engine via direct in-process call or Unix socket.
 9. Supervisor/monitoring module: is a dedicated module needed to coordinate EDR↔engine data flow and oversee session integrity? What is its scope and placement?

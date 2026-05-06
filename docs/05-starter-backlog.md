@@ -4,16 +4,16 @@
 
 - [x] Agree on station map configuration format. **Resolved:** split JSON — `meta.json`, `topology.json`, `objects.json` per station; engine loads via nlohmann/json; schema validated by editor. Details in `08-track-topology-model.md`.
 - [x] Define command/event/snapshot communication contract. **Resolved:** 16-byte binary frame (magic + type + flags + seq_id + payload_len + CRC32); FlatBuffers payloads; message catalog: COMMAND / COMMAND_ACK / COMMAND_NAK / DOMAIN_EVENT / SNAPSHOT_CHUNK / HEARTBEAT / HANDSHAKE / TAKEOVER. Details in `09-communication-contract.md`.
-- [ ] Define minimal database model.
+- [x] Define minimal database model. **Resolved:** one PostgreSQL instance, two schemas — `fleet` (static reference data) and `session` (events, snapshots, EDR live, posterunek assignments, chat). Details in `11-database-model.md`.
 - [ ] Prepare one reference traffic scenario for testing.
 - [x] Choose deployment model: dedicated authoritative server.
 - [x] Confirm client delivery model: single native C++ desktop application per player, containing both Pulpity (station panel tabs) and EDR (register tabs). No browser client.
-- [ ] Define MVP load profile (sessions, clients, update rate, payload size). **Note:** multi-operator per station (posterunki) increases expected client count per session.
+- [x] Define MVP load profile (sessions, clients, update rate, payload size). **Resolved:** full Trójmiasto = 9 stations, ~36 peak clients, 20–100 events/s, 50 kB snapshot, ~1 020 EDR rows/session. Details in `06-server-sizing-baseline.md`.
 - [ ] Define server SLO targets for p95 latency, loop time, and packet loss tolerance.
 - [ ] Confirm final station list (include or exclude Naterki) and define default station-to-player assignment.
 - [ ] Define station ownership and takeover protocol (request, grant, revoke).
-- [ ] Decide EDR integration path: adapt existing C# prototype or rewrite as a new server-side component.
-- [ ] Decide database topology: single DB with separate schemas vs. two distinct instances (master train data vs. session state).
+- [x] Decide EDR integration path: **Resolved:** new native C++ component (not adapted from C# prototype); owns `fleet.timetable_templates` and `session.edr_entries`; communicates with engine via direct call / Unix socket (Channel 2).
+- [x] Decide database topology: **Resolved:** single PostgreSQL instance, two schemas (`fleet` / `session`). See `11-database-model.md`.
 - [ ] Establish project language policy: English for all code, identifiers, comments, and documentation (translation tools are acceptable).
 
 ## Priority P1

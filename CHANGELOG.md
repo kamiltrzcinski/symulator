@@ -11,6 +11,19 @@ Entry format:
 
 ---
 
+## [0.2.0] — 2026-05-06
+
+### Added
+- Database model document (`11-database-model.md`): two-schema PostgreSQL layout (`fleet` + `session`), full DDL for all tables (vehicles, train definitions, timetable templates, sessions, events, snapshots, edr_entries, posterunek_assignments, chat_log), EDR row volume estimate for Trójmiasto (~1 020 rows/session), MVP retention policy, two open questions (Q-DB-1, Q-DB-2)
+- MVP load profile section in `06-server-sizing-baseline.md`: full Trójmiasto = 9 stations, 18–27 signaling operators + 9 EDR operators = ~36 peak clients, 20–100 events/s, burst 100 events/s; load assumptions updated to reflect binary FlatBuffers payloads (120 bytes vs. 500-byte JSON estimate)
+
+### Changed
+- `02-system-requirements.md`: OQ-7 (database topology) and OQ-8 (EDR integration path) marked resolved
+- `05-starter-backlog.md`: four P0 items marked resolved (database model, load profile, EDR integration path, database topology)
+- `docs/README.md` index updated
+
+---
+
 ## [0.1.9] — 2026-05-06
 
 ### Added
