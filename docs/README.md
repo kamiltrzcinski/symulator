@@ -10,7 +10,7 @@ This folder contains the agreed scope and implementation plan.
 - `04-roadmap.md` - delivery stages and completion criteria.
 - `05-starter-backlog.md` - first tasks to move into issues.
 - `06-server-sizing-baseline.md` - dedicated server hardware/network baseline and validation plan.
-
+- `07-ebiscreen-description.md` - decription about ebiscreen device
 ## Update rules
 
 - Every major project decision should be captured in the relevant document.
