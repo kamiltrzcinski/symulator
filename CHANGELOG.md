@@ -11,6 +11,19 @@ Entry format:
 
 ---
 
+## [0.2.2] — 2026-05-06
+
+### Added
+- Server internal API document (`12-server-api.md`): seven C++ pure-virtual interface contracts (`ICommandHandler`, `IEventEmitter`, `ISnapshotProvider`, `ITopologyStore`, `ISessionStore`, `IEDRService`, `IPLKImporter`), module boundary diagram, session startup call sequence
+- PLK Open Railway Data API integration: `IPLKImporter` fetches `GET /api/v1/schedules` and `GET /api/v1/dictionaries/stations` at server startup; 9 req/run (well within 100 req/hour basic limit); maps PLK fields to `fleet.timetable_templates`; future real-time operations mode noted (post-MVP, no architectural changes required)
+- Three open questions recorded (Q-API-1 through Q-API-3)
+
+### Changed
+- Backlog P1: `Draft server API` marked resolved
+- `docs/README.md` index updated
+
+---
+
 ## [0.2.1] — 2026-05-06
 
 ### Added
