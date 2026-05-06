@@ -51,3 +51,9 @@ Other objects:
 ## Global Identifier (gID)
 
 Format:
+`TM-LCS_Or-RS_Tm22-0000001`
+
+- type: `TM`
+- area: `LCS_Or`
+- pID: `RS_Tm22`
+- UUID: `0000001`
