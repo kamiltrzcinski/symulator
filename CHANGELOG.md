@@ -11,6 +11,22 @@ Entry format:
 
 ---
 
+## [0.2.1] — 2026-05-06
+
+### Added
+- F-021: flexible posterunek assignment — player receives any number of posterunki from any stations; client shows one pulpit tab + one EDR tab per posterunek
+- F-022: on-demand client topology loading — station JSON bundle loaded when player opens panel, not at session start; server loads all topologies at startup for interlocking
+- N-010: SLO targets formalised — p95 command round-trip ≤100 ms, engine loop ≤5 ms/tick, packet loss <1%, reconnect ≤5 s, broadcast fanout ≤10 ms
+- N-011: language policy — code/comments English-only; display strings use `{"pl": ..., "en": ...}` map in JSON for future i18n
+
+### Changed
+- Open questions OQ-2 (train physics) and OQ-6 (Naterki) marked resolved
+- D-005 updated to reflect `fleet` schema decision
+- Backlog: SLO targets, station list, ownership protocol, language policy all marked resolved
+- Backlog: Ownership section updated (EDR owner confirmed as new native C++ component)
+
+---
+
 ## [0.2.0] — 2026-05-06
 
 ### Added

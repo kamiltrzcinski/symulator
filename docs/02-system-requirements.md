@@ -22,6 +22,8 @@
 - F-018: The binary protocol uses a 16-byte frame header (magic 0x5352, msg_type, flags, seq_id, payload_len, CRC-32) with FlatBuffers-serialized payloads. Schema files in `proto/` are the canonical contract. Message types: HANDSHAKE, HEARTBEAT, COMMAND, COMMAND_ACK, COMMAND_NAK, DOMAIN_EVENT, SNAPSHOT_CHUNK, SESSION_NOTICE, TAKEOVER_REQUEST, TAKEOVER_RESPONSE, CHAT_MESSAGE, VOICE_CHAN_JOIN/LEAVE/STATE. Details in `09-communication-contract.md`.
 - F-019: Operators are assigned to posterunki (sub-posts) within a station. Multiple operators may work the same station simultaneously, each controlling objects within their posterunek scope. For MVP with single-posterunek stations the model degenerates to per-station ownership.
 - F-020: A train is a `std::vector<Vehicle>` assembled from ordered vehicle `gID` references in a composition JSON. Each vehicle has `lengthM` and `axleCount`; the engine derives section occupancy from axle counting at `It`/`iz` devices. Physics v1 uses constant acceleration; v2 (post-MVP) uses locomotive `powerKW` and `tractionForceKN` with total consist mass. Details in `10-vehicle-model.md`.
+- F-021: A player client may be assigned any number of posterunki from any stations in the session, regardless of geographic grouping. The client presents one pulpit tab per assigned posterunek and one EDR tab per assigned posterunek; the operator switches freely between tabs. Posterunek assignment is managed by the session server and communicated in `HANDSHAKE_ACK`.
+- F-022: Station topology (JSON bundle) is loaded by the client on demand — when the player opens a panel for that station — not pre-loaded for all stations at session start. The server loads all topologies at session start for interlocking validation.
 
 ## Non-functional requirements
 
@@ -34,6 +36,8 @@
 - N-007: The database must support historical session replay.
 - N-008: The architecture must follow SOLID principles at both class/function and module/system level to allow independent development, testing, and replacement of components.
 - N-009: A single TCP persistent socket with custom binary framing is the network communication protocol for the system. It is used for client↔server real-time sync. Intra-server modules (EDR↔engine) on the same host communicate via direct in-process calls or a Unix socket. No separate REST/HTTP layer is introduced for MVP; this avoids maintaining two protocol stacks and two serialization formats.
+- N-010: SLO targets — p95 command round-trip ≤100 ms; engine loop ≤5 ms/tick at 20 Hz; packet loss tolerance <1%; client reconnect + snapshot sync ≤5 s; broadcast fanout lag (server to all clients) ≤10 ms.
+- N-011: All display strings (device names, vehicle names, station names) use a language-keyed map (`{"pl": "...", "en": "..."}`) in JSON definitions. Code, identifiers, and comments are English-only. This structure supports future UI i18n without schema changes.
 
 ## Data requirements
 
@@ -41,16 +45,16 @@
 - D-002: Timetable data stores trains, timing, and control points.
 - D-003: Event log stores timestamp, type, source, and payload.
 - D-004: Session snapshot stores current state and model version.
-- D-005: Master train database stores fleet-wide train definitions and route data independent of active session state (exact relationship to session database — separate instance or separate schema — is an open question).
+- D-005: Master train database (`fleet` schema) stores fleet-wide vehicle definitions and timetable templates. Populated by importing JSON config files at session start; read-only during an active session.
 
 ## Open questions
 
 1. ~~Is AI part of MVP, or only a post-MVP iteration?~~ **Resolved:** AI is a separate module from the start; it is not embedded in the engine. It communicates via the engine API (F-010). Planned for post-MVP delivery.
-2. How detailed should train behavior be (physics-based vs. simplified route traversal)?
+2. ~~How detailed should train behavior be?~~ **Partially resolved:** v1 uses constant acceleration (MVP); v2 adds power/mass physics post-MVP. Details in `10-vehicle-model.md`.
 3. ~~Are multi-level permissions required?~~ **Partially resolved:** station-level ownership and takeover is required (F-012, F-013). Full role hierarchy (admin, observer) is post-MVP.
 4. ~~What should be the initial station config format (JSON/YAML/protobuf)?~~ **Resolved:** split JSON (three files per station: `meta.json`, `topology.json`, `objects.json`). Engine loads via nlohmann/json. Schema validated by the editor. Details in `08-track-topology-model.md`.
 5. ~~Operator client↔server transport: TCP vs UDP?~~ **Resolved:** TCP persistent socket. Domain events are safety-critical and must all be delivered; UDP + mandatory ACK adds complexity with no gain at this traffic volume and frequency.
-6. Is Naterki station included? Final station count affects default assignment and map scope.
+6. ~~Is Naterki station included?~~ **Resolved:** excluded from MVP. Post-MVP addition. Final MVP station list: 9 stations, Gdynia Chylonia → Gdańsk Orunia.
 7. ~~Database topology: single database instance with separate schemas for master train data and session state, or two distinct database instances?~~ **Resolved:** one PostgreSQL instance, two schemas — `fleet` and `session`. Details in `11-database-model.md`.
 8. ~~EDR integration path: adapt and wrap the existing C# prototype, or rewrite as a native server-side component?~~ **Resolved:** new native C++ component. Owns timetable templates and live EDR data. Communicates with engine via direct in-process call or Unix socket.
 9. Supervisor/monitoring module: is a dedicated module needed to coordinate EDR↔engine data flow and oversee session integrity? What is its scope and placement?
