@@ -11,6 +11,15 @@ Entry format:
 
 ---
 
+## [0.2.3] — 2026-05-07
+
+### Added
+- Scenario editor architecture (`13-scenario-editor-architecture.md`): three-editor model (Station Editor, Route Editor, Timetable Editor); `sections.json` inter-station section data model with `boundary_iz_from`/`boundary_iz_to` interlocking boundary fields; `routes.json` grouping; `IScenarioLinter` three-layer validation (L1 station bundles, L2 route topology, L3 timetable); `LintDiagnostic` structure; `ScenarioBundle` input type; scenario directory layout
+- Extended area assessment: Wejherowo → Pruszcz Gdański (13 stations) feasible on 4 vCPU / 8 GB RAM; constraints are editorial, not architectural
+- Four open questions (Q-EDI-1 through Q-EDI-4)
+
+---
+
 ## [0.2.2] — 2026-05-06
 
 ### Added
