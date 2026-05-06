@@ -45,7 +45,7 @@
 1. ~~Is AI part of MVP, or only a post-MVP iteration?~~ **Resolved:** AI is a separate module from the start; it is not embedded in the engine. It communicates via the engine API (F-010). Planned for post-MVP delivery.
 2. How detailed should train behavior be (physics-based vs. simplified route traversal)?
 3. ~~Are multi-level permissions required?~~ **Partially resolved:** station-level ownership and takeover is required (F-012, F-013). Full role hierarchy (admin, observer) is post-MVP.
-4. What should be the initial station config format (JSON/YAML/protobuf)?
+4. ~~What should be the initial station config format (JSON/YAML/protobuf)?~~ **Resolved:** split JSON (three files per station: `meta.json`, `topology.json`, `objects.json`). Engine loads via nlohmann/json. Schema validated by the editor. Details in `08-track-topology-model.md`.
 5. ~~Operator client↔server transport: TCP vs UDP?~~ **Resolved:** TCP persistent socket. Domain events are safety-critical and must all be delivered; UDP + mandatory ACK adds complexity with no gain at this traffic volume and frequency.
 6. Is Naterki station included? Final station count affects default assignment and map scope.
 7. Database topology: single database instance with separate schemas for master train data and session state, or two distinct database instances? What are the consistency and operational tradeoffs?

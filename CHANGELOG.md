@@ -11,6 +11,20 @@ Entry format:
 
 ---
 
+## [0.1.7] — 2026-05-06
+
+### Added
+- Track topology object model documented (`08-track-topology-model.md`): track section (`OT`) and switch (`ZWR`) as graph edges; `It` and `iz` axle counters as graph nodes; field definitions for length, electrification, max speed, signals
+- Station config file format decided: split JSON bundle (`meta.json` / `topology.json` / `objects.json`) per station, loaded by engine via nlohmann/json, validated by editor against JSON Schema; future option noted (SQLite as editor-native format with JSON export)
+- Topology graph model: layout as directed multigraph, occupancy and route checking reduce to graph traversal
+- Three open topology questions recorded (Q-TOPo-1 double slips, Q-TOPo-2 diamond crossings, Q-TOPo-3 coordinate system)
+
+### Changed
+- Open question #4 (`02-system-requirements.md`): marked resolved — split JSON format selected
+- Starter backlog P0: station map configuration format item marked resolved
+
+---
+
 ## [0.1.6] — 2026-05-03
 
 ### Changed

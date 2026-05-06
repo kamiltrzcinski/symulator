@@ -1,6 +1,6 @@
 # Simulator
 
-A railway signaling simulation project inspired by Ebilock/SimRail workflows.
+A railway signaling simulation project inspired by Ebilock workflows.
 
 The repository is currently in planning mode. The first documentation baseline is available in `docs/`.
 

@@ -2,7 +2,7 @@
 
 ## Priority P0
 
-- [ ] Agree on station map configuration format.
+- [x] Agree on station map configuration format. **Resolved:** split JSON — `meta.json`, `topology.json`, `objects.json` per station; engine loads via nlohmann/json; schema validated by editor. Details in `08-track-topology-model.md`.
 - [ ] Define command/event/snapshot communication contract.
 - [ ] Define minimal database model.
 - [ ] Prepare one reference traffic scenario for testing.
