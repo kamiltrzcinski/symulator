@@ -1,4 +1,4 @@
-# Symylator
+# Simulator
 
 A railway signaling simulation project inspired by Ebilock/SimRail workflows.
 
