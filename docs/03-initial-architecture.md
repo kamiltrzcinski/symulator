@@ -48,7 +48,44 @@
 
    Rationale: keeping AI decoupled means the engine remains deterministic and testable without an AI runtime; the AI can be developed, replaced, or disabled independently.
 
-## Proposed flow
+7. Scenario Editor (standalone desktop tool)
+   - Standalone C++ desktop application; independent of the operator client binary.
+   - Links `libtrackview` (shared rendering library) for the tile-based canvas; the operator client links the same library.
+   - Produces per-station topology bundles (`meta.json`, `topology.json`, `objects.json`), inter-station section definitions, and timetable template data consumed by the Session Server.
+   - Native working format: `.scendb` (SQLite per station project); exports to JSON bundles for the engine.
+   - Operates fully offline for topology and manual timetable authoring; a server connection is required only for PLK schedule import (handled server-side via `IPLKImporter`).
+   - Subject to the same cross-platform and dependency-bundling requirements as the operator client (see below).
+
+## Cross-platform build requirements
+
+### Development environment
+
+Primary development platform: **Linux x86-64**.
+Target platforms: **Linux x86-64, Windows x86-64, macOS x86-64**.
+
+The server runs on Linux only. All end-user components (operator client, scenario editor) must build and run on all three target platforms.
+
+### Dependency bundling policy
+
+**All third-party libraries must be bundled with the client and editor distributions.** No dependency on system-installed versions of Qt, SQLite, or any other library. This removes installation friction for end users and ensures version consistency across all platforms.
+
+| Dependency | Scope | Bundling method |
+|---|---|---|
+| Qt 6 | client, editor, `libtrackview` | Static link or bundled shared libs via `windeployqt` / `linuxdeployqt` / `macdeployqt` |
+| SQLite | editor (`.scendb`) | Amalgamation source compiled directly into the editor binary |
+| nlohmann/json | engine, editor, server | Header-only; no separate binary |
+| OpenSSL (if needed) | server only | System-provided on Linux server; not required in client distributions |
+
+### Build system
+
+**CMake** (≥ 3.25) with **vcpkg** for dependency management. A single `CMakeLists.txt` at the repo root controls all components via `add_subdirectory`. Cross-compilation for Windows from Linux is supported via MinGW-w64 or LLVM clang-cl toolchain files. macOS builds run on a native macOS CI runner; no cross-compilation from Linux.
+
+### Contributor onboarding goal
+
+A new contributor on **Windows** must be able to clone the repo, run one CMake configure command, and obtain a working build — without installing anything outside the repo. Requirements:
+- All dependencies resolved by CMake / vcpkg (no manual download steps).
+- No hard-coded UNIX paths in build scripts or source.
+- CI pipeline validates Linux, Windows, and macOS builds on every pull request.
 
 1. Client sends command to server.
 2. Server validates and forwards to engine.

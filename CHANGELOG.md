@@ -11,6 +11,18 @@ Entry format:
 
 ---
 
+## [0.2.4] — 2026-05-07
+
+### Added
+- `libtrackview` shared rendering library architecture (`13-scenario-editor-architecture.md`): `TrackGrid`, `TrackScene`, `StateOverlay`, `TileSet` abstraction with `EbiScreenTileSet` (wide flat cells, coloured occupancy, arrow-head markers) and `TechnicalDiagramTileSet` (square cells, full 45° diagonals, monochrome); visual style comparison table; usage in operator client
+- Station Editor native project format: `.scendb` (SQLite) with full schema — `project_meta`, `tiles`, `connections`, `objects`, `edit_history`; rationale over flat JSON (FK enforcement, SQL queries, persistent undo/redo)
+- Layout style (`ebi_screen` / `technical_diagram`) selected at project creation; stored in `project_meta`; pure rendering hint, does not affect exported JSON bundles
+- Editor offline operation: topology authoring and manual timetable editing require no server connection; PLK import is forwarded to server and handled by `IPLKImporter` server-side
+- Component 7 (Scenario Editor) in initial architecture (`03-initial-architecture.md`): standalone C++ desktop tool, links `libtrackview`, produces station bundles + sections + timetable data, operates offline for authoring
+- Cross-platform build requirements (`03-initial-architecture.md`): Linux/Windows/macOS x86-64 targets; all dependencies bundled (Qt6 via deploy tools, SQLite amalgamation, nlohmann/json header-only); CMake ≥ 3.25 + vcpkg; Windows contributor onboarding goal (clone → configure → build, no manual steps)
+
+---
+
 ## [0.2.3] — 2026-05-07
 
 ### Added

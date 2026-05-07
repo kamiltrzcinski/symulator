@@ -14,12 +14,51 @@ The three editors are independent tools (or tabs within one tool). A **Scenario 
 
 ---
 
+## `libtrackview` — Shared Track Rendering Library
+
+A C++ shared library (`.so` / `.dll`) linked by both the Scenario Editor and the operator client. It is the single source of truth for track schematic visualization — no duplicated rendering code between tools.
+
+### Module structure
+
+```
+libtrackview/
+  TrackGrid           — in-memory tile model: map<(col, row) → Tile>
+  TrackScene          — QGraphicsScene subclass; renders TrackGrid via a TileSet
+  StateOverlay        — overlays live runtime state: occupancy, signal aspects, switch positions
+  TileSet (abstract)  — defines how each tile type is drawn
+    ├── EbiScreenTileSet          — wide flat cells, arrow-head direction markers, coloured occupancy
+    └── TechnicalDiagramTileSet   — square cells, full 45° diagonals, monochrome
+  TileRegistry        — maps tile type string → connection port geometry (topology; style-independent)
+```
+
+`TileRegistry` (topology, which ports connect to which) is separated from `TileSet` (drawing). The same `TrackGrid` renders correctly in both styles without any data conversion.
+
+### Visual style comparison
+
+| Property | EbiScreen style | Technical Diagram style |
+|---|---|---|
+| Cell ratio | ~3:1 (wide, flat) | 1:1 (square) |
+| Diagonal segments | Short corner clips at junctions only | Full 45° runs spanning multiple cells |
+| Colour scheme | Occupancy-coloured (green / red / yellow) | Monochrome (white on black) |
+| Direction indicators | Arrow-head glyphs on track | None |
+| Reference | Jankowo screenshot | Skierniewice screenshot |
+
+The style is a **project-level preference** stored in the `.scendb` project file. It is a pure rendering hint and does not affect the tile data model or the exported JSON bundles.
+
+### Usage in the operator client
+
+The client creates a `LiveTrackScene` (subclass of `TrackScene`) with a `StateOverlay` wired to the server's event stream. No editing tools are exposed. The same `libtrackview` is linked — only the interaction layer differs between editor and client.
+
+---
+
 ## Editor 1 — Station Editor
 
 Produces the per-station topology bundle already defined in `08-track-topology-model.md`.
 
+The editor operates **fully offline** — no server connection is required for topology authoring. At project creation the operator selects the visual layout style (`ebi_screen` or `technical_diagram`); this choice is stored in the project and affects only rendering — it does not alter the exported JSON bundle. The style can be changed at any time without data loss.
+
 **Responsibilities:**
-- Place and connect `OT` (track sections) and `ZWR` (switches/crossovers) on a canvas.
+- Place and connect `OT` (track sections) and `ZWR` (switches/crossovers) on a tile-based canvas.
 - Insert `Iz` (axle counter) nodes at section boundaries; assign unique `Iz` IDs.
 - Place signals (`SYG`), assign unique IDs, mounting `OT`, direction, and valid aspects.
 - Assign `gID` to every object via `generateGID(type, area, pID)`.
@@ -31,6 +70,63 @@ Produces the per-station topology bundle already defined in `08-track-topology-m
 - Every signal has a unique station-scoped ID, a mounting `OT`, and ≥ 1 aspect.
 - No dangling references (object referenced but not declared).
 - No duplicate `gID` within the station bundle.
+
+### Native project format — `.scendb` (SQLite)
+
+The editor's working file is a SQLite database (`.scendb`). The engine never reads `.scendb` directly; it is the editor's internal format. Export to the three-file JSON bundle is a separate, explicit action.
+
+**Rationale over flat JSON:** foreign-key enforcement catches dangling `tile_id` / `from_tile` references at write time; SQL queries support topology analysis during authoring; a single binary file is easy to pass between contributors; `edit_history` provides persistent undo/redo at no extra cost.
+
+```sql
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE project_meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+  -- keys: station_name, station_sid, area, layout_style, schema_version
+);
+
+-- Tile = one cell on the schematic grid
+CREATE TABLE tiles (
+  id       TEXT    PRIMARY KEY,   -- gID-style, assigned on placement
+  col      INTEGER NOT NULL,
+  row      INTEGER NOT NULL,
+  type     TEXT    NOT NULL,      -- 'straight_h', 'straight_v', 'curve_ne', 'curve_nw',
+                                  --  'curve_se', 'curve_sw', 'switch_left', 'switch_right',
+                                  --  'diamond', 'slip', 'buffer_stop', 'boundary'
+  rotation INTEGER NOT NULL DEFAULT 0,  -- 0 / 90 / 180 / 270
+  pID      TEXT,
+  UNIQUE(col, row)
+);
+
+-- Explicit port-to-port connections between tiles
+CREATE TABLE connections (
+  id        TEXT PRIMARY KEY,
+  from_tile TEXT NOT NULL REFERENCES tiles(id),
+  from_port TEXT NOT NULL,   -- 'west', 'east', 'north', 'south', 'trunk', 'straight', 'divergent'
+  to_tile   TEXT NOT NULL REFERENCES tiles(id),
+  to_port   TEXT NOT NULL,
+  UNIQUE(from_tile, from_port)
+);
+
+-- Signals, derailers, line blocks, Iz nodes placed on a tile
+CREATE TABLE objects (
+  id        TEXT PRIMARY KEY,
+  tile_id   TEXT NOT NULL REFERENCES tiles(id),
+  type      TEXT NOT NULL,   -- 'signal', 'derailer', 'line_block', 'iz'
+  pID       TEXT NOT NULL,
+  direction TEXT,            -- 'A' / 'B' for signals
+  props     TEXT             -- JSON blob for type-specific attributes
+);
+
+-- Persistent undo/redo log
+CREATE TABLE edit_history (
+  seq       INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TEXT    NOT NULL,
+  action    TEXT    NOT NULL,  -- JSON: {op, target_id, before, after}
+  undone    INTEGER NOT NULL DEFAULT 0
+);
+```
 
 ---
 
@@ -106,8 +202,8 @@ Produces / manages `fleet.timetable_templates` rows (as described in `11-databas
 
 | Mode | Action |
 |---|---|
-| **PLK import** | Call `IPLKImporter::import(config)` — fetches `GET /api/v1/schedules` for each station SID; maps to template rows. Operator reviews and confirms. |
-| **Manual edit** | Create / edit template rows directly (useful for fictional or modified timetables). |
+| **PLK import** | Triggered from the editor UI; the request is forwarded to the **Session Server**, which calls `IPLKImporter::import(config)` — fetches `GET /api/v1/schedules` for each station SID and maps results to template rows. The editor receives the result and the operator reviews and confirms. The editor itself never contacts PLK directly; a server connection is required for this mode. |
+| **Manual edit** | Create / edit template rows directly (useful for fictional or modified timetables). Works fully offline. |
 
 **Validation (live, Layer 3):**
 - Arrivals and departures monotonically increasing per train per day (no time-travel).
