@@ -1,0 +1,46 @@
+---
+Language:        Cpp
+BasedOnStyle:    Google
+
+# Indentation
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+AccessModifierOffset: -4
+
+# Line length
+ColumnLimit:     100
+
+# Brace style — each opening brace on its own line (Allman)
+BreakBeforeBraces: Allman
+
+# Short constructs — disallow one-liners to keep diffs readable
+AllowShortBlocksOnASingleLine:     Never
+AllowShortFunctionsOnASingleLine:  Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine:      false
+
+# Blank lines
+MaxEmptyLinesToKeep: 1
+
+# Includes — keep sorted within each group, group order preserved
+SortIncludes:    CaseInsensitive
+IncludeBlocks:   Preserve
+
+# Constructor initialiser lists
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 4
+
+# Namespace
+NamespaceIndentation: None
+CompactNamespaces: false
+
+# Pointer/reference alignment
+PointerAlignment: Left
+
+# Template
+SpaceAfterTemplateKeyword: false
+
+# Comments
+SpacesBeforeTrailingComments: 2
+ReflowComments: false

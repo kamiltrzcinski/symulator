@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# scripts/git-hooks/pre-commit
+#
+# This file is TRACKED in the repository.
+# Git is directed here automatically when you run cmake (core.hooksPath is set
+# to scripts/git-hooks/ by CMakeLists.txt).  You do not need to install it manually.
+#
+# What this hook checks:
+#   1. CHANGELOG.md must be among the staged files.
+#   2. Every staged .cpp / .hpp / .h file must comply with clang-format
+#      (checked via `git clang-format --diff`).
+#
+# To skip for a draft/WIP commit:  git commit --no-verify
+
+set -euo pipefail
+
+RED='\033[0;31m'
+YLW='\033[1;33m'
+GRN='\033[0;32m'
+RST='\033[0m'
+
+err() { printf "%b\n" "$@" >&2; }
+ok()  { printf "%b\n" "$@"; }
+
+FAIL=0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 1 — CHANGELOG.md must be staged
+# ─────────────────────────────────────────────────────────────────────────────
+if ! git diff --cached --name-only | grep -q '^CHANGELOG\.md$'; then
+    err ""
+    err "${RED}[pre-commit] FAIL: CHANGELOG.md has not been staged.${RST}"
+    err ""
+    err "  Every commit must include an update to CHANGELOG.md."
+    err "  Steps:"
+    err "    1. Open CHANGELOG.md and add a line describing your change."
+    err "    2. git add CHANGELOG.md"
+    err "    3. git commit ..."
+    err ""
+    err "  To skip for a draft/WIP commit:  git commit --no-verify"
+    err ""
+    FAIL=1
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 2 — Staged C++ files must be clang-format compliant
+# ─────────────────────────────────────────────────────────────────────────────
+STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp|h)$' || true)
+
+if [ -n "$STAGED_CPP" ]; then
+    if ! command -v clang-format &>/dev/null; then
+        err ""
+        err "${YLW}[pre-commit] WARNING: clang-format not found — formatting check skipped.${RST}"
+        err "  Install it to enable automatic formatting enforcement:"
+        err "    Ubuntu/Debian:  sudo apt install clang-format"
+        err "    Windows:        winget install LLVM.LLVM"
+        err ""
+    else
+        # git clang-format --diff prints the diff that would result from running
+        # clang-format on the staged files.  A real diff contains '---' / '+++'.
+        FORMAT_DIFF=$(git clang-format --diff HEAD -- $STAGED_CPP 2>&1 || true)
+
+        if printf '%s\n' "$FORMAT_DIFF" | grep -qE '^(---|\+\+\+|@@)'; then
+            err ""
+            err "${RED}[pre-commit] FAIL: Staged C++ files are not formatted correctly.${RST}"
+            err ""
+            err "  Run these commands to apply clang-format, re-stage, and commit again:"
+            err "    git clang-format HEAD"
+            err "    git add \$(git diff --name-only)"
+            err "    git commit ..."
+            err ""
+            err "  Files that need formatting:"
+            printf '%s\n' "$STAGED_CPP" | sed 's/^/    /' >&2
+            err ""
+            FAIL=1
+        fi
+    fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+if [ "$FAIL" -ne 0 ]; then
+    exit 1
+fi
+
+ok "${GRN}[pre-commit] All checks passed.${RST}"
+exit 0

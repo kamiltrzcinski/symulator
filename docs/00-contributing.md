@@ -91,7 +91,20 @@ Verify: open a **new** Command Prompt and type:
 ninja --version
 ```
 
-### Step 5 — Configure Git identity
+### Step 4a — Install clang-format
+
+clang-format is a code formatter. The repository requires all C++ files to follow a consistent style, and the commit check enforces this automatically — but only if clang-format is installed.
+
+Open Command Prompt and type:
+```
+winget install LLVM.LLVM
+```
+
+Verify: open a **new** Command Prompt and type:
+```
+clang-format --version
+```
+You should see `clang-format version 17.x.x` or higher. If the command is not found, add the LLVM `bin` folder (usually `C:\Program Files\LLVM\bin`) to your PATH manually.
 
 Git needs to know your name and email to attach to your commits. Run these two commands in Command Prompt, replacing the values with your own:
 
@@ -135,6 +148,7 @@ sudo apt update
 sudo apt install -y \
     git cmake ninja-build \
     gcc g++ \
+    clang-format \
     libgl1-mesa-dev \
     pkg-config zip curl unzip tar
 ```
@@ -236,38 +250,58 @@ If any test fails, fix it before opening a pull request. Do not submit code with
 
 ---
 
-## Pre-commit hook
+## Automatic commit checks
 
-The repository ships with a script that checks whether `CHANGELOG.md` has been updated before you commit. Installing it takes one command.
+The repository enforces two rules on every `git commit`. These checks run automatically — you do not need to do anything to enable them. They are activated the first time you run `cmake` (the configure step sets `git config core.hooksPath scripts/git-hooks/` in your local clone).
 
-### Install (Linux / macOS / Git Bash on Windows)
+### What is checked
 
-Run this once from the root of the repository:
+**Rule 1 — CHANGELOG.md must be staged.**
 
-```bash
-cp scripts/pre-commit-hook.sh .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+If you have not added `CHANGELOG.md` to your staged files, the commit is rejected with this message:
+
+```
+[pre-commit] FAIL: CHANGELOG.md has not been staged.
+
+  Every commit must include an update to CHANGELOG.md.
+  Steps:
+    1. Open CHANGELOG.md and add a line describing your change.
+    2. git add CHANGELOG.md
+    3. git commit ...
 ```
 
-After that, every `git commit` will automatically verify that `CHANGELOG.md` is among the staged files. If it is not, the commit is refused with a clear message.
+**Rule 2 — Staged C++ files must comply with clang-format.**
 
-### Windows — if the hook does not run
+If any staged `.cpp`, `.hpp`, or `.h` file does not match the project's code style (defined in `.clang-format`), the commit is rejected:
 
-Some Git clients on Windows (GitHub Desktop, TortoiseGit, the Git integration inside VS Code) do **not** execute `.git/hooks/pre-commit`. The hook only fires reliably from a real Git command line (Git Bash or Developer Command Prompt).
+```
+[pre-commit] FAIL: Staged C++ files are not formatted correctly.
 
-If you are not sure whether your client runs hooks, run the check manually before committing:
-
-```bash
-python scripts/check-changelog.py
+  Run these commands to apply clang-format, re-stage, and commit again:
+    git clang-format HEAD
+    git add $(git diff --name-only)
+    git commit ...
 ```
 
-This script prints `OK` or an error message. It requires Python 3 (already installed on most systems; type `python --version` to check). If you do not have Python, use this manual check instead:
+If `clang-format` is not installed, this check prints a warning and is skipped — the commit is still allowed. Install clang-format (see setup instructions above) to enable full enforcement.
 
-```bash
-git diff --cached --name-only
+### When both checks pass
+
+```
+[pre-commit] All checks passed.
 ```
 
-Look at the output. If `CHANGELOG.md` is **not** in the list, stop and update it before committing.
+Your commit goes through normally.
+
+### Bypassing for draft commits
+
+If you are making a rough work-in-progress commit on your own branch that you intend to clean up before review:
+
+```bash
+git commit --no-verify -m "wip: ..."
+```
+
+Do not use `--no-verify` on commits that will be part of a pull request.
 
 ---
  a change — step by step
@@ -329,7 +363,7 @@ Edit files, write code, add tests. Build and run the tests periodically to check
 
 ### Step 4 — Update CHANGELOG.md
 
-**This is mandatory.** A pre-commit hook will reject your commit if `CHANGELOG.md` is not staged.
+**This is mandatory.** The commit check (see [Automatic commit checks](#automatic-commit-checks) above) will reject your commit if `CHANGELOG.md` is not staged.
 
 Open `CHANGELOG.md`. At the top, below the header, you will find the most recent version block. Either add to it or create a new one. The format is:
 
@@ -456,7 +490,7 @@ symulator/
     reference/          ← reference station topologies used in integration tests
   proto/                ← FlatBuffers schema files (.fbs)
   docker/               ← docker-compose, Dockerfile, database init script
-  scripts/              ← helper scripts (pre-commit hook, version check)
+  scripts/              ← helper scripts (check-changelog.py, git-hooks/)
   docs/                 ← all project documentation (you are here)
   build/                ← generated by CMake; not committed to Git
 ```

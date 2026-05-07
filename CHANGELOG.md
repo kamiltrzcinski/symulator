@@ -11,6 +11,19 @@ Entry format:
 
 ---
 
+## [0.3.0] — 2026-05-07
+
+### Added
+- `scripts/git-hooks/pre-commit` — pre-commit hook tracked in the repository; activated automatically by CMake (no manual install required); checks: (1) `CHANGELOG.md` must be staged, (2) staged `.cpp`/`.hpp`/`.h` files must comply with `clang-format`; if formatting is wrong, prints exact commands to fix and re-stage; if `clang-format` is not installed, prints a warning and skips check 2 without blocking
+- `.clang-format` — project C++ style definition (Google base, 4-space indent, Allman braces, 100-column limit)
+
+### Changed
+- `CMakeLists.txt`: added `git config core.hooksPath scripts/git-hooks` block executed on every cmake configure; activates the tracked hook for all GUI and CLI git clients that use the system git binary (VS Code, GitHub Desktop, command line)
+- `docs/00-contributing.md`: "Pre-commit hook" section replaced with "Automatic commit checks" — documents what the hook checks, example output for each failure, and the `--no-verify` bypass for draft commits; Windows and Linux setup steps now include `clang-format` installation
+- `scripts/pre-commit-hook.sh` removed — replaced by `scripts/git-hooks/pre-commit` (tracked hook with `core.hooksPath`)
+
+---
+
 ## [0.2.9] — 2026-05-07
 
 ### Added

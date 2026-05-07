@@ -17,6 +17,29 @@ endif()
 
 project(symulator VERSION "${SYMULATOR_VERSION}" LANGUAGES CXX)
 
+# ── Git hooks — automatic setup ─────────────────────────────────────────────
+# Point git at the tracked hooks directory (scripts/git-hooks/).
+# This runs every time cmake is configured, so the setting is always in place
+# without any manual step from the contributor.
+# GUI clients (VS Code, GitHub Desktop, TortoiseGit) that call the system git
+# binary will also respect core.hooksPath.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+    execute_process(
+        COMMAND git config core.hooksPath scripts/git-hooks
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE _hooks_result
+        OUTPUT_QUIET
+        ERROR_QUIET
+    )
+    if(_hooks_result EQUAL 0)
+        message(STATUS "Git hooks configured: scripts/git-hooks/")
+    else()
+        message(WARNING
+            "Could not set git hooks path automatically.\n"
+            "Run once manually: git config core.hooksPath scripts/git-hooks")
+    endif()
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
