@@ -1,0 +1,14 @@
+{
+    "typeID":           "VT-GLB-452W-0000002",
+    "typeName":         "452W",
+    "vehicleType":      "FREIGHT_WAGON",
+    "vehicleSubtype":   "HOPPER",
+    "lengthM":          14.04,
+    "axleCount":        4,
+    "massEmptyT":       22.0,
+    "massGrossT":       90.0,
+    "maxSpeedKmh":      120,
+    "brakingLambdaPct": 100,
+    "powerKW":          null,
+    "tractionForceKN":  null
+}

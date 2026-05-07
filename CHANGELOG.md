@@ -11,6 +11,17 @@ Entry format:
 
 ---
 
+## [0.3.1] — 2026-05-07
+
+### Added
+- `data/vehicle_types/201e.json` — type Pafawag 201E (PKP series ET22); fields: `typeID`, `typeName`, `pkpSeries`, 6-axle electric locomotive, 120 t, 125 km/h, 3000 kW, 411 kN
+- `data/vehicle_types/452w.json` — type Wagony Świdnica 452W; 4-axle hopper wagon, 22 t tare, 90 t gross, 120 km/h
+- `data/vehicles/et22_001.json` — locomotive ET22-001 (type 201E), no deviations from type
+- `data/vehicles/452w_5375001.json` — wagon 452W-5375001, fully loaded (uses type default massGrossT 90 t)
+- `data/vehicles/452w_5375002.json` — wagon 452W-5375002, tare only (massGrossT overridden to 22.0 t)
+
+---
+
 ## [0.3.0] — 2026-05-07
 
 ### Added
