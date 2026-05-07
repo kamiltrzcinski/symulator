@@ -1,5 +1,5 @@
 {
-    "$comment": "Minimal Gdynia Orłowo topology for integration tests. Track direction: north is Gdynia Główna (GGO), south is Sopot (SOP). gIDs follow generateGID(type, area, pID) convention.",
+    "$comment": "Minimal Gdynia Orłowo topology for integration tests. Track direction: north is Gdynia Główna (GGO), south is Sopot (SOP). gIDs follow generateGID(type, area, pID) convention. Track sections are bidirectional — sideA/sideB carry no implied direction. Boundary connections to szlak sections use 'itID' (It axle counter); connections to switch legs use 'izID' (iz axle counter).",
 
     "boundary_nodes": [
         {
@@ -21,81 +21,148 @@
             "gID": "OT-TRJ-GDO-tor1a",
             "pID": "tor_1a",
             "sID": "GDO",
-            "startItID": "IT-TRJ-GDO-N-tor1",
-            "endItID": "IT-TRJ-GDO-S-zwr1-trunk",
-            "lengthM": 320.0,
-            "electrified": true,
-            "maxSpeedKmh": 120,
-            "signals": ["SEM-TRJ-GDO-Wp1", "SEM-TRJ-GDO-Ww1"]
+            "sideA": {
+                "neighborID": "BND-TRJ-GDO-N",
+                "itID":       "IT-TRJ-GDO-N-tor1",
+                "signals":    ["SEM-TRJ-GDO-Wp1"]
+            },
+            "sideB": {
+                "neighborID": "ZWR-TRJ-GDO-zwr1",
+                "izID":       "IZ-TRJ-GDO-zwr1-trunk",
+                "signals":    ["SEM-TRJ-GDO-Ww1"]
+            },
+            "lengthM":     320.0,
+            "electrified":  true,
+            "maxSpeedKmh":  120,
+            "occupied":     false
         },
         {
             "gID": "OT-TRJ-GDO-tor2a",
             "pID": "tor_2a",
             "sID": "GDO",
-            "startItID": "IT-TRJ-GDO-N-tor2",
-            "endItID": "IT-TRJ-GDO-S-zwr2-trunk",
-            "lengthM": 320.0,
-            "electrified": true,
-            "maxSpeedKmh": 120,
-            "signals": ["SEM-TRJ-GDO-Wp2", "SEM-TRJ-GDO-Ww2"]
+            "sideA": {
+                "neighborID": "BND-TRJ-GDO-N",
+                "itID":       "IT-TRJ-GDO-N-tor2",
+                "signals":    ["SEM-TRJ-GDO-Wp2"]
+            },
+            "sideB": {
+                "neighborID": "ZWR-TRJ-GDO-zwr2",
+                "izID":       "IZ-TRJ-GDO-zwr2-trunk",
+                "signals":    ["SEM-TRJ-GDO-Ww2"]
+            },
+            "lengthM":     320.0,
+            "electrified":  true,
+            "maxSpeedKmh":  120,
+            "occupied":     false
         },
         {
             "gID": "OT-TRJ-GDO-tor1b",
             "pID": "tor_1b",
             "sID": "GDO",
-            "startItID": "IT-TRJ-GDO-S-zwr1-straight",
-            "endItID": "BND-TRJ-GDO-S",
-            "lengthM": 280.0,
-            "electrified": true,
-            "maxSpeedKmh": 120,
-            "signals": ["SEM-TRJ-GDO-Sp1"]
+            "sideA": {
+                "neighborID": "ZWR-TRJ-GDO-zwr1",
+                "izID":       "IZ-TRJ-GDO-zwr1-straight",
+                "signals":    []
+            },
+            "sideB": {
+                "neighborID": "BND-TRJ-GDO-S",
+                "itID":       "IT-TRJ-GDO-S-tor1",
+                "signals":    ["SEM-TRJ-GDO-Sp1"]
+            },
+            "lengthM":     280.0,
+            "electrified":  true,
+            "maxSpeedKmh":  120,
+            "occupied":     false
         },
         {
             "gID": "OT-TRJ-GDO-tor2b",
             "pID": "tor_2b",
             "sID": "GDO",
-            "startItID": "IT-TRJ-GDO-S-zwr2-straight",
-            "endItID": "BND-TRJ-GDO-S",
-            "lengthM": 280.0,
-            "electrified": true,
-            "maxSpeedKmh": 120,
-            "signals": ["SEM-TRJ-GDO-Sp2"]
+            "sideA": {
+                "neighborID": "ZWR-TRJ-GDO-zwr2",
+                "izID":       "IZ-TRJ-GDO-zwr2-straight",
+                "signals":    []
+            },
+            "sideB": {
+                "neighborID": "BND-TRJ-GDO-S",
+                "itID":       "IT-TRJ-GDO-S-tor2",
+                "signals":    ["SEM-TRJ-GDO-Sp2"]
+            },
+            "lengthM":     280.0,
+            "electrified":  true,
+            "maxSpeedKmh":  120,
+            "occupied":     false
         },
         {
             "gID": "OT-TRJ-GDO-peron1",
             "pID": "peron_1",
             "sID": "GDO",
-            "startItID": "IT-TRJ-GDO-S-zwr1-divergent",
-            "endItID": "IT-TRJ-GDO-S-zwr2-divergent",
-            "lengthM": 210.0,
-            "electrified": true,
-            "maxSpeedKmh": 40,
-            "signals": []
+            "sideA": {
+                "neighborID": "ZWR-TRJ-GDO-zwr1",
+                "izID":       "IZ-TRJ-GDO-zwr1-divergent",
+                "signals":    []
+            },
+            "sideB": {
+                "neighborID": "ZWR-TRJ-GDO-zwr2",
+                "izID":       "IZ-TRJ-GDO-zwr2-divergent",
+                "signals":    []
+            },
+            "lengthM":     210.0,
+            "electrified":  true,
+            "maxSpeedKmh":  40,
+            "occupied":     false
         }
     ],
 
     "switches": [
         {
-            "gID": "ZWR-TRJ-GDO-zwr1",
-            "pID": "zwr_1",
-            "sID": "GDO",
-            "trunkIzID": "IZ-TRJ-GDO-zwr1-trunk",
-            "straightIzID": "IZ-TRJ-GDO-zwr1-straight",
-            "divergentIzID": "IZ-TRJ-GDO-zwr1-divergent",
-            "lengthM": 28.5,
-            "maxSpeedStraightKmh": 120,
+            "gID":    "ZWR-TRJ-GDO-zwr1",
+            "pID":    "zwr_1",
+            "sID":    "GDO",
+            "typeID": "DVT-GLB-ZWR-EEA4-0000002",
+            "trunk": {
+                "neighborID": "OT-TRJ-GDO-tor1a",
+                "izID":       "IZ-TRJ-GDO-zwr1-trunk",
+                "signals":    []
+            },
+            "straight": {
+                "neighborID": "OT-TRJ-GDO-tor1b",
+                "izID":       "IZ-TRJ-GDO-zwr1-straight",
+                "signals":    []
+            },
+            "divergent": {
+                "neighborID": "OT-TRJ-GDO-peron1",
+                "izID":       "IZ-TRJ-GDO-zwr1-divergent",
+                "signals":    []
+            },
+            "lengthM":              28.5,
+            "maxSpeedStraightKmh":  120,
             "maxSpeedDivergentKmh": 40
         },
         {
-            "gID": "ZWR-TRJ-GDO-zwr2",
-            "pID": "zwr_2",
-            "sID": "GDO",
-            "trunkIzID": "IZ-TRJ-GDO-zwr2-trunk",
-            "straightIzID": "IZ-TRJ-GDO-zwr2-straight",
-            "divergentIzID": "IZ-TRJ-GDO-zwr2-divergent",
-            "lengthM": 28.5,
-            "maxSpeedStraightKmh": 120,
+            "gID":    "ZWR-TRJ-GDO-zwr2",
+            "pID":    "zwr_2",
+            "sID":    "GDO",
+            "typeID": "DVT-GLB-ZWR-EEA4-0000002",
+            "trunk": {
+                "neighborID": "OT-TRJ-GDO-tor2a",
+                "izID":       "IZ-TRJ-GDO-zwr2-trunk",
+                "signals":    []
+            },
+            "straight": {
+                "neighborID": "OT-TRJ-GDO-tor2b",
+                "izID":       "IZ-TRJ-GDO-zwr2-straight",
+                "signals":    []
+            },
+            "divergent": {
+                "neighborID": "OT-TRJ-GDO-peron1",
+                "izID":       "IZ-TRJ-GDO-zwr2-divergent",
+                "signals":    []
+            },
+            "lengthM":              28.5,
+            "maxSpeedStraightKmh":  120,
             "maxSpeedDivergentKmh": 40
         }
     ]
+}
 }

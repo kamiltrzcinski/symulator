@@ -1,60 +1,60 @@
 {
-    "$comment": "Signals and other lineside objects for Gdynia Orłowo reference station.",
+    "$comment": "Signals and other lineside objects for Gdynia Orłowo reference station. Each signal references a typeID from data/device_types/.",
 
     "signals": [
         {
-            "gID": "SEM-TRJ-GDO-Wp1",
-            "pID": "Wp1",
-            "sID": "GDO",
-            "type": "ENTRY",
-            "direction": "NORTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Wp1",
+            "pID":                  "Wp1",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "ENTRY",
             "governs_track_section": "OT-TRJ-GDO-tor1a",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         },
         {
-            "gID": "SEM-TRJ-GDO-Wp2",
-            "pID": "Wp2",
-            "sID": "GDO",
-            "type": "ENTRY",
-            "direction": "NORTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Wp2",
+            "pID":                  "Wp2",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "ENTRY",
             "governs_track_section": "OT-TRJ-GDO-tor2a",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         },
         {
-            "gID": "SEM-TRJ-GDO-Ww1",
-            "pID": "Ww1",
-            "sID": "GDO",
-            "type": "DEPARTURE",
-            "direction": "SOUTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Ww1",
+            "pID":                  "Ww1",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GDO-tor1a",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         },
         {
-            "gID": "SEM-TRJ-GDO-Ww2",
-            "pID": "Ww2",
-            "sID": "GDO",
-            "type": "DEPARTURE",
-            "direction": "SOUTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Ww2",
+            "pID":                  "Ww2",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GDO-tor2a",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         },
         {
-            "gID": "SEM-TRJ-GDO-Sp1",
-            "pID": "Sp1",
-            "sID": "GDO",
-            "type": "DEPARTURE",
-            "direction": "SOUTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Sp1",
+            "pID":                  "Sp1",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GDO-tor1b",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         },
         {
-            "gID": "SEM-TRJ-GDO-Sp2",
-            "pID": "Sp2",
-            "sID": "GDO",
-            "type": "DEPARTURE",
-            "direction": "SOUTHBOUND",
+            "gID":                  "SEM-TRJ-GDO-Sp2",
+            "pID":                  "Sp2",
+            "sID":                  "GDO",
+            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GDO-tor2b",
-            "initial_aspect": "STOP"
+            "initial_aspect":       "STOP"
         }
     ],
 

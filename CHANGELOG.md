@@ -11,6 +11,17 @@ Entry format:
 
 ---
 
+## [0.3.5] — 2026-05-07
+
+### Changed
+- `scenarios/reference/gdynia_orlowo/topology.json`:
+  - track sections: replaced `startItID`/`endItID` with `sideA`/`sideB` (bidirectional, no implied direction); each side carries `neighborID`, `itID` or `izID`, and `signals[]`; added `occupied: false`; removed flat top-level `signals[]`
+  - switches: replaced flat `trunkIzID`/`straightIzID`/`divergentIzID` fields with nested `trunk`/`straight`/`divergent` leg objects (each with `neighborID`, `izID`, `signals[]`); added `typeID` → `data/device_types/naped_eea4.json`
+- `scenarios/reference/gdynia_orlowo/objects.json`: added `typeID` → `data/device_types/semafor_ksztaltowy_pkp.json` to all 6 signal instances; removed redundant `direction` field (direction is now encoded by sideA/sideB placement in topology)
+- `docs/07-ebiscreen-description.md`: appended "Track section topology model" section — bidirectional sideA/sideB schema, switch leg schema, device type reference table
+
+---
+
 ## [0.3.4] — 2026-05-07
 
 ### Changed
