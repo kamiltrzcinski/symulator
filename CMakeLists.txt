@@ -51,8 +51,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ── Dependencies ────────────────────────────────────────────────────────────
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(flatbuffers CONFIG REQUIRED)
+
+# flatbuffers: vcpkg installs as "flatbuffers", Ubuntu/Debian apt as "FlatBuffers".
+# Both export the same target (flatbuffers::flatbuffers); try vcpkg name first.
+find_package(flatbuffers CONFIG QUIET)
+if(NOT flatbuffers_FOUND)
+    find_package(FlatBuffers CONFIG REQUIRED)
+endif()
+
 find_package(GTest CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Qt is only required for client-side components; skip on a headless server build.
 option(BUILD_CLIENT    "Build operator client"  ON)

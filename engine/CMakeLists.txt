@@ -1,3 +1,5 @@
+find_package(Threads REQUIRED)
+
 add_library(engine STATIC
     src/placeholder.cpp
 )
@@ -10,6 +12,7 @@ target_include_directories(engine PUBLIC
 target_link_libraries(engine PUBLIC
     nlohmann_json::nlohmann_json
     flatbuffers::flatbuffers
+    Threads::Threads
 )
 
 target_compile_features(engine PUBLIC cxx_std_20)

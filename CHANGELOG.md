@@ -11,6 +11,24 @@ Entry format:
 
 ---
 
+## [0.3.7] — 2026-05-08
+
+### Added
+- `engine/include/engine/core/types.hpp`: domain vocabulary shared across all engine modules — strong-ID wrappers (`GID`, `SID`, `DispatchAreaID`, `PlayerID`) with three-way comparison and `std::hash`; `CommandPriority` enum; `TrackOccupancy`, `SwitchPosition`, `SignalAspect` (S1–S13 + Ms2), `RandomEventType` enums
+- `engine/include/engine/core/event_queue.hpp`: thread-safe MPSC FIFO queue (`EventQueue<T>`) with mutex + condition_variable; `push`, `try_pop`, `wait_and_pop`, `close`; consumer receives `nullopt` when queue is closed and drained; `push` after close throws `std::runtime_error`
+- `engine/include/engine/core/priority_command_queue.hpp`: four-bucket priority MPSC queue (`PriorityCommandQueue<T>`); buckets ordered EMERGENCY → SAFETY → NORMAL → BACKGROUND; always dequeues highest non-empty bucket; FIFO preserved within each priority
+- `engine/include/engine/core/event_dispatcher.hpp`: synchronous type-safe intra-thread event dispatcher (`EventDispatcher<EventT>`) — `subscribe` returns `SubscriptionToken`, `unsubscribe` by token, `publish` snapshots subscriber list under shared lock then releases before calling handlers (deadlock-safe; changes take effect next round)
+- `tests/engine/test_event_queue.cpp`: parameterised — `TYPED_TEST_SUITE<int, std::string>` for 7 basic-behaviour cases; `TEST_P` MPSC suite over 4 producer/item-count configurations (1×2000, 2×1000, 4×500, 8×250); non-parameterised: close-unblocks, move-only type
+- `tests/engine/test_priority_command_queue.cpp`: parameterised — `TYPED_TEST_SUITE<int, std::string>` for push/pop/close/isClosed; `TEST_P` per-priority suite (EMERGENCY/SAFETY/NORMAL/BACKGROUND) for push-at-priority and FIFO-within-bucket; `TEST_P` MPSC suite over 3 configurations (1×800, 4×200, 8×100); non-parameterised: multi-priority ordering, EMERGENCY preemption, size, close/drain, `kBucketCount == 4` guard
+- `tests/engine/test_event_dispatcher.cpp`: parameterised — `TYPED_TEST_SUITE<IntEvent, StringEvent>` for delivery, noop, unsubscribe, count-tracking; `TEST_P` subscriber-count suite over {1,2,5,10,50}; `TEST_P` concurrency stress suite (subscribe+publish / unsubscribe+publish) over 3 thread configurations; non-parameterised: unknown-token noop, resubscribe, snapshot semantics
+
+### Changed
+- `CMakeLists.txt`: add `find_package(OpenSSL REQUIRED)`; add quiet fallback so `flatbuffers` package resolves under both vcpkg (`flatbuffersConfig.cmake`) and Ubuntu apt (`FlatBuffersConfig.cmake`) — both export the same `flatbuffers::flatbuffers` target
+- `engine/CMakeLists.txt`: add `find_package(Threads REQUIRED)` and link `Threads::Threads`; required for `EventQueue` and `PriorityCommandQueue` threading primitives
+- `tests/engine/CMakeLists.txt`: register `test_event_queue.cpp`, `test_priority_command_queue.cpp`, `test_event_dispatcher.cpp` in `tests_engine` executable
+
+---
+
 ## [0.3.6] — 2026-05-07
 
 ### Added
