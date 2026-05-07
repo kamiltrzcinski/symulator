@@ -1,0 +1,28 @@
+{
+    "$comment": "Block sections on PKP line 250 (Trójmiasto commuter corridor).",
+    "line_number": 250,
+    "block_sections": [
+        {
+            "gID": "BLK-TRJ-GGO-GDO",
+            "pID": "GGO-GDO",
+            "from_station_sid": "GGO",
+            "to_station_sid": "GDO",
+            "from_boundary_node": "BND-TRJ-GGO-S",
+            "to_boundary_node": "BND-TRJ-GDO-N",
+            "lengthM": 2900,
+            "electrified": true,
+            "initial_state": "OPEN"
+        },
+        {
+            "gID": "BLK-TRJ-GDO-SOP",
+            "pID": "GDO-SOP",
+            "from_station_sid": "GDO",
+            "to_station_sid": "SOP",
+            "from_boundary_node": "BND-TRJ-GDO-S",
+            "to_boundary_node": "BND-TRJ-SOP-N",
+            "lengthM": 3200,
+            "electrified": true,
+            "initial_state": "OPEN"
+        }
+    ]
+}

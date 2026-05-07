@@ -11,6 +11,19 @@ Entry format:
 
 ---
 
+## [0.3.3] — 2026-05-07
+
+### Added
+- `scenarios/reference/lines/250.json` — block sections for line 250 (one file per line replaces flat sections.json); added `line_number` field at root
+- `data/device_types/semafor_ksztaltowy_pkp.json` — signal type: PKP shape-light semaphore with aspect table
+- `data/device_types/naped_eea4.json` — switch machine type: EEA-4
+- `data/devices/` — new directory for individual device instances (mirrors vehicle_types/vehicles split)
+
+### Removed
+- `scenarios/reference/sections.json` — replaced by `scenarios/reference/lines/<number>.json`
+
+---
+
 ## [0.3.2] — 2026-05-07
 
 ### Added

@@ -1,0 +1,12 @@
+{
+    "typeID":       "DVT-GLB-SEM-KSZTALTOWY-0000001",
+    "typeName":     "Semafor kształtowy PKP",
+    "deviceType":   "SIGNAL",
+    "aspects": [
+        { "id": "STOP",                    "pkpCode": "S1",  "maxSpeedKmh": 0   },
+        { "id": "PROCEED",                 "pkpCode": "S2",  "maxSpeedKmh": null },
+        { "id": "CAUTION",                 "pkpCode": "S3",  "maxSpeedKmh": 40  },
+        { "id": "PROCEED_EXPECTING_STOP",  "pkpCode": "S4",  "maxSpeedKmh": null },
+        { "id": "SHUNTING",                "pkpCode": "S5",  "maxSpeedKmh": null }
+    ]
+}

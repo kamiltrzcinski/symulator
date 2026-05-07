@@ -1,0 +1,8 @@
+{
+    "typeID":         "DVT-GLB-ZWR-EEA4-0000002",
+    "typeName":       "Napęd zwrotnicowy EEA-4",
+    "deviceType":     "SWITCH_MACHINE",
+    "motorVoltageV":  220,
+    "throwTimeS":     4.5,
+    "manualOverride": true
+}
