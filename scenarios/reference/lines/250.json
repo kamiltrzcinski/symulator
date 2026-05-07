@@ -1,28 +1,65 @@
 {
-    "$comment": "Block sections on PKP line 250 (Trójmiasto commuter corridor).",
+    "$comment": "Track sections on szlak Gdynia Orłowo – Sopot (line 250). Each track section is bounded by two It axle counters (one per side). Signals listed under each side face trains approaching from that direction and control entry into this section. Sections are bidirectional — sideA/sideB carry no implied direction.",
     "line_number": 250,
-    "block_sections": [
+    "szlak": "GDO-SOP",
+    "track_sections": [
         {
-            "gID": "BLK-TRJ-GGO-GDO",
-            "pID": "GGO-GDO",
-            "from_station_sid": "GGO",
-            "to_station_sid": "GDO",
-            "from_boundary_node": "BND-TRJ-GGO-S",
-            "to_boundary_node": "BND-TRJ-GDO-N",
-            "lengthM": 2900,
+            "gID":  "OT-TRJ-GDO-SOP-0001",
+            "pID":  "GDO-SOP-0001",
+            "sideA": {
+                "neighborID": "BND-TRJ-GDO-S",
+                "itID":       "IT-TRJ-GDO-SOP-0001A",
+                "signals":    ["SEM-TRJ-GDO-Ww1", "SEM-TRJ-GDO-Ww2"]
+            },
+            "sideB": {
+                "neighborID": "OT-TRJ-GDO-SOP-0002",
+                "itID":       "IT-TRJ-GDO-SOP-0001B",
+                "signals":    []
+            },
+            "lengthM":    1800,
             "electrified": true,
-            "initial_state": "OPEN"
+            "occupied":    false
         },
         {
-            "gID": "BLK-TRJ-GDO-SOP",
-            "pID": "GDO-SOP",
-            "from_station_sid": "GDO",
-            "to_station_sid": "SOP",
-            "from_boundary_node": "BND-TRJ-GDO-S",
-            "to_boundary_node": "BND-TRJ-SOP-N",
-            "lengthM": 3200,
+            "gID":  "OT-TRJ-GDO-SOP-0002",
+            "pID":  "GDO-SOP-0002",
+            "sideA": {
+                "neighborID": "OT-TRJ-GDO-SOP-0001",
+                "itID":       "IT-TRJ-GDO-SOP-0002A",
+                "signals":    []
+            },
+            "sideB": {
+                "neighborID": "BND-TRJ-SOP-N",
+                "itID":       "IT-TRJ-GDO-SOP-0002B",
+                "signals":    ["SEM-TRJ-SOP-Wp1", "SEM-TRJ-SOP-Wp2"]
+            },
+            "lengthM":    1800,
             "electrified": true,
-            "initial_state": "OPEN"
+            "occupied":    false
         }
-    ]
+    ],
+
+    "$comment_switches": "Switch topology for reference. Not present on this szlak but defined here for schema illustration.",
+    "$switch_types": {
+        "STANDARD": {
+            "$comment": "One trunk, one straight leg, one divergent leg. 3 iz axle counters.",
+            "trunk":     { "neighborID": "...", "izID": "...", "signals": [] },
+            "straight":  { "neighborID": "...", "izID": "...", "signals": [] },
+            "divergent": { "neighborID": "...", "izID": "...", "signals": [] }
+        },
+        "CROSSING": {
+            "$comment": "Diamond crossing — two independent routes that intersect but do not merge. 4 iz counters, 2 independent pairs.",
+            "routeA": [
+                { "neighborID": "...", "izID": "...", "signals": [] },
+                { "neighborID": "...", "izID": "...", "signals": [] }
+            ],
+            "routeB": [
+                { "neighborID": "...", "izID": "...", "signals": [] },
+                { "neighborID": "...", "izID": "...", "signals": [] }
+            ]
+        },
+        "SCISSORS": {
+            "$comment": "Two STANDARD switches facing opposite directions sharing a common crossover section. Modelled as two separate STANDARD switch entries linked by a short track section between them."
+        }
+    }
 }

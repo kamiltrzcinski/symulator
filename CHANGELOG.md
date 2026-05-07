@@ -11,6 +11,17 @@ Entry format:
 
 ---
 
+## [0.3.4] — 2026-05-07
+
+### Changed
+- `scenarios/reference/lines/250.json`: complete redesign of track section model —
+  bidirectional `sideA`/`sideB` endpoints (no implied direction), each side carries
+  `itID` + `signals[]`; `initial_state` replaced by `occupied: bool`;
+  szlak GDO–SOP split into two sections × 1800 m;
+  appended `$switch_types` illustration for STANDARD / CROSSING / SCISSORS
+
+---
+
 ## [0.3.3] — 2026-05-07
 
 ### Added
