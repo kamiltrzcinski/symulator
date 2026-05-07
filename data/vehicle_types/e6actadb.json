@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-E6ACTadb-0000001",
+  "typeName": "E6ACTadb",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL_ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "Newag Dragon",
+  "sourceReliability": "estimated"
+}

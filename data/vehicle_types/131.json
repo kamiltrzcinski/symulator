@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-131-0000001",
+  "typeName": "131",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "Siemens EuroSprinter",
+  "sourceReliability": "estimated"
+}

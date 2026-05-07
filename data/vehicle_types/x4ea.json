@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-X4EA-0000001",
+  "typeName": "X4EA",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "UNKNOWN",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "Siemens Vectron",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EU06-0000001",
+  "typeName": "EU06",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "PKP Electric Universal",
+  "sourceReliability": "estimated"
+}

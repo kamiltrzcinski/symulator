@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EP09-0000001",
+  "typeName": "EP09",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "PKP Electric Passenger",
+  "sourceReliability": "estimated"
+}

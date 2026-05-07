@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ES64F4-0000001",
+  "typeName": "ES64F4",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "Siemens EuroSprinter",
+  "sourceReliability": "estimated"
+}

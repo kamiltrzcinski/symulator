@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EP07P-0000001",
+  "typeName": "EP07P",
+  "pkpSeries": "EU07",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": null,
+  "axleCount": null,
+  "massEmptyT": null,
+  "massGrossT": null,
+  "maxSpeedKmh": null,
+  "brakingLambdaPct": null,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "PKP Electric Passenger",
+  "sourceReliability": "estimated"
+}
