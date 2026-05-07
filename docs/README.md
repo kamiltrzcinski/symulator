@@ -4,6 +4,7 @@ This folder contains the agreed scope and implementation plan.
 
 ## Index
 
+- `00-contributing.md` - development environment setup, commit conventions, branch policy.
 - `01-vision-and-scope.md` - what we are building and what belongs to MVP.
 - `02-system-requirements.md` - functional and non-functional requirements.
 - `03-initial-architecture.md` - component split and communication flow.

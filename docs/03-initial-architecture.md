@@ -69,23 +69,60 @@ The server runs on Linux only. All end-user components (operator client, scenari
 
 **All third-party libraries must be bundled with the client and editor distributions.** No dependency on system-installed versions of Qt, SQLite, or any other library. This removes installation friction for end users and ensures version consistency across all platforms.
 
-| Dependency | Scope | Bundling method |
-|---|---|---|
-| Qt 6 | client, editor, `libtrackview` | Static link or bundled shared libs via `windeployqt` / `linuxdeployqt` / `macdeployqt` |
-| SQLite | editor (`.scendb`) | Amalgamation source compiled directly into the editor binary |
-| nlohmann/json | engine, editor, server | Header-only; no separate binary |
-| OpenSSL (if needed) | server only | System-provided on Linux server; not required in client distributions |
+| Dependency | Version | Scope | Bundling method |
+|---|---|---|---|
+| **Qt 6** | ≥ 6.6 | client, editor, `libtrackview` | vcpkg; bundled via `windeployqt` / `linuxdeployqt` / `macdeployqt` |
+| SQLite | amalgamation | editor (`.scendb`) | Single-file amalgamation compiled directly into the editor binary |
+| nlohmann/json | ≥ 3.11 | engine, editor, server | Header-only via vcpkg; no separate binary |
+| OpenSSL | system | server only | System-provided on Linux server; not required in client distributions |
+
+Qt modules used: `Qt6::Widgets`, `Qt6::OpenGLWidgets` (canvas), `Qt6::Sql` (SQLite in editor), `Qt6::Network` (client TCP transport). No Qt Quick / QML — pure Widgets.
 
 ### Build system
 
-**CMake** (≥ 3.25) with **vcpkg** for dependency management. A single `CMakeLists.txt` at the repo root controls all components via `add_subdirectory`. Cross-compilation for Windows from Linux is supported via MinGW-w64 or LLVM clang-cl toolchain files. macOS builds run on a native macOS CI runner; no cross-compilation from Linux.
+**CMake** (≥ 3.25) + **Ninja** + **vcpkg**.
+
+- Ninja replaces Make as the executor. On all three target platforms CMake generates the same `build.ninja` file — one configure command, no platform-specific Make variants (no `nmake`, no `mingw32-make`).
+- A single root `CMakeLists.txt` drives all components via `add_subdirectory`.
+- No cross-compilation from Linux to Windows. Windows builds run on native Windows CI runners.
+- macOS builds run on native macOS CI runners.
+
+```bash
+# Configure (all platforms, identical command)
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+      -B build
+
+# Build
+cmake --build build
+```
+
+### CI/CD — GitHub Actions
+
+The repository is public. GitHub Actions is **free and unlimited** for public repositories.
+
+**Build matrix** — three platforms run in parallel on every pull request and every push to `main`:
+
+```
+ubuntu-24.04   →  build  →  test  →  artifact (Linux binary)
+windows-2022   →  build  →  test  →  artifact (Windows binary)
+macos-14       →  build  →  test  →  artifact (macOS binary)
+```
+
+**Cache strategy:** vcpkg port builds and the Qt6 build are cached via `actions/cache`. After the first run (30–60 min for Qt) subsequent runs take a few minutes.
+
+**Release workflow:** triggered by pushing a version tag (`git tag v0.3.0 && git push --tags`). Runs the full matrix; on success creates a GitHub Release and attaches the three platform binaries as assets. Release tags are created exclusively by the project owner — contributors do not push tags.
+
+**No minutes cost.** GitHub's 2 000 free minutes/month applies only to private repositories.
 
 ### Contributor onboarding goal
 
-A new contributor on **Windows** must be able to clone the repo, run one CMake configure command, and obtain a working build — without installing anything outside the repo. Requirements:
-- All dependencies resolved by CMake / vcpkg (no manual download steps).
+A new contributor on **Windows** must be able to clone the repo, run one CMake configure command, and obtain a working build — without installing anything beyond: Git, CMake, Ninja, a C++20 compiler (MSVC or Clang), and vcpkg. Requirements:
+- All library dependencies resolved automatically by vcpkg on configure.
 - No hard-coded UNIX paths in build scripts or source.
-- CI pipeline validates Linux, Windows, and macOS builds on every pull request.
+- CI pipeline validates all three platforms on every pull request, catching regressions before merge.
+
+Detailed step-by-step setup instructions for both Linux and Windows are in `docs/00-contributing.md`.
 
 1. Client sends command to server.
 2. Server validates and forwards to engine.

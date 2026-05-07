@@ -11,6 +11,17 @@ Entry format:
 
 ---
 
+## [0.2.5] — 2026-05-07
+
+### Added
+- `docs/00-contributing.md`: development environment setup for Linux and Windows (prerequisites, configure + build commands), commit message format, CHANGELOG requirement, branch policy, release management note
+- Cross-platform build section in `03-initial-architecture.md`: Qt 6 ≥ 6.6 explicit version and Qt modules listed; Ninja added as executor alongside CMake + vcpkg; CI/CD section — GitHub Actions free on public repo, three-platform build matrix (ubuntu-24.04 / windows-2022 / macos-14), vcpkg + Qt cache strategy, release workflow on version tags; contributor onboarding goal updated with pointer to `00-contributing.md`
+
+### Changed
+- `docs/README.md`: added `00-contributing.md` to the index
+
+---
+
 ## [0.2.4] — 2026-05-07
 
 ### Added
