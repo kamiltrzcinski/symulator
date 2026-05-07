@@ -1,0 +1,53 @@
+// proto/common.fbs — Shared enumerations and value types
+// Used by session.fbs, commands.fbs, events.fbs, snapshot.fbs
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ common.fbs
+
+namespace proto;
+
+/// Signal aspects as displayed on EbiScreen / technical diagram
+enum Aspect : byte {
+    STOP    = 0,  // Stój / S1 ≡ STOP
+    S1      = 1,  // Semafor: S1 (one white)
+    S2      = 2,  // Semafor: S2 (two whites, slow)
+    SH1     = 3,  // Manoeuvre allowed (shunt)
+    OFF     = 4,  // Signal extinguished / not in use
+    S3      = 5,  // Three whites (local use)
+    MS1     = 6,  // Malfunction / substitute S1
+    MS2     = 7,  // Malfunction / substitute S2
+}
+
+/// Switch (zwrotnica) position
+enum SwitchPosition : byte {
+    NORMAL  = 0,
+    REVERSE = 1,
+    MOVING  = 2,  // transition state
+}
+
+/// Derailer (wykolejnica) position
+enum DerailerPosition : byte {
+    LOCKED    = 0,  // derails trains — safe position
+    UNLOCKED  = 1,  // passage allowed
+}
+
+/// Block section state (blok liniowy)
+enum BlockSectionState : byte {
+    OPEN   = 0,  // free to enter
+    CLOSED = 1,  // blocked
+}
+
+/// Generic cause for a state change
+enum ChangeCause : byte {
+    COMMAND  = 0,  // result of explicit operator command
+    AUTO     = 1,  // engine-initiated (route setting, train detection)
+    TIMEOUT  = 2,  // timer-driven release
+}
+
+/// Session lifecycle state
+enum SessionState : byte {
+    STARTED  = 0,
+    PAUSED   = 1,
+    RESUMED  = 2,
+    ENDED    = 3,
+}

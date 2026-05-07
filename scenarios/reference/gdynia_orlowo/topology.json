@@ -1,0 +1,101 @@
+{
+    "$comment": "Minimal Gdynia Orłowo topology for integration tests. Track direction: north is Gdynia Główna (GGO), south is Sopot (SOP). gIDs follow generateGID(type, area, pID) convention.",
+
+    "boundary_nodes": [
+        {
+            "gID": "BND-TRJ-GDO-N",
+            "pID": "granica_polnocna",
+            "sID": "GDO",
+            "description": "North boundary — connects to Gdynia Główna Osobowa (line 250)"
+        },
+        {
+            "gID": "BND-TRJ-GDO-S",
+            "pID": "granica_poludniowa",
+            "sID": "GDO",
+            "description": "South boundary — connects to Sopot (line 250)"
+        }
+    ],
+
+    "track_sections": [
+        {
+            "gID": "OT-TRJ-GDO-tor1a",
+            "pID": "tor_1a",
+            "sID": "GDO",
+            "startItID": "IT-TRJ-GDO-N-tor1",
+            "endItID": "IT-TRJ-GDO-S-zwr1-trunk",
+            "lengthM": 320.0,
+            "electrified": true,
+            "maxSpeedKmh": 120,
+            "signals": ["SEM-TRJ-GDO-Wp1", "SEM-TRJ-GDO-Ww1"]
+        },
+        {
+            "gID": "OT-TRJ-GDO-tor2a",
+            "pID": "tor_2a",
+            "sID": "GDO",
+            "startItID": "IT-TRJ-GDO-N-tor2",
+            "endItID": "IT-TRJ-GDO-S-zwr2-trunk",
+            "lengthM": 320.0,
+            "electrified": true,
+            "maxSpeedKmh": 120,
+            "signals": ["SEM-TRJ-GDO-Wp2", "SEM-TRJ-GDO-Ww2"]
+        },
+        {
+            "gID": "OT-TRJ-GDO-tor1b",
+            "pID": "tor_1b",
+            "sID": "GDO",
+            "startItID": "IT-TRJ-GDO-S-zwr1-straight",
+            "endItID": "BND-TRJ-GDO-S",
+            "lengthM": 280.0,
+            "electrified": true,
+            "maxSpeedKmh": 120,
+            "signals": ["SEM-TRJ-GDO-Sp1"]
+        },
+        {
+            "gID": "OT-TRJ-GDO-tor2b",
+            "pID": "tor_2b",
+            "sID": "GDO",
+            "startItID": "IT-TRJ-GDO-S-zwr2-straight",
+            "endItID": "BND-TRJ-GDO-S",
+            "lengthM": 280.0,
+            "electrified": true,
+            "maxSpeedKmh": 120,
+            "signals": ["SEM-TRJ-GDO-Sp2"]
+        },
+        {
+            "gID": "OT-TRJ-GDO-peron1",
+            "pID": "peron_1",
+            "sID": "GDO",
+            "startItID": "IT-TRJ-GDO-S-zwr1-divergent",
+            "endItID": "IT-TRJ-GDO-S-zwr2-divergent",
+            "lengthM": 210.0,
+            "electrified": true,
+            "maxSpeedKmh": 40,
+            "signals": []
+        }
+    ],
+
+    "switches": [
+        {
+            "gID": "ZWR-TRJ-GDO-zwr1",
+            "pID": "zwr_1",
+            "sID": "GDO",
+            "trunkIzID": "IZ-TRJ-GDO-zwr1-trunk",
+            "straightIzID": "IZ-TRJ-GDO-zwr1-straight",
+            "divergentIzID": "IZ-TRJ-GDO-zwr1-divergent",
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 120,
+            "maxSpeedDivergentKmh": 40
+        },
+        {
+            "gID": "ZWR-TRJ-GDO-zwr2",
+            "pID": "zwr_2",
+            "sID": "GDO",
+            "trunkIzID": "IZ-TRJ-GDO-zwr2-trunk",
+            "straightIzID": "IZ-TRJ-GDO-zwr2-straight",
+            "divergentIzID": "IZ-TRJ-GDO-zwr2-divergent",
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 120,
+            "maxSpeedDivergentKmh": 40
+        }
+    ]
+}

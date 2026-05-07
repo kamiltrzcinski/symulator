@@ -1,0 +1,8 @@
+{
+    "station_sid": "GDO",
+    "display_name": "Gdynia Orłowo",
+    "area": "TRJ",
+    "line_numbers": [250],
+    "notes": "Minimal reference topology for integration tests. Represents approximately 3 platform tracks, 2 switches, and boundary connections to Sopot (south) and Gdynia Główna (north).",
+    "schema_version": 1
+}

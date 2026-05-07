@@ -1,0 +1,60 @@
+# docker/Dockerfile.server
+# Multi-stage build: compile on ubuntu-24.04, run on minimal base.
+# Usage:  docker compose -f docker/docker-compose.yml up --build
+
+# ── Stage 1: build ───────────────────────────────────────────────────────────
+FROM ubuntu:24.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    curl \
+    zip \
+    unzip \
+    tar \
+    pkg-config \
+    ca-certificates \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# vcpkg
+WORKDIR /opt
+RUN git clone https://github.com/microsoft/vcpkg.git && \
+    /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="${VCPKG_ROOT}:${PATH}"
+
+WORKDIR /src
+COPY . .
+
+RUN cmake -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake \
+    -DBUILD_CLIENT=OFF \
+    -DBUILD_EDITOR=OFF \
+    -B build && \
+    cmake --build build --target symulator-server --parallel
+
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -r -s /sbin/nologin symulator
+
+COPY --from=builder /src/build/server/symulator-server /usr/local/bin/symulator-server
+
+USER symulator
+EXPOSE 9000
+
+ENTRYPOINT ["/usr/local/bin/symulator-server"]

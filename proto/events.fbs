@@ -1,0 +1,141 @@
+// proto/events.fbs — Domain events (S → C broadcast, msg_type 0x20)
+// The binary frame carries event_type (1 byte), event_id (4 bytes),
+// timestamp_us (8 bytes) before this FlatBuffers payload.
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ events.fbs
+
+include "common.fbs";
+
+namespace proto;
+
+// ── event_type 0x01 ──────────────────────────────────────────────────────────
+table SwitchPositionChanged {
+    g_id:         string (required);
+    new_position: SwitchPosition;
+    cause:        ChangeCause;
+}
+
+// ── event_type 0x02 ──────────────────────────────────────────────────────────
+table SwitchOccupancyChanged {
+    g_id:       string (required);
+    occupied:   bool;
+    axle_count: int32;
+    train_g_id: string;   // null when not occupied
+}
+
+// ── event_type 0x03 ──────────────────────────────────────────────────────────
+table SignalAspectChanged {
+    g_id:       string (required);
+    new_aspect: Aspect;
+    cause:      ChangeCause;
+}
+
+// ── event_type 0x04 ──────────────────────────────────────────────────────────
+table TrackSectionOccupancyChanged {
+    g_id:       string (required);
+    occupied:   bool;
+    axle_count: int32;
+    train_g_id: string;   // null when not occupied
+}
+
+// ── event_type 0x05 ──────────────────────────────────────────────────────────
+table DerailerPositionChanged {
+    g_id:         string (required);
+    new_position: DerailerPosition;
+    cause:        ChangeCause;
+}
+
+// ── event_type 0x06 ──────────────────────────────────────────────────────────
+table BlockSectionStateChanged {
+    g_id:      string (required);
+    new_state: BlockSectionState;
+}
+
+// ── event_type 0x07 ──────────────────────────────────────────────────────────
+table RouteSet {
+    route_id:    string (required);
+    from_g_id:   string (required);   // entry signal g_id
+    to_g_id:     string (required);   // exit signal g_id
+    section_ids: [string];            // ordered list of track-section g_ids
+}
+
+// ── event_type 0x08 ──────────────────────────────────────────────────────────
+enum RouteReleaseReason : byte {
+    TRAIN_CLEARED   = 0,  // normal: train exited the route
+    OPERATOR_CANCEL = 1,  // manual CancelRoute command
+    TIMEOUT         = 2,  // no train entered within time limit
+    CONFLICT        = 3,  // superseded by higher-priority route
+}
+
+table RouteReleased {
+    route_id: string (required);
+    reason:   RouteReleaseReason;
+}
+
+// ── event_type 0x09 ──────────────────────────────────────────────────────────
+enum Direction : byte {
+    FORWARD  = 0,
+    BACKWARD = 1,
+}
+
+table TrainMovement {
+    train_g_id:  string (required);
+    section_g_id: string (required);  // section the train is currently on / entering
+    direction:   Direction;
+    speed_kmh:   float;
+}
+
+// ── event_type 0x0A ──────────────────────────────────────────────────────────
+enum AlarmType : byte {
+    TRACK_OCCUPIED_UNEXPECTEDLY = 0,
+    SWITCH_POSITION_MISMATCH    = 1,
+    SIGNAL_OVERRUN              = 2,
+    DERAILER_CONFLICT           = 3,
+    COMMS_FAILURE               = 4,
+    ENGINE_FAULT                = 5,
+}
+
+table AlarmRaised {
+    alarm_id:   string (required);
+    alarm_type: AlarmType;
+    object_g_id: string;   // object that triggered the alarm (may be null)
+    message:    string;
+}
+
+// ── event_type 0x0B ──────────────────────────────────────────────────────────
+table AlarmCleared {
+    alarm_id: string (required);
+}
+
+// ── event_type 0x0C ──────────────────────────────────────────────────────────
+table PosterunekOwnershipChanged {
+    posterunek_id:     string (required);
+    station_sid:       string (required);
+    new_owner_client_id: string;   // null = released (no owner)
+}
+
+// ── event_type 0x0D ──────────────────────────────────────────────────────────
+table SessionStateChanged {
+    new_state: SessionState;
+}
+
+// ── event_type 0x0E ──────────────────────────────────────────────────────────
+table TrainComposed {
+    train_g_id:     string (required);
+    vehicle_g_ids:  [string];
+    total_length_m: float;
+    total_axles:    int32;
+}
+
+// ── event_type 0x0F ──────────────────────────────────────────────────────────
+enum TrainDecomposeReason : byte {
+    UNCOUPLED      = 0,
+    SCENARIO_RESET = 1,
+    DERAILED       = 2,
+}
+
+table TrainDecomposed {
+    train_g_id: string (required);
+    reason:     TrainDecomposeReason;
+}

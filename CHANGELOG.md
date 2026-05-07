@@ -11,6 +11,20 @@ Entry format:
 
 ---
 
+## [0.2.8] — 2026-05-08
+
+### Added
+- **Project directory skeleton** — `CMakeLists.txt` (C++20, Ninja, vcpkg integration, `BUILD_CLIENT`/`BUILD_EDITOR` options), `vcpkg.json` (flatbuffers, nlohmann-json, gtest, openssl), stub `CMakeLists.txt` + placeholder sources for `engine/`, `server/`, `libtrackview/`, `client/`, `editor/`, `tests/engine`, `tests/server`, `tests/integration`; root `.gitignore`
+- **FlatBuffers schemas** — `proto/common.fbs` (enums: `Aspect`, `SwitchPosition`, `DerailerPosition`, `BlockSectionState`, `ChangeCause`, `SessionState`), `proto/session.fbs` (`Handshake` / `HandshakeAck`), `proto/commands.fbs` (all 7 command types + `CommandAck` + `CommandNak`), `proto/events.fbs` (all 15 event types 0x01–0x0F), `proto/snapshot.fbs` (`Snapshot` root table with all state arrays)
+- **Docker dev stack** — `docker/docker-compose.yml` (PostgreSQL 16, server service with healthcheck), `docker/Dockerfile.server` (multi-stage: builder + minimal runtime, non-root user), `docker/init.sql` (complete schema including new `fleet.vehicles` columns), `docker/.env.example`
+- **Interlocking model** (`docs/14-interlocking-model.md`) — rules R1–R7 for all command types, route lifecycle diagram (LOCKED → OCCUPIED → AUTO RELEASE), conflict detection algorithm, signal aspect selection table, open questions Q-ILK-1 to Q-ILK-3
+- **Reference station data** — `scenarios/reference/gdynia_orlowo/meta.json`, `topology.json` (3 track sections, 2 switches, 2 boundary nodes), `objects.json` (6 signals, 1 posterunek `GDO_nastawnia`), `scenarios/reference/sections.json` (block sections GDO–SOP and GGO–GDO)
+
+### Changed
+- `docs/11-database-model.md`: `fleet.vehicles` table now includes `mass_gross_t REAL` (nullable, loaded freight mass) and `braking_lambda_pct INTEGER NOT NULL DEFAULT 100` (UIC λ%) — aligns DB schema with vehicle JSON model from doc 10
+
+---
+
 ## [0.2.7] — 2026-05-07
 
 ### Added

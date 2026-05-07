@@ -1,0 +1,104 @@
+// proto/snapshot.fbs — Full engine-state snapshot (S → C, msg_type 0x31)
+// Snapshot is split into ≤64 kB chunks; IS_LAST_CHUNK flag in frame header
+// signals the final chunk. seq_cursor is present only in the last chunk.
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ snapshot.fbs
+
+include "common.fbs";
+
+namespace proto;
+
+// ── Per-object state records ─────────────────────────────────────────────────
+
+table SwitchState {
+    g_id:      string (required);
+    position:  SwitchPosition;
+    occupied:  bool;
+    axle_count: int32;
+    train_g_id: string;
+    /// True when a route is currently locking this switch.
+    locked_by_route: bool;
+}
+
+table TrackSectionState {
+    g_id:      string (required);
+    occupied:  bool;
+    axle_count: int32;
+    train_g_id: string;
+}
+
+table SignalState {
+    g_id:   string (required);
+    aspect: Aspect;
+}
+
+table DerailerState {
+    g_id:     string (required);
+    position: DerailerPosition;
+}
+
+table BlockSectionState {
+    g_id:  string (required);
+    state: BlockSectionState;
+}
+
+table RouteState {
+    route_id:    string (required);
+    from_g_id:   string (required);
+    to_g_id:     string (required);
+    section_ids: [string];
+}
+
+enum AlarmType : byte;   // forward-declared; defined in events.fbs
+
+table AlarmState {
+    alarm_id:    string (required);
+    alarm_type:  int8;   // AlarmType byte value — cross-file enum reference
+    object_g_id: string;
+    message:     string;
+}
+
+table PosterunekOwnership {
+    posterunek_id:   string (required);
+    station_sid:     string (required);
+    owner_client_id: string;   // null = unassigned
+}
+
+table TrainState {
+    train_g_id:      string (required);
+    vehicle_g_ids:   [string];
+    section_g_id:    string;        // current section
+    direction:       int8;          // Direction byte value
+    speed_kmh:       float;
+    total_length_m:  float;
+    total_axles:     int32;
+}
+
+// ── Root snapshot table ──────────────────────────────────────────────────────
+
+table Snapshot {
+    /// Must match the server's current schema_version to be parseable.
+    schema_version:         uint32;
+
+    session_id:             string (required);
+
+    /// seq_id of the last DOMAIN_EVENT included in this snapshot.
+    /// Events with seq_id > seq_cursor are guaranteed to be newer.
+    seq_cursor:             uint32;
+
+    /// Server wall-clock time when snapshot was captured, µs since Unix epoch.
+    timestamp_us:           uint64;
+
+    switches:               [SwitchState];
+    track_sections:         [TrackSectionState];
+    signals:                [SignalState];
+    derailers:              [DerailerState];
+    block_sections:         [BlockSectionState];
+    active_routes:          [RouteState];
+    active_alarms:          [AlarmState];
+    posterunek_assignments: [PosterunekOwnership];
+    trains:                 [TrainState];
+}
+
+root_type Snapshot;

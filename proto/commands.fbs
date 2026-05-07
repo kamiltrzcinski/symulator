@@ -1,0 +1,81 @@
+// proto/commands.fbs — Operator commands (C → S, msg_type 0x10)
+// The binary frame carries cmd_type (1 byte) before this FlatBuffers payload.
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ commands.fbs
+
+include "common.fbs";
+
+namespace proto;
+
+// ── cmd_type 0x01 ────────────────────────────────────────────────────────────
+/// Move a switch (zwrotnica) to the requested position.
+table SetSwitchPosition {
+    g_id:     string (required);    // object global-ID
+    position: SwitchPosition;
+}
+
+// ── cmd_type 0x02 ────────────────────────────────────────────────────────────
+/// Override the aspect displayed on a signal (semafor).
+/// Prefer RequestRoute for normal operation; use this only for manual override.
+table SetSignalAspect {
+    g_id:   string (required);
+    aspect: Aspect;
+}
+
+// ── cmd_type 0x03 ────────────────────────────────────────────────────────────
+/// Toggle a derailer (wykolejnica).
+table SetDerailerPosition {
+    g_id:     string (required);
+    position: DerailerPosition;
+}
+
+// ── cmd_type 0x04 ────────────────────────────────────────────────────────────
+/// Open or close a block section (blok liniowy).
+table SetBlockSection {
+    g_id:  string (required);
+    state: BlockSectionState;
+}
+
+// ── cmd_type 0x05 ────────────────────────────────────────────────────────────
+/// High-level route request.
+/// The engine resolves required switch positions and signal aspects internally.
+table RequestRoute {
+    from_signal_g_id: string (required);  // entry signal g_id
+    to_signal_g_id:   string (required);  // exit signal g_id
+}
+
+// ── cmd_type 0x06 ────────────────────────────────────────────────────────────
+/// Cancel a previously set route.
+table CancelRoute {
+    route_id: string (required);
+}
+
+// ── cmd_type 0x07 ────────────────────────────────────────────────────────────
+/// Acknowledge an alarm displayed on the dispatcher's panel.
+table AcknowledgeAlarm {
+    alarm_id: string (required);
+}
+
+// ── Command acknowledgement (S → C, msg_type 0x11) ──────────────────────────
+table CommandAck {
+    req_seq_id: uint32;   // seq_id of the original COMMAND frame
+    event_id:   uint32;   // server-assigned event_id of the resulting domain event
+}
+
+// ── Command rejection (S → C, msg_type 0x12) ────────────────────────────────
+enum NakReason : byte {
+    UNAUTHORIZED    = 1,  // client does not own the station
+    SAFETY_BLOCK    = 2,  // interlocking rules prevent execution
+    UNKNOWN_OBJECT  = 3,  // g_id not found in topology
+    INVALID_STATE   = 4,  // object state rejects this command
+    SESSION_PAUSED  = 5,  // session is not accepting commands
+}
+
+table CommandNak {
+    req_seq_id:  uint32;
+    reason:      NakReason;
+    reason_text: string;   // localised description for the UI
+}
+
+root_type CommandNak;
