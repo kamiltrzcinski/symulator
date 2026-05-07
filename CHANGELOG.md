@@ -11,6 +11,13 @@ Entry format:
 
 ---
 
+## [0.2.6] — 2026-05-07
+
+### Changed
+- `docs/00-contributing.md`: complete rewrite for beginner audience — added glossary of terms (repo, commit, branch, compiler, CMake, Ninja, vcpkg, Qt, build), detailed Windows setup steps with screenshots guidance (Git installer option, VS Build Tools workload selection), SSH key generation walkthrough, explanation of what happens during a build and why the first run takes 60 minutes, step-by-step contribution workflow (8 steps from pulling latest code to opening a PR), expanded commit message guide with good/bad examples, Things You Must Not Do section
+
+---
+
 ## [0.2.5] — 2026-05-07
 
 ### Added
