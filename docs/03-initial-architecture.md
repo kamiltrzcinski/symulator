@@ -56,6 +56,65 @@
    - Operates fully offline for topology and manual timetable authoring; a server connection is required only for PLK schedule import (handled server-side via `IPLKImporter`).
    - Subject to the same cross-platform and dependency-bundling requirements as the operator client (see below).
 
+## Threading model
+
+The server process runs a fixed set of named threads with clearly defined ownership boundaries. No code may block a thread that does not own that blocking operation.
+
+### Fixed threads (always present)
+
+```
+Thread          Owner              Blocking allowed    Notes
+──────────────  ─────────────────  ──────────────────  ──────────────────────────────────────────
+ENGINE          SimulationEngine   NO                  20 Hz tick loop; must not wait on I/O
+DISPATCHER      EventDispatcher    YES (cv::wait)      Drains EventQueue<DomainEvent> from engine
+DB_WRITER       DatabaseManager    YES (libpqxx I/O)   Drains EventQueue<EventLogEntry>
+```
+
+The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCHER or DB_WRITER.
+
+### I/O and work thread pools (Boost.Asio)
+
+```
+Thread pool     Default size                    Role
+──────────────  ──────────────────────────────  ──────────────────────────────────────────────
+IO_POOL         max(2, hardware_concurrency/2)  Boost.Asio io_context; accepts TCP connections,
+                                                 reads/writes frames; one strand per connection
+WORK_POOL       max(1, hardware_concurrency/2)  Deserializes FlatBuffers payloads, validates
+                                                 COMMAND ownership, pushes into CommandQueue
+```
+
+Pool sizes are read from a config file at startup and capped by `hardware_concurrency`. At 4 vCPU the defaults yield 2 + 2 = 4 pool threads plus 3 fixed threads = 7 total.
+
+### Inter-thread communication
+
+```
+Producer → Queue → Consumer
+────────────────────────────────────────────────────────────────
+WORK_POOL    → PriorityCommandQueue<Command>   → ENGINE
+ENGINE       → EventQueue<DomainEvent>         → DISPATCHER
+DISPATCHER   → EventQueue<EventLogEntry>       → DB_WRITER
+DISPATCHER   → per-station broadcast sets      → IO_POOL (strands)
+```
+
+**`PriorityCommandQueue`** uses four FIFO buckets (EMERGENCY=0, SAFETY=1, NORMAL=2, BACKGROUND=3). The engine always drains the highest non-empty bucket first. Within one priority level FIFO order is preserved. A configurable `MAX_CMDS_PER_TICK` cap (default 32) ensures the tick duration stays within the 5 ms SLO regardless of input burst.
+
+**`EventQueue<T>`** is a single-producer single-consumer ring with a `std::mutex` + `std::condition_variable`. The consumer calls `wait_and_pop`; the producer calls `push` and notifies. No heap allocation on the hot path.
+
+### Posterunek ownership and command rejection
+
+`OwnershipRegistry` is a `std::unordered_map<posterunek_id, player_id>` protected by a `std::shared_mutex`. Reads (ownership check during command validation on WORK_POOL) take a shared lock. Writes (TAKEOVER, session join/leave) take an exclusive lock. The engine itself never reads `OwnershipRegistry` — rejection happens on WORK_POOL before the command enters `PriorityCommandQueue`, so the engine thread is never involved in ownership bookkeeping.
+
+### Shutdown sequence
+
+1. `io_context.stop()` — IO_POOL and WORK_POOL drain and exit.
+2. Engine tick loop exits on stop flag.
+3. `EventQueue<DomainEvent>` is flushed — DISPATCHER processes remaining events and exits.
+4. `EventQueue<EventLogEntry>` is flushed — DB_WRITER commits remaining inserts and exits.
+
+All queues support a `close()` call that unblocks `wait_and_pop` with a sentinel; no `std::terminate` or forced joins.
+
+---
+
 ## Cross-platform build requirements
 
 ### Development environment
@@ -75,6 +134,10 @@ The server runs on Linux only. All end-user components (operator client, scenari
 | SQLite | amalgamation | editor (`.scendb`) | Single-file amalgamation compiled directly into the editor binary |
 | nlohmann/json | ≥ 3.11 | engine, editor, server | Header-only via vcpkg; no separate binary |
 | OpenSSL | system | server only | System-provided on Linux server; not required in client distributions |
+| **Boost.Asio** | ≥ 1.84 | server | Header-only (Asio standalone mode); vcpkg `boost-asio` port; not linked into client or editor |
+| FlatBuffers | ≥ 23.x | engine, server, client | vcpkg; `flatc` compiler run as CMake custom target; generated headers checked in |
+| libpqxx | ≥ 7.x | server | vcpkg; server only; links against system `libpq` on Linux |
+| ONNX Runtime | ≥ 1.18 (post-MVP) | AI module | vcpkg `onnxruntime-gpu` port; AI process only; CUDA provider for RTX GPU |
 
 Qt modules used: `Qt6::Widgets`, `Qt6::OpenGLWidgets` (canvas), `Qt6::Sql` (SQLite in editor), `Qt6::Network` (client TCP transport). No Qt Quick / QML — pure Widgets.
 
@@ -154,6 +217,83 @@ Detailed step-by-step setup instructions for both Linux and Windows are in `docs
 - Same process or same host: direct function call or in-process event bus — no network protocol needed.
 
 **Protocol consolidation decision: one network protocol (TCP + custom binary framing) for all socket-based communication. No REST/HTTP layer in MVP. Intra-server components use direct calls.**
+
+## AI Dispatch Module (post-MVP)
+
+The AI Dispatch Module is a separate server-side process that acts as a virtual operator. It communicates with the engine through the identical mechanisms used by human players — no special engine-internal paths exist for AI.
+
+### Role
+
+- Holds posterunek assignments via `OwnershipRegistry` (F-019, F-024).
+- Subscribes to `DOMAIN_EVENT` broadcasts as a read-only observer.
+- Generates `COMMAND` payloads (set signal, set route, takeover, etc.) and submits them through `PriorityCommandQueue` at the appropriate priority level.
+- May hand off posterunki to a human player on demand; re-acquires them when the player leaves.
+
+### Inference hardware
+
+Training and inference targets a local GPU (NVIDIA RTX 5070 Ti, 16 GB VRAM). The choice of ML framework is deferred until post-MVP design, but the interface boundary is fixed now:
+
+```
+IDispatchAI
+  + onDomainEvent(DomainEvent) → void       // observe state changes
+  + pollCommands() → std::vector<Command>   // engine calls this each tick
+  + assignPosterunek(posterunek_id) → void
+  + revokePosterunek(posterunek_id) → void
+```
+
+`pollCommands` is called by the ENGINE thread at the start of each tick. The implementation must be non-blocking (inference result is prepared asynchronously on a GPU thread and staged in a lock-free buffer; `pollCommands` only reads the buffer).
+
+### Candidate frameworks (decision post-MVP)
+
+| Framework | VRAM usage | C++ API | Notes |
+|---|---|---|---|
+| LibTorch (PyTorch C++) | moderate | native | vcpkg port available; same model format as Python training |
+| ONNX Runtime | low | native | inference-only; model trained in any framework then exported |
+| llama.cpp | very low | native | for LLM-based planner variants |
+
+ONNX Runtime is the current default candidate: small binary footprint, GPU via CUDA provider, no Python runtime dependency at inference time.
+
+### Training strategy (outline)
+
+1. Record human operator sessions from the simulation (event log → replay files).
+2. Train an imitation learning baseline on recorded sessions.
+3. Fine-tune with reinforcement learning against a reward function encoding: train punctuality, safety rule compliance, and throughput.
+4. Evaluation: run AI against recorded scenarios and compare to human baseline.
+
+Training runs outside the main repository in a separate Python workspace. Only the exported ONNX (or LibTorch `.pt`) model is committed to this repo under `ai/models/`.
+
+---
+
+## Random Events Module (post-MVP, extension hook)
+
+The engine core does not implement random events. It provides `IRandomEventSource`:
+
+```cpp
+// Engine calls poll() once per tick; the result is injected at EMERGENCY priority.
+class IRandomEventSource {
+public:
+    virtual ~IRandomEventSource() = default;
+    virtual std::optional<RandomEvent> poll() = 0;
+};
+
+struct RandomEvent {
+    RandomEventType type;      // open enum; built-in types below
+    std::string affectedGID;   // gID of the affected track section, device, or train
+    std::string description;   // human-readable, language-keyed JSON string
+};
+
+// Built-in RandomEventType values (extensible without engine changes):
+//   TRACK_CLOSURE        — section must be taken out of service
+//   INFRASTRUCTURE_FAIL  — switch or signal failure
+//   MEDICAL_EMERGENCY    — ambulance required at station
+//   POLICE_CALL          — police required at station
+//   RECOVERY_TRAIN       — recovery train must be dispatched
+//   PASSENGER_ALARM      — passenger emergency stop pulled
+```
+
+A `NullRandomEventSource` (returns `std::nullopt` always) is the default at startup. The Random Events Module replaces it via dependency injection at server init — no engine code changes required. The module generates events according to a probability table loaded from a config file, producing realistic incident scenarios during gameplay.
+
+---
 
 ## Minimum deployment layout
 

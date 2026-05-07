@@ -11,6 +11,22 @@ Entry format:
 
 ---
 
+## [0.3.6] — 2026-05-07
+
+### Added
+- `data/device_types/semafor.json`: global signal aspect catalogue — all 14 PKP aspects (S1–S13 + Ms2) valid across all semaphore types; individual semaphore type definitions (post-MVP) will reference a subset of these aspects; `typeID: DVT-GLB-SEM-0000001`
+- `docs/02-system-requirements.md`: F-023 (random events engine hook — `IRandomEventSource`, built-in event types, no engine implementation); F-024 (AI Dispatch Module — virtual operator, `IDispatchAI`, ONNX Runtime candidate, GPU inference)
+- `docs/03-initial-architecture.md`: Threading model section — 3 fixed threads (ENGINE/DISPATCHER/DB_WRITER), 2 configurable Boost.Asio thread pools (IO_POOL/WORK_POOL), `PriorityCommandQueue` (4 buckets), `EventQueue<T>` with mutex+cv, `OwnershipRegistry` with `shared_mutex`, shutdown sequence
+- `docs/03-initial-architecture.md`: AI Dispatch Module section — `IDispatchAI` interface, non-blocking `pollCommands` contract, framework comparison table (ONNX Runtime / LibTorch / llama.cpp), training strategy outline
+- `docs/03-initial-architecture.md`: Random Events Module section — `IRandomEventSource` + `NullRandomEventSource` default, `RandomEvent` with open enum, dependency injection at server init
+- `docs/03-initial-architecture.md`: dependency table extended — Boost.Asio ≥1.84, FlatBuffers ≥23.x, libpqxx ≥7.x, ONNX Runtime ≥1.18 (post-MVP)
+
+### Changed
+- `docs/02-system-requirements.md`: F-013 rewritten — posterunek-level exclusive ownership (one posterunek → exactly one player); engine rejects commands on ownership mismatch; TAKEOVER flow is the only ownership transfer path
+- `docs/02-system-requirements.md`: F-019 rewritten — one player may hold multiple posterunki; `OwnershipRegistry` (`posterunek_id` → `player_id`) maintained atomically by session server
+
+---
+
 ## [0.3.5] — 2026-05-07
 
 ### Changed
