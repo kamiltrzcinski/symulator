@@ -35,3 +35,6 @@ vcpkg_installed/
 # Python (tooling scripts)
 __pycache__/
 *.pyc
+
+# Private devlog
+docs/devlog.md
