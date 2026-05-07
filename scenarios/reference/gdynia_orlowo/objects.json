@@ -3,71 +3,71 @@
 
     "signals": [
         {
-            "gID":                  "SEM-TRJ-GDO-Wp1",
+            "gID":                  "SEM-TRJ-GOr-Wp1",
             "pID":                  "Wp1",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "ENTRY",
-            "governs_track_section": "OT-TRJ-GDO-tor1a",
+            "governs_track_section": "OT-TRJ-GOr-tor1a",
             "initial_aspect":       "STOP"
         },
         {
-            "gID":                  "SEM-TRJ-GDO-Wp2",
+            "gID":                  "SEM-TRJ-GOr-Wp2",
             "pID":                  "Wp2",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "ENTRY",
-            "governs_track_section": "OT-TRJ-GDO-tor2a",
+            "governs_track_section": "OT-TRJ-GOr-tor2a",
             "initial_aspect":       "STOP"
         },
         {
-            "gID":                  "SEM-TRJ-GDO-Ww1",
+            "gID":                  "SEM-TRJ-GOr-Ww1",
             "pID":                  "Ww1",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "DEPARTURE",
-            "governs_track_section": "OT-TRJ-GDO-tor1a",
+            "governs_track_section": "OT-TRJ-GOr-tor1a",
             "initial_aspect":       "STOP"
         },
         {
-            "gID":                  "SEM-TRJ-GDO-Ww2",
+            "gID":                  "SEM-TRJ-GOr-Ww2",
             "pID":                  "Ww2",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "DEPARTURE",
-            "governs_track_section": "OT-TRJ-GDO-tor2a",
+            "governs_track_section": "OT-TRJ-GOr-tor2a",
             "initial_aspect":       "STOP"
         },
         {
-            "gID":                  "SEM-TRJ-GDO-Sp1",
+            "gID":                  "SEM-TRJ-GOr-Sp1",
             "pID":                  "Sp1",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "DEPARTURE",
-            "governs_track_section": "OT-TRJ-GDO-tor1b",
+            "governs_track_section": "OT-TRJ-GOr-tor1b",
             "initial_aspect":       "STOP"
         },
         {
-            "gID":                  "SEM-TRJ-GDO-Sp2",
+            "gID":                  "SEM-TRJ-GOr-Sp2",
             "pID":                  "Sp2",
-            "sID":                  "GDO",
+            "sID":                  "GOr",
             "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
             "type":                 "DEPARTURE",
-            "governs_track_section": "OT-TRJ-GDO-tor2b",
+            "governs_track_section": "OT-TRJ-GOr-tor2b",
             "initial_aspect":       "STOP"
         }
     ],
 
     "posterunki": [
         {
-            "posterunek_id": "GDO_nastawnia",
+            "posterunek_id": "GOr_nastawnia",
             "display_name": "Gdynia Orłowo — Nastawnia",
-            "station_sid": "GDO",
-            "governs_switches": ["ZWR-TRJ-GDO-zwr1", "ZWR-TRJ-GDO-zwr2"],
+            "station_sid": "GOr",
+            "governs_switches": ["ZWR-TRJ-GOr-zwr1", "ZWR-TRJ-GOr-zwr2"],
             "governs_signals": [
-                "SEM-TRJ-GDO-Wp1", "SEM-TRJ-GDO-Wp2",
-                "SEM-TRJ-GDO-Ww1", "SEM-TRJ-GDO-Ww2",
-                "SEM-TRJ-GDO-Sp1", "SEM-TRJ-GDO-Sp2"
+                "SEM-TRJ-GOr-Wp1", "SEM-TRJ-GOr-Wp2",
+                "SEM-TRJ-GOr-Ww1", "SEM-TRJ-GOr-Ww2",
+                "SEM-TRJ-GOr-Sp1", "SEM-TRJ-GOr-Sp2"
             ]
         }
     ]
