@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-WM15P-0000001",
+  "typeName": "WM15P",
+  "pkpSeries": null,
+  "vehicleType": "SERVICE_WAGON",
+  "vehicleSubtype": null,
+  "lengthM": 12.45,
+  "axleCount": 4,
+  "massEmptyT": 20,
+  "massGrossT": 20,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 80,
+  "powerKW": 147,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

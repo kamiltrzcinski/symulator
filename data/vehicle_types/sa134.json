@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA134-0000001",
+  "typeName": "SA134",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 41.7,
+  "axleCount": 8,
+  "massEmptyT": 78.5,
+  "massGrossT": 78.5,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 700,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

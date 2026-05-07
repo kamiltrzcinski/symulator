@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-TR12-0000001",
+  "typeName": "Tr12",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 17.535,
+  "axleCount": 4,
+  "massEmptyT": 107,
+  "massGrossT": 107,
+  "maxSpeedKmh": 60,
+  "brakingLambdaPct": 100,
+  "powerKW": 809,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

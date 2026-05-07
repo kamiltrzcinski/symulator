@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-LS1200-0000001",
+  "typeName": "Ls1200",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 17,
+  "axleCount": 2,
+  "massEmptyT": 116,
+  "massGrossT": 116,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 100,
+  "powerKW": 880,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

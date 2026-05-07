@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ED250-0000001",
+  "typeName": "ED250",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 187.4,
+  "axleCount": 8,
+  "massEmptyT": 395,
+  "massGrossT": 395,
+  "maxSpeedKmh": 250,
+  "brakingLambdaPct": 80,
+  "powerKW": 5664,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

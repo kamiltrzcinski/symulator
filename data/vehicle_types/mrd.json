@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-MRD-0000001",
+  "typeName": "MRD",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 44.8,
+  "axleCount": 8,
+  "massEmptyT": 74.62,
+  "massGrossT": 74.62,
+  "maxSpeedKmh": 130,
+  "brakingLambdaPct": 80,
+  "powerKW": 478,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

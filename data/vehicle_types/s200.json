@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-S200-0000001",
+  "typeName": "S200",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 17.24,
+  "axleCount": 4,
+  "massEmptyT": 117,
+  "massGrossT": 117,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 100,
+  "powerKW": 993,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-6DG-0000001",
+  "typeName": "6Dg",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 14.24,
+  "axleCount": 4,
+  "massEmptyT": 70,
+  "massGrossT": 70,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 100,
+  "powerKW": 588,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EN63A-0000001",
+  "typeName": "EN63A",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 58.4,
+  "axleCount": 8,
+  "massEmptyT": 110,
+  "massGrossT": 110,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 1600,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

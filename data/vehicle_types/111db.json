@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-111DB-0000001",
+  "typeName": "111Db",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 19.8,
+  "axleCount": 4,
+  "massEmptyT": 84,
+  "massGrossT": 84,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 100,
+  "powerKW": 2280,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

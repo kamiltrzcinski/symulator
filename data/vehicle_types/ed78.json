@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ED78-0000001",
+  "typeName": "ED78",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 74.4,
+  "axleCount": 8,
+  "massEmptyT": 136,
+  "massGrossT": 136,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 2000,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

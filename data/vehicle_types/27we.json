@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-27WE-0000001",
+  "typeName": "27WE",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 107.85,
+  "axleCount": 8,
+  "massEmptyT": 190.5,
+  "massGrossT": 190.5,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 3200,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

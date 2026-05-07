@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ED160-0000001",
+  "typeName": "ED160",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 152.9,
+  "axleCount": 8,
+  "massEmptyT": 230,
+  "massGrossT": 230,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 2000,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

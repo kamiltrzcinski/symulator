@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-PT31-0000001",
+  "typeName": "Pt31",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 23.955,
+  "axleCount": 4,
+  "massEmptyT": 173.7,
+  "massGrossT": 173.7,
+  "maxSpeedKmh": 110,
+  "brakingLambdaPct": 100,
+  "powerKW": 1470,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

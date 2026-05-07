@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ST45-0000001",
+  "typeName": "ST45",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 18.99,
+  "axleCount": 6,
+  "massEmptyT": 102,
+  "massGrossT": 102,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 100,
+  "powerKW": 1250,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

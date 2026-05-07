@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA109-0000001",
+  "typeName": "SA109",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 26.63,
+  "axleCount": 8,
+  "massEmptyT": 45,
+  "massGrossT": 45,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 80,
+  "powerKW": 380,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA104-0000001",
+  "typeName": "SA104",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 19.2,
+  "axleCount": 8,
+  "massEmptyT": 39,
+  "massGrossT": 39,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 80,
+  "powerKW": 157,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

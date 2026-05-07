@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-OK22-0000001",
+  "typeName": "Ok22",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 18.94,
+  "axleCount": 4,
+  "massEmptyT": 133,
+  "massGrossT": 133,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 100,
+  "powerKW": 720,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

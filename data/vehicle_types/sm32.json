@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SM32-0000001",
+  "typeName": "SM32",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 10.14,
+  "axleCount": 4,
+  "massEmptyT": 40.5,
+  "massGrossT": 40.5,
+  "maxSpeedKmh": 60,
+  "brakingLambdaPct": 100,
+  "powerKW": 257,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

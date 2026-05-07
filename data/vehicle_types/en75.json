@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EN75-0000001",
+  "typeName": "EN75",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 74,
+  "axleCount": 8,
+  "massEmptyT": 118,
+  "massGrossT": 118,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 2000,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

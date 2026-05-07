@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SM41-0000001",
+  "typeName": "SM41",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 11.29,
+  "axleCount": 4,
+  "massEmptyT": 62,
+  "massGrossT": 62,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 100,
+  "powerKW": 440,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

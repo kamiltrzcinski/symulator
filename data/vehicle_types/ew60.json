@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EW60-0000001",
+  "typeName": "EW60",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 64.84,
+  "axleCount": 8,
+  "massEmptyT": 170,
+  "massGrossT": 170,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 80,
+  "powerKW": 824,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

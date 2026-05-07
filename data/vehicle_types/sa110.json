@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA110-0000001",
+  "typeName": "SA110",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 79.46,
+  "axleCount": 8,
+  "massEmptyT": 142,
+  "massGrossT": 142,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 993,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

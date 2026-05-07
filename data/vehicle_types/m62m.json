@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-M62M-0000001",
+  "typeName": "M62M",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 17.55,
+  "axleCount": 4,
+  "massEmptyT": 117,
+  "massGrossT": 117,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 100,
+  "powerKW": 1472,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

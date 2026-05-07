@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EN77-0000001",
+  "typeName": "EN77",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 75.25,
+  "axleCount": 8,
+  "massEmptyT": 141.5,
+  "massGrossT": 141.5,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 2000,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-OL49-0000001",
+  "typeName": "Ol49",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 20.675,
+  "axleCount": 4,
+  "massEmptyT": 144.9,
+  "massGrossT": 144.9,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 100,
+  "powerKW": 949,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

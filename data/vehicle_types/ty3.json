@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-TY3-0000001",
+  "typeName": "Ty3",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 23,
+  "axleCount": 4,
+  "massEmptyT": 155.3,
+  "massGrossT": 155.3,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 100,
+  "powerKW": 1325,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-TKH49-0000001",
+  "typeName": "TKh49",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 9.17,
+  "axleCount": 4,
+  "massEmptyT": 44.4,
+  "massGrossT": 44.4,
+  "maxSpeedKmh": 45,
+  "brakingLambdaPct": 100,
+  "powerKW": 294,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

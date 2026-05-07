@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-ER160-0000001",
+  "typeName": "ER160",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 98.2,
+  "axleCount": 8,
+  "massEmptyT": 140,
+  "massGrossT": 140,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 2600,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

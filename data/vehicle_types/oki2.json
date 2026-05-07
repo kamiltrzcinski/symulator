@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-OKI2-0000001",
+  "typeName": "OKi2",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "STEAM",
+  "lengthM": 11.8,
+  "axleCount": 4,
+  "massEmptyT": 65.9,
+  "massGrossT": 65.9,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 100,
+  "powerKW": 640,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

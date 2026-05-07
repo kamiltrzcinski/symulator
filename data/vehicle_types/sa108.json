@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA108-0000001",
+  "typeName": "SA108",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 34.72,
+  "axleCount": 8,
+  "massEmptyT": 56,
+  "massGrossT": 56,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 80,
+  "powerKW": 514,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

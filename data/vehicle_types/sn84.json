@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SN84-0000001",
+  "typeName": "SN84",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 79.46,
+  "axleCount": 8,
+  "massEmptyT": 141.8,
+  "massGrossT": 141.8,
+  "maxSpeedKmh": 140,
+  "brakingLambdaPct": 80,
+  "powerKW": 754,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

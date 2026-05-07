@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-MAK_DE_6400-0000001",
+  "typeName": "MaK DE 6400",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 14.4,
+  "axleCount": 4,
+  "massEmptyT": 80,
+  "massGrossT": 80,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 100,
+  "powerKW": 1180,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-EW58-0000001",
+  "typeName": "EW58",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 64,
+  "axleCount": 8,
+  "massEmptyT": 147,
+  "massGrossT": 147,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 1640,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

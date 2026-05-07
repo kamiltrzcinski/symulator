@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-34WE-0000001",
+  "typeName": "34WE",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 42.65,
+  "axleCount": 8,
+  "massEmptyT": 83.2,
+  "massGrossT": 83.2,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 1600,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

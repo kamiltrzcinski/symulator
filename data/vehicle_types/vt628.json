@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-VT628-0000001",
+  "typeName": "VT628",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 44.35,
+  "axleCount": 8,
+  "massEmptyT": 84,
+  "massGrossT": 84,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 442,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

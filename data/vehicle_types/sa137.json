@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA137-0000001",
+  "typeName": "SA137",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 41.8,
+  "axleCount": 8,
+  "massEmptyT": 82,
+  "massGrossT": 82,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 780,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

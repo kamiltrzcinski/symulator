@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-14WE-0000001",
+  "typeName": "14WE",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 68,
+  "axleCount": 8,
+  "massEmptyT": 135,
+  "massGrossT": 135,
+  "maxSpeedKmh": 110,
+  "brakingLambdaPct": 80,
+  "powerKW": 580,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

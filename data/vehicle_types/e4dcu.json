@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-E4DCU-0000001",
+  "typeName": "E4DCU",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 19.9,
+  "axleCount": 4,
+  "massEmptyT": 88,
+  "massGrossT": 88,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 100,
+  "powerKW": 5600,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

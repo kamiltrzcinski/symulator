@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-21WEA-0000001",
+  "typeName": "21WEa",
+  "pkpSeries": null,
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 58.95,
+  "axleCount": 8,
+  "massEmptyT": 107.3,
+  "massGrossT": 107.3,
+  "maxSpeedKmh": 160,
+  "brakingLambdaPct": 80,
+  "powerKW": 1600,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}

@@ -1,0 +1,17 @@
+{
+  "typeID": "VT-GLB-SA103-0000001",
+  "typeName": "SA103",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 24.5,
+  "axleCount": 8,
+  "massEmptyT": 49,
+  "massGrossT": 49,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 80,
+  "powerKW": 350,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated"
+}
