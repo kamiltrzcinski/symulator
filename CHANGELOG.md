@@ -11,6 +11,25 @@ Entry format:
 
 ---
 
+## [0.2.9] — 2026-05-07
+
+### Added
+- `scripts/pre-commit-hook.sh` — bash hook that rejects commits where `CHANGELOG.md` is not staged; install with `cp scripts/pre-commit-hook.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`
+- `scripts/check-changelog.py` — cross-platform Python equivalent for Windows users whose Git client does not fire shell hooks; run manually with `python scripts/check-changelog.py`
+- `data/vehicle_types/`, `data/vehicles/`, `data/trains/` — new fleet data directory tree (replaces `vehicles/`); accessible to engine, client, and editor
+- **Vehicle type system** in `docs/10-vehicle-model.md`: type definitions carry all physical properties shared across units of the same model; individual instances reference `typeID` and override only differing fields (e.g. `massGrossT` for a loaded freight wagon); property resolution rule: instance field takes precedence when present and non-null, otherwise falls back to type
+- `typeID` gID scheme: `VT-GLB-{typeName}-{7digits}`, e.g. `VT-GLB-ET22-0000001`; area is `GLB` (global) because types are not station-specific
+- **Conflict detection guide** in `docs/00-contributing.md` — Step 1 now explains merge conflict markers, how to resolve them, and `git status` output to watch for
+- **Pre-commit hook section** in `docs/00-contributing.md` — installation one-liner, Windows caveat (GitHub Desktop / TortoiseGit may skip hooks), manual fallback command
+
+### Changed
+- `CMakeLists.txt`: project version is now parsed from the first `## [X.Y.Z]` entry in `CHANGELOG.md` at configure time — `CHANGELOG.md` is the single source of truth; a missing entry causes a `FATAL_ERROR` to catch forgotten updates early
+- `vcpkg.json`: removed the `version` field (it was not used; vcpkg only needs it for publishing to a registry, not for consuming packages)
+- `docs/10-vehicle-model.md`: file layout updated from `vehicles/definitions/` and `vehicles/trains/` to `data/vehicle_types/`, `data/vehicles/`, `data/trains/`; vehicle JSON redesigned with two-level (type + instance) schema; train consist `gID` area updated from `GGO` to `TRJ`
+- `docs/00-contributing.md`: project folder structure updated to reflect `data/`, `scenarios/`, `proto/`, `docker/`, `scripts/`
+
+---
+
 ## [0.2.8] — 2026-05-08
 
 ### Added

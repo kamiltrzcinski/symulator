@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.25)
-project(symulator VERSION 0.1.0 LANGUAGES CXX)
+
+# ── Version — single source of truth is CHANGELOG.md ───────────────────────
+# Look for the first line matching "## [X.Y.Z]"
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md" _cl_lines LIMIT_COUNT 30)
+foreach(_cl_line IN LISTS _cl_lines)
+    if(_cl_line MATCHES "^## \\[([0-9]+\\.[0-9]+\\.[0-9]+)\\]")
+        set(SYMULATOR_VERSION "${CMAKE_MATCH_1}")
+        break()
+    endif()
+endforeach()
+if(NOT SYMULATOR_VERSION)
+    message(FATAL_ERROR
+        "Cannot determine project version.\n"
+        "Add a '## [X.Y.Z] — YYYY-MM-DD' entry to CHANGELOG.md first.")
+endif()
+
+project(symulator VERSION "${SYMULATOR_VERSION}" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

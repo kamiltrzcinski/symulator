@@ -1,7 +1,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "name": "symulator",
-    "version": "0.1.0",
+    "$comment-version": "Version is defined in CHANGELOG.md and read by CMakeLists.txt. Do not add a version field here — it is only needed for publishing to a vcpkg registry, which this project does not do.",
     "dependencies": [
         "flatbuffers",
         "nlohmann-json",

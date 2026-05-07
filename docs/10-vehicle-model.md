@@ -2,120 +2,222 @@
 
 ## Overview
 
-A **train** is a `std::vector<Vehicle>` assembled at runtime from individual vehicle definitions stored in JSON. Vehicle definitions are the canonical source; train compositions reference vehicle `gID`s. This separates the fleet registry from session-specific consists.
+A **train** is a `std::vector<Vehicle>` assembled at runtime from individual vehicle definitions stored in JSON.
+
+The fleet data is split into three levels:
+
+| Level | Directory | Purpose |
+|---|---|---|
+| **Vehicle type** | `data/vehicle_types/` | Physical properties shared by all units of the same model (e.g. every ET22 has the same axle count, mass, speed limit). One JSON file per type. |
+| **Vehicle instance** | `data/vehicles/` | An individual, numbered vehicle. References its type and overrides only what differs (e.g. loaded mass for a freight wagon). One JSON file per unit. |
+| **Train consist** | `data/trains/` | Ordered list of vehicle `gID`s forming a specific trainset. |
+
+Station devices (signals, switches, derailers) are part of the scenario topology and live in `scenarios/`. They are **not** fleet data.
+
+---
+
+## Where the data directory is used
+
+| Component | Usage |
+|---|---|
+| **Engine** | Loads types + instances at startup to build the fleet registry; assembles consists from train JSON |
+| **Client** | Reads types + instance display names to populate the rolling-stock info panel |
+| **Editor** | Reads types to populate the vehicle palette when building timetable entries |
+
+All three components read the same `data/` tree from the filesystem (path configurable at runtime). No component writes to it during a session.
 
 ---
 
 ## File layout
 
 ```
-vehicles/
-  definitions/
-    et22.json          ← one file per vehicle class or individual unit
+data/
+  vehicle_types/
+    et22.json          ← one file per vehicle model / type
     ep09.json
+    en57.json
     112a.json
     134a.json
+    403z.json
+    …
+  vehicles/
+    et22_001.json      ← one file per numbered vehicle instance
+    et22_002.json
+    403z_001.json
     …
   trains/
-    ic_12345.json      ← one file per train consist
+    ic_12345.json      ← one file per consist
     pospiech_express.json
     …
+scenarios/
+  reference/
+    gdynia_orlowo/
+      topology.json    ← track sections, switches
+      objects.json     ← signals, derailers, posterunki
 ```
 
 ---
 
-## Vehicle definition
+## Global identifier scheme for vehicle types
 
-Each vehicle is an individual unit with a unique `gID`.
+Vehicle types use the same `generateGID` function as other objects (see [docs/07-ebiscreen-description.md](07-ebiscreen-description.md)), with:
+
+| Segment | Value | Rationale |
+|---|---|---|
+| `type` | `VT` | Vehicle Type |
+| `area` | `GLB` | Global — types are not area-specific |
+| `pID` | type designation | e.g. `ET22`, `EP09`, `EN57AL` |
+| number | 7-digit sequence | unique across all `VT` objects |
+
+**Example:** `VT-GLB-ET22-0000001`
+
+Individual vehicle instances use `VEH` as the type segment and the deployment area as `area`:
+
+**Example:** `VEH-TRJ-ET22-001-0000001`
+
+---
+
+## Vehicle type definition
+
+A type file declares all physical properties that are identical across every unit of that model.
 
 ### JSON schema
 
 ```json
 {
-  "gID":              "VEH-GGO-ET22-001-0000001",
-  "pID":              "ET22-001",
-  "type":             "LOCOMOTIVE",
-  "subtype":          "ELECTRIC",
-  "displayName":      "ET22-001",
-  "lengthM":          19.24,
-  "axleCount":        6,
-  "massEmptyT":       84.0,
-  "massGrossT":       null,
-  "maxSpeedKmh":      125,
-  "brakingLambdaPct": 100,
-  "powerKW":          2000.0,
-  "tractionForceKN":  196.0
+    "typeID":           "VT-GLB-ET22-0000001",
+    "typeName":         "ET22",
+    "vehicleType":      "LOCOMOTIVE",
+    "vehicleSubtype":   "ELECTRIC",
+    "lengthM":          19.24,
+    "axleCount":        6,
+    "massEmptyT":       84.0,
+    "massGrossT":       null,
+    "maxSpeedKmh":      125,
+    "brakingLambdaPct": 100,
+    "powerKW":          2000.0,
+    "tractionForceKN":  196.0
 }
 ```
 
-For a loaded freight wagon the same fields look like this:
+A covered freight wagon type:
 
 ```json
 {
-  "gID":              "VEH-GGO-403Z-001-0000050",
-  "pID":              "403Z-001",
-  "type":             "FREIGHT_WAGON",
-  "subtype":          "COVERED",
-  "displayName":      "403Z-001",
-  "lengthM":          14.02,
-  "axleCount":        4,
-  "massEmptyT":       22.0,
-  "massGrossT":       58.0,
-  "maxSpeedKmh":      100,
-  "brakingLambdaPct": 65,
-  "powerKW":          null,
-  "tractionForceKN":  null
+    "typeID":           "VT-GLB-403Z-0000020",
+    "typeName":         "403Z",
+    "vehicleType":      "FREIGHT_WAGON",
+    "vehicleSubtype":   "COVERED",
+    "lengthM":          14.02,
+    "axleCount":        4,
+    "massEmptyT":       22.0,
+    "massGrossT":       null,
+    "maxSpeedKmh":      100,
+    "brakingLambdaPct": 65,
+    "powerKW":          null,
+    "tractionForceKN":  null
 }
 ```
 
-### Field reference
+### Type field reference
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `gID` | string | yes | generated by `generateGID` |
-| `pID` | string | yes | operational number |
-| `type` | string | yes | see table below |
-| `subtype` | string | depends | required for `LOCOMOTIVE`, `EMU_UNIT`, `FREIGHT_WAGON` |
-| `displayName` | string | yes | |
+| `typeID` | string | yes | generated by `generateGID("VT", "GLB", typeName)` |
+| `typeName` | string | yes | human-readable designation, e.g. `ET22` |
+| `vehicleType` | string | yes | see table below |
+| `vehicleSubtype` | string | depends | required for `LOCOMOTIVE`, `EMU_UNIT`, `FREIGHT_WAGON` |
 | `lengthM` | float | yes | over buffers |
 | `axleCount` | int | yes | |
 | `massEmptyT` | float | yes | tare mass in tonnes |
-| `massGrossT` | float\|null | no | gross (loaded) mass; `null` for vehicles that are never loaded (locomotives, passenger wagons); if present, used instead of `massEmptyT` for physics calculations |
-| `maxSpeedKmh` | int | yes | design maximum for this vehicle |
-| `brakingLambdaPct` | int | yes | UIC braking percentage λ; see Physics section |
-| `powerKW` | float\|null | no | `null` for unpowered vehicles |
-| `tractionForceKN` | float\|null | no | `null` for unpowered vehicles |
+| `massGrossT` | float‑or‑null | no | default loaded mass; `null` = vehicle is never loaded |
+| `maxSpeedKmh` | int | yes | design maximum |
+| `brakingLambdaPct` | int | yes | UIC braking percentage λ |
+| `powerKW` | float‑or‑null | no | `null` for unpowered vehicles |
+| `tractionForceKN` | float‑or‑null | no | `null` for unpowered vehicles |
 
-### `type` and `subtype` values
+### `vehicleType` and `vehicleSubtype` values
 
-| `type`           | `subtype`                      | Notes                               |
-|------------------|--------------------------------|-------------------------------------|
-| `LOCOMOTIVE`     | `ELECTRIC` \| `DIESEL` \| `STEAM` |                                  |
-| `EMU_UNIT`       | `MOTOR` \| `TRAILER`           | Multiple-unit train car             |
-| `PASSENGER_WAGON`| —                              |                                     |
-| `FREIGHT_WAGON`  | `FLAT` \| `COVERED` \| `TANK` \| `HOPPER` | |
-| `SERVICE_WAGON`  | —                              | Maintenance, snow plough, etc.      |
+| `vehicleType` | `vehicleSubtype` | Notes |
+|---|---|---|
+| `LOCOMOTIVE` | `ELECTRIC` \| `DIESEL` \| `STEAM` | |
+| `EMU_UNIT` | `MOTOR` \| `TRAILER` | Multiple-unit train car |
+| `PASSENGER_WAGON` | — | |
+| `FREIGHT_WAGON` | `FLAT` \| `COVERED` \| `TANK` \| `HOPPER` | |
+| `SERVICE_WAGON` | — | Maintenance, snow plough, etc. |
 
-Fields `powerKW` and `tractionForceKN` are used by the **v2 physics model** and ignored by v1. They must still be present in locomotive definitions so the fleet registry is forward-compatible.
+---
+
+## Vehicle instance definition
+
+An instance references its type by `typeID`. Only fields that **differ from the type** need to be present (e.g. `massGrossT` when a specific wagon is known to be loaded).
+
+### JSON schema — locomotive
+
+```json
+{
+    "gID":         "VEH-TRJ-ET22-001-0000001",
+    "pID":         "ET22-001",
+    "typeID":      "VT-GLB-ET22-0000001",
+    "displayName": "ET22-001"
+}
+```
+
+Because `ET22-001` is a standard unit with no deviations from the type, only identity fields are needed.
+
+### JSON schema — freight wagon with a loaded-state override
+
+```json
+{
+    "gID":         "VEH-TRJ-403Z-001-0000050",
+    "pID":         "403Z-001",
+    "typeID":      "VT-GLB-403Z-0000020",
+    "displayName": "403Z-001",
+    "massGrossT":  58.0
+}
+```
+
+`massGrossT` overrides the type’s `null` default, telling the engine this wagon is carrying 58 t gross.
+
+### Property resolution rule
+
+```
+effective(field) = instance.field   if present and not null
+                   type.field       otherwise
+```
+
+The engine performs this merge once at load time and caches the resolved `Vehicle` struct. Instances never need to repeat fields that match the type.
+
+### Instance field reference
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `gID` | string | yes | generated by `generateGID("VEH", area, pID)` |
+| `pID` | string | yes | operational number, e.g. `ET22-001` |
+| `typeID` | string | yes | must match a `typeID` in `data/vehicle_types/` |
+| `displayName` | string | yes | shown on screen |
+| any type field | — | no | present only when this unit deviates from the type default |
+
+Fields `powerKW` and `tractionForceKN` are used by the **v2 physics model** and ignored by v1. They must be present on the type so the registry is forward-compatible.
 
 ---
 
 ## Train composition
 
-A train composition lists vehicle `gID`s in order from **front to rear**. The engine assembles `std::vector<Vehicle>` by iterating the list and looking up each vehicle definition.
+A consist file lists vehicle `gID`s in order from **front to rear**. The engine assembles `std::vector<Vehicle>` by looking up each instance in the fleet registry.
 
 ```json
 {
-  "gID":         "TRN-GGO-IC12345-0000100",
-  "pID":         "IC 12345",
-  "displayName": "IC 12345 Kraków — Gdynia",
-  "vehicles": [
-    "VEH-GGO-ET22-001-0000001",
-    "VEH-GGO-112A-001-0000010",
-    "VEH-GGO-112A-002-0000011",
-    "VEH-GGO-112A-003-0000012",
-    "VEH-GGO-134A-001-0000020"
-  ]
+    "gID":         "TRN-TRJ-IC12345-0000100",
+    "pID":         "IC 12345",
+    "displayName": "IC 12345 Kraków — Gdynia",
+    "vehicles": [
+        "VEH-TRJ-ET22-001-0000001",
+        "VEH-TRJ-112A-001-0000010",
+        "VEH-TRJ-112A-002-0000011",
+        "VEH-TRJ-112A-003-0000012",
+        "VEH-TRJ-134A-001-0000020"
+    ]
 }
 ```
 
