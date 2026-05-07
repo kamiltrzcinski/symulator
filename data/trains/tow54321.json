@@ -1,0 +1,10 @@
+{
+    "gID":         "TRN-TRJ-TOW54321-0000001",
+    "pID":         "Tow 54321",
+    "displayName": "Tow 54321 Gdynia — Katowice",
+    "vehicles": [
+        "VEH-TRJ-ET22-001-0000001",
+        "VEH-TRJ-452W-537-0000001",
+        "VEH-TRJ-452W-537-0000002"
+    ]
+}

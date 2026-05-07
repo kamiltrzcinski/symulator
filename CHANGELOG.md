@@ -11,6 +11,13 @@ Entry format:
 
 ---
 
+## [0.3.2] — 2026-05-07
+
+### Added
+- `data/trains/tow54321.json` — consist Tow 54321 Gdynia–Katowice: ET22-001 + 452W-5375001 + 452W-5375002
+
+---
+
 ## [0.3.1] — 2026-05-07
 
 ### Added
