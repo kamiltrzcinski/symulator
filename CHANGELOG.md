@@ -11,6 +11,24 @@ Entry format:
 
 ---
 
+## [0.2.7] — 2026-05-07
+
+### Added
+- `brakingLambdaPct` field in vehicle JSON — UIC braking percentage λ; present on every vehicle; used to compute `a_decel` as `(λ/100) × g × 0.85`; reference table by train type added to Physics section
+- `massGrossT` field in vehicle JSON — loaded mass for freight wagons; `null` for locomotives and passenger vehicles; engine uses `massGrossT` when present, `massEmptyT` otherwise (`effectiveMassT` function)
+- Second JSON example in vehicle definition (loaded freight wagon `403Z`)
+- Full field reference table for vehicle definition JSON
+- Trapezoidal speed profile explanation with ASCII diagram — both V1 and V2 produce linear acceleration/deceleration ramps, no instant speed changes
+- `consist_lambda` derived value — mass-weighted average λ across all vehicles in consist; computed at load time alongside `total_mass_t`
+
+### Changed
+- V1 physics: `a_decel` is now derived from `consist_lambda` (not a global config constant); `a_accel` remains a configurable session parameter; tick update formula clarified with `v_target` derivation
+- V2 physics: braking phase unified with V1 — always λ-derived; V2 only extends the traction (acceleration) side with force-balance model
+- `total_mass_t` derivation updated to use `effectiveMassT(v)` per vehicle
+- Q-VEH-3 resolved: `massGrossT` + `brakingLambdaPct` together cover the loaded/empty distinction
+
+---
+
 ## [0.2.6] — 2026-05-07
 
 ### Changed
