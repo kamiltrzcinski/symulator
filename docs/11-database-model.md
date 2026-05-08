@@ -44,7 +44,17 @@ CREATE TABLE fleet.vehicles (
 CREATE TABLE fleet.train_definitions (
     gid             TEXT        PRIMARY KEY,           -- e.g. TRN-GGO-IC12345-0000100
     pid             TEXT        NOT NULL,              -- e.g. IC 12345
-    display_name    TEXT        NOT NULL
+    display_name    TEXT        NOT NULL,
+    train_category  TEXT        NOT NULL DEFAULT 'PASSENGER',
+                                -- PASSENGER | FREIGHT | MAINTENANCE
+                                -- Determines default icon and handling rules.
+                                -- Matches TrainCategory enum in engine/core/types.hpp.
+    classification  TEXT,                              -- PKP internal classification code;
+                                                       -- free-form, e.g. "TLK", "IC", "pospieszny"
+    supplement      TEXT,                              -- Additional operational annotation shown in
+                                                       -- PIP "Uzupełnienie" column, e.g.
+                                                       -- "z towarem niebezpiecznym", "TD"
+    description     TEXT                               -- Free-form notes visible to dispatchers
 );
 
 CREATE TABLE fleet.train_definition_vehicles (
@@ -131,14 +141,47 @@ CREATE TABLE session.edr_entries (
     actual_departure     INTERVAL,
     track_number    TEXT,
     stop_type       TEXT        NOT NULL DEFAULT 'COMMERCIAL',
+                                -- COMMERCIAL | TECHNICAL | PASS_THROUGH
     status          TEXT        NOT NULL DEFAULT 'PENDING',
                                 -- PENDING | ARRIVED | DEPARTED | SKIPPED | CANCELLED
+    track_clear_time INTERVAL,                         -- "Droga wolna" — time when the dispatcher
+                                                       -- confirmed the line/track is clear after
+                                                       -- departure. Set by S-form dispatch process;
+                                                       -- NULL until confirmed. Duplicate-confirmation
+                                                       -- is rejected by the server with a warning.
     notes           TEXT,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX ON session.edr_entries (session_id, station_sid, scheduled_departure);
 CREATE INDEX ON session.edr_entries (session_id, train_number);
+
+-- Dispatch telegram log (S-form exchange between neighbouring LCS).
+-- One row per telegram in a bilateral dispatch exchange.
+-- The full S-form state machine is documented in docs/15-dispatch-forms.md.
+CREATE TABLE session.dispatch_telegrams (
+    id              BIGSERIAL   PRIMARY KEY,
+    session_id      UUID        NOT NULL REFERENCES session.sessions(id),
+    form_type       TEXT        NOT NULL,              -- S2 | S24 | S25 | S26 | S35 | S51 |
+                                                       -- S52 | S55 | S56 | S76
+    exchange_id     UUID        NOT NULL,              -- groups all telegrams of one bilateral
+                                                       -- exchange (question + reply + confirm)
+    train_number    TEXT        NOT NULL,
+    from_sid        TEXT        NOT NULL,              -- sending LCS
+    to_sid          TEXT        NOT NULL,              -- receiving LCS
+    direction       TEXT        NOT NULL,              -- SENT | RECEIVED
+    status          TEXT        NOT NULL DEFAULT 'PENDING',
+                                -- PENDING | CONFIRMED | REJECTED | SUPERSEDED
+    track_number    TEXT,                              -- tor szlakowy / stacyjny
+    km_markers      TEXT[],                            -- level crossing km positions notified,
+                                                       -- e.g. {"210.394","212.705"}
+    body            TEXT        NOT NULL,              -- rendered telegram text (for log/display)
+    timestamp_us    BIGINT      NOT NULL               -- session epoch offset
+);
+
+CREATE INDEX ON session.dispatch_telegrams (session_id, exchange_id);
+CREATE INDEX ON session.dispatch_telegrams (session_id, train_number);
+CREATE INDEX ON session.dispatch_telegrams (session_id, from_sid, to_sid);
 
 -- Who controls which posterunek at any point in time.
 CREATE TABLE session.posterunek_assignments (
@@ -250,6 +293,7 @@ A full Trójmiasto session generates ~1 000 EDR rows. This fits entirely in Post
 | `session.events`    | Keep all rows for active + last 10 completed sessions. Archive or delete older. |
 | `session.snapshots` | Keep only the 3 most recent snapshots per session (older ones are superseded). |
 | `session.edr_entries` | Retain for the lifetime of the session + 30 days.  |
+| `session.dispatch_telegrams` | Retain for the lifetime of the session + 30 days. Required for audit trail of S-form exchanges. |
 | `session.chat_log`  | Retain for the lifetime of the session + 30 days.   |
 | `pip.track_state`   | Delete all rows for a session when the session ends. No archiving needed — state is reconstructable from `session.events`. |
 | `fleet.*`           | Never deleted; refreshed only on explicit re-import. |

@@ -108,6 +108,64 @@ enum class RandomEventType : std::uint8_t
     PASSENGER_ALARM,      // Passenger emergency stop pulled
 };
 
+// ── Train category ────────────────────────────────────────────────────────────
+// Top-level classification of a train definition.
+// Determines which S-form dispatch path applies and the default icon.
+// Matches fleet.train_definitions.train_category in the database.
+// See docs/15-dispatch-forms.md.
+
+enum class TrainCategory : std::uint8_t
+{
+    PASSENGER,    // Passenger service (IC, TLK, regional, …)
+    FREIGHT,      // Freight / goods train
+    MAINTENANCE,  // Infrastructure maintenance or recovery train
+};
+
+// ── Dispatch form types (S-forms / Zapowiedniowiec) ───────────────────────────
+// Formal bilateral exchange forms between neighbouring LCS.
+// Full state machine documented in docs/15-dispatch-forms.md.
+
+enum class DispatchFormType : std::uint8_t
+{
+    S2,   // Dispatch request (A → B): "Is the line clear?"
+    S24,  // Line-clear reply (B → A): "Line clear, train may depart"
+    S25,  // Departure notification (A → B): "Train N has departed"
+    S26,  // Arrival confirmation (B → A): "Train N has arrived"
+    S35,  // Cancellation request (A → B): withdraw previous S2
+    S51,  // Level-crossing notification (A → B): km markers + estimated time
+    S52,  // Acknowledgement of S51 (B → A)
+    S55,  // Dispatch request for dangerous-goods trains (replaces S2)
+    S56,  // Line-clear reply for dangerous-goods trains (replaces S24)
+    S76,  // Free-form bilateral message / remarks
+};
+
+enum class TelegramDirection : std::uint8_t
+{
+    SENT,
+    RECEIVED,
+};
+
+enum class TelegramStatus : std::uint8_t
+{
+    PENDING,     // Sent, awaiting acknowledgement
+    CONFIRMED,   // Acknowledged by the receiving LCS
+    REJECTED,    // Rejected (e.g. duplicate droga_wolna, wrong state)
+    SUPERSEDED,  // Cancelled by a subsequent S35 or new exchange
+};
+
+// State of one bilateral S-form exchange.
+// Transitions documented in docs/15-dispatch-forms.md.
+enum class ExchangeStatus : std::uint8_t
+{
+    IDLE,          // No active exchange; initial state
+    S2_SENT,       // S2 (or S55) sent; awaiting S24 (or S56)
+    S24_RECEIVED,  // Line clear granted; train may depart
+    S25_SENT,      // Departure notification sent; awaiting S26
+    S26_RECEIVED,  // Arrival confirmed; exchange complete
+    CLOSED,        // Exchange successfully concluded
+    CANCELLED,     // Exchange withdrawn via S35
+};
+
 // ── PIP (Train Identification Panel) types ───────────────────────────────────
 // These types are shared between the ENGINE (producer) and PIP_WRITER (consumer).
 // See docs/03-initial-architecture.md and docs/11-database-model.md for the

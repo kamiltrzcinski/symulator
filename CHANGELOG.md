@@ -11,6 +11,16 @@ Entry format:
 
 ---
 
+## [0.3.9] — 2026-05-08
+
+### Added
+- `engine/include/engine/core/types.hpp`: dispatch-form vocabulary — `TrainCategory` enum (`PASSENGER | FREIGHT | MAINTENANCE`); `DispatchFormType` enum (S2/S24/S25/S26/S35/S51/S52/S55/S56/S76); `TelegramDirection` (`SENT | RECEIVED`); `TelegramStatus` (`PENDING | CONFIRMED | REJECTED | SUPERSEDED`); `ExchangeStatus` (full S-form state machine: `IDLE → S2_SENT → S24_RECEIVED → S25_SENT → S26_RECEIVED → CLOSED`; cancellation: `CANCELLED`)
+- `tests/engine/test_types.cpp`: 17 new tests for `TrainCategory`, `DispatchFormType`, `TelegramDirection`, `TelegramStatus`, `ExchangeStatus` (distinct-values, all-forms-reachable, standard-path, cancellation-path); total 92/92
+- `docs/15-dispatch-forms.md`: full dispatch-form specification — S-form catalogue (S2–S76), S2/S24/S25/S26 state machine diagram, cancellation path, duplicate-confirmation guard ("droga wolna" already filled), level-crossing notifications (S51/S52 + km_markers), `ZapowiedniowiecManager` responsibilities, engine types table, open questions Q-SF-1 to Q-SF-3
+- `docs/11-database-model.md`: `fleet.train_definitions` extended with `train_category`, `classification`, `supplement`, `description` columns; `session.edr_entries` extended with `track_clear_time INTERVAL` (set by S24/S56 confirmation, duplicate guarded by server); `session.dispatch_telegrams` table (form_type, exchange_id, from_sid/to_sid, direction, status, km_markers TEXT[], body, timestamp_us); retention policy entry for `dispatch_telegrams`
+
+---
+
 ## [0.3.8] — 2026-05-08
 
 ### Added
