@@ -11,6 +11,15 @@ Entry format:
 
 ---
 
+## [0.3.10] — 2026-05-08
+
+### Fixed
+- `docs/03-initial-architecture.md`: removed incorrect claim that PIP_WRITER auto-creates `session.edr_entry` on LCS boundary crossing — PIP and EDR are independent subsystems
+- `docs/11-database-model.md`: corrected `TrainCrossedLcsBoundary` action in PIP_WRITER event table — PIP_WRITER only UPSERTs `pip.track_state`, never touches `session.edr_entries`
+- `engine/include/engine/core/types.hpp`: corrected `lcs_boundary_crossing` comment accordingly
+
+---
+
 ## [0.3.9] — 2026-05-08
 
 ### Added

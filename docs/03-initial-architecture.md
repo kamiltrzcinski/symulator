@@ -73,7 +73,7 @@ PIP_WRITER      PipStateManager    YES (libpqxx I/O)   Drains EventQueue<PipEven
 
 The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCHER, DB_WRITER, or PIP_WRITER.
 
-**PIP_WRITER** is dedicated to the Train Identification Panel (PIP) subsystem. It receives `PipEvent` records from the ENGINE whenever a track section changes occupancy or a train number is assigned/removed. Its sole responsibility is maintaining the `pip.track_state` table (UPSERT per section) and, when a train crosses an LCS boundary, auto-creating a `session.edr_entry` if the arriving LCS has no prior knowledge of that train number. PIP_WRITER never communicates back to the ENGINE — it is a write-only sink. An awaria (crash/stall) of PIP_WRITER does not affect the engine tick loop or the client broadcast path; at worst the PIP display in reconnecting clients will be stale until the writer recovers.
+**PIP_WRITER** is dedicated to the Train Identification Panel (PIP) subsystem. It receives `PipEvent` records from the ENGINE whenever a track section changes occupancy or a train number is assigned/removed. Its sole responsibility is maintaining the `pip.track_state` table (UPSERT per section). PIP and EDR are independent subsystems — PIP_WRITER never touches `session.edr_entries`. PIP_WRITER never communicates back to the ENGINE — it is a write-only sink. An awaria (crash/stall) of PIP_WRITER does not affect the engine tick loop or the client broadcast path; at worst the PIP display in reconnecting clients will be stale until the writer recovers.
 
 ### I/O and work thread pools (Boost.Asio)
 

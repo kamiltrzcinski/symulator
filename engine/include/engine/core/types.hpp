@@ -206,8 +206,8 @@ struct PipEvent
     // nullopt when the section becomes free without a known train number.
     std::optional<TrainSlot> slot;
     // True when this event represents a train crossing an LCS boundary.
-    // PIP_WRITER must auto-create session.edr_entry if the train number is
-    // not yet known in the target station_sid.
+    // PIP_WRITER updates pip.track_state for the target section only.
+    // EDR is independent — session.edr_entries is never touched by PIP_WRITER.
     bool lcs_boundary_crossing = false;
 };
 

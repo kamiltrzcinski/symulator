@@ -256,7 +256,7 @@ CREATE INDEX ON pip.track_state (session_id);
 |---|---|---|
 | Pociąg wjeżdża na odcinek | ENGINE `TrackOccupancyChanged` | UPSERT: append `TrainSlot` to `trains` |
 | Pociąg wyjeżdża z odcinka | ENGINE `TrackOccupancyChanged` | UPSERT: remove matching `TrainSlot` from `trains` |
-| Pociąg przekracza granicę LCS | ENGINE `TrainCrossedLcsBoundary` | UPSERT target section + auto-create `session.edr_entry` if train unknown to target LCS |
+| Pociąg przekracza granicę LCS | ENGINE `TrainCrossedLcsBoundary` | UPSERT target section in `pip.track_state` only — EDR is independent, PIP_WRITER does not touch `session.edr_entries` |
 | Dyżurny wpisuje numer ręcznie | COMMAND `AssignTrainNumber` | UPSERT: add `TrainSlot{manually_placed=true}` |
 | Dyżurny usuwa numer ręcznie | COMMAND `RemoveTrainNumber` | UPSERT: remove `TrainSlot` |
 | Powiązana informacja dodatkowa | COMMAND `SetTrainExtraInfo` | UPSERT: set `has_extra_info=true` on matching slot |
