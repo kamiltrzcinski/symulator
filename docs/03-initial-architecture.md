@@ -68,9 +68,12 @@ Thread          Owner              Blocking allowed    Notes
 ENGINE          SimulationEngine   NO                  20 Hz tick loop; must not wait on I/O
 DISPATCHER      EventDispatcher    YES (cv::wait)      Drains EventQueue<DomainEvent> from engine
 DB_WRITER       DatabaseManager    YES (libpqxx I/O)   Drains EventQueue<EventLogEntry>
+PIP_WRITER      PipStateManager    YES (libpqxx I/O)   Drains EventQueue<PipEvent>; UPSERT pip.track_state
 ```
 
-The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCHER or DB_WRITER.
+The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCHER, DB_WRITER, or PIP_WRITER.
+
+**PIP_WRITER** is dedicated to the Train Identification Panel (PIP) subsystem. It receives `PipEvent` records from the ENGINE whenever a track section changes occupancy or a train number is assigned/removed. Its sole responsibility is maintaining the `pip.track_state` table (UPSERT per section) and, when a train crosses an LCS boundary, auto-creating a `session.edr_entry` if the arriving LCS has no prior knowledge of that train number. PIP_WRITER never communicates back to the ENGINE — it is a write-only sink. An awaria (crash/stall) of PIP_WRITER does not affect the engine tick loop or the client broadcast path; at worst the PIP display in reconnecting clients will be stale until the writer recovers.
 
 ### I/O and work thread pools (Boost.Asio)
 
@@ -83,7 +86,7 @@ WORK_POOL       max(1, hardware_concurrency/2)  Deserializes FlatBuffers payload
                                                  COMMAND ownership, pushes into CommandQueue
 ```
 
-Pool sizes are read from a config file at startup and capped by `hardware_concurrency`. At 4 vCPU the defaults yield 2 + 2 = 4 pool threads plus 3 fixed threads = 7 total.
+Pool sizes are read from a config file at startup and capped by `hardware_concurrency`. At 4 vCPU the defaults yield 2 + 2 = 4 pool threads plus 4 fixed threads = 8 total.
 
 ### Inter-thread communication
 
@@ -92,9 +95,12 @@ Producer → Queue → Consumer
 ────────────────────────────────────────────────────────────────
 WORK_POOL    → PriorityCommandQueue<Command>   → ENGINE
 ENGINE       → EventQueue<DomainEvent>         → DISPATCHER
+ENGINE       → EventQueue<PipEvent>            → PIP_WRITER
 DISPATCHER   → EventQueue<EventLogEntry>       → DB_WRITER
 DISPATCHER   → per-station broadcast sets      → IO_POOL (strands)
 ```
+
+**`EventQueue<PipEvent>`** is a dedicated MPSC queue (ENGINE is the sole producer). `PipEvent` carries the section `gID`, new `TrackOccupancy`, and an optional `train_number` (present on entry/exit). The queue is separate from `EventQueue<DomainEvent>` so that a PIP_WRITER stall cannot apply backpressure to the DISPATCHER and vice versa.
 
 **`PriorityCommandQueue`** uses four FIFO buckets (EMERGENCY=0, SAFETY=1, NORMAL=2, BACKGROUND=3). The engine always drains the highest non-empty bucket first. Within one priority level FIFO order is preserved. A configurable `MAX_CMDS_PER_TICK` cap (default 32) ensures the tick duration stays within the 5 ms SLO regardless of input burst.
 
@@ -109,7 +115,8 @@ DISPATCHER   → per-station broadcast sets      → IO_POOL (strands)
 1. `io_context.stop()` — IO_POOL and WORK_POOL drain and exit.
 2. Engine tick loop exits on stop flag.
 3. `EventQueue<DomainEvent>` is flushed — DISPATCHER processes remaining events and exits.
-4. `EventQueue<EventLogEntry>` is flushed — DB_WRITER commits remaining inserts and exits.
+4. `EventQueue<PipEvent>` is flushed — PIP_WRITER commits remaining UPSERTs and exits.
+5. `EventQueue<EventLogEntry>` is flushed — DB_WRITER commits remaining inserts and exits.
 
 All queues support a `close()` call that unblocks `wait_and_pop` with a sentinel; no `std::terminate` or forced joins.
 

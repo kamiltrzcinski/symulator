@@ -3,7 +3,9 @@
 #include <compare>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
+#include <vector>
 
 // ── Domain value types and enumerations ─────────────────────────────────────
 // This header defines the vocabulary types shared across all engine modules.
@@ -104,6 +106,51 @@ enum class RandomEventType : std::uint8_t
     POLICE_CALL,          // Police required at station
     RECOVERY_TRAIN,       // Recovery/rescue train must be dispatched
     PASSENGER_ALARM,      // Passenger emergency stop pulled
+};
+
+// ── PIP (Train Identification Panel) types ───────────────────────────────────
+// These types are shared between the ENGINE (producer) and PIP_WRITER (consumer).
+// See docs/03-initial-architecture.md and docs/11-database-model.md for the
+// full PIP threading model and pip.track_state schema.
+
+// Direction from which a train entered a track section.
+// Used by TrainSlot to determine placement of the '*' suffix in the alternating
+// display mode (two trains present on one station track).
+enum class EntrySide : std::uint8_t
+{
+    LEFT,
+    RIGHT,
+};
+
+// One train occupying (or awaiting on) a track section.
+// Stored as a vector inside pip.track_state; order is insertion order.
+// Invariant: number is at most 6 characters (digits/letters); the optional 7th
+// character '*' is a client-side display artefact in alternating mode.
+struct TrainSlot
+{
+    std::string number;            // ≤6 chars
+    bool has_extra_info = false;   // show '!' badge (black on yellow)
+    bool manually_placed = false;  // client blinks; awaiting train arrival
+    EntrySide entry_side = EntrySide::LEFT;
+
+    bool operator==(const TrainSlot&) const = default;
+};
+
+// Event pushed by ENGINE into EventQueue<PipEvent> on every track-occupancy or
+// train-number change.  PIP_WRITER is the sole consumer; no other thread reads
+// this queue.
+struct PipEvent
+{
+    GID section_gid;
+    SID station_sid;  // LCS that owns this section
+    TrackOccupancy occupancy;
+    // Present when a train enters a section or a number is assigned/removed.
+    // nullopt when the section becomes free without a known train number.
+    std::optional<TrainSlot> slot;
+    // True when this event represents a train crossing an LCS boundary.
+    // PIP_WRITER must auto-create session.edr_entry if the train number is
+    // not yet known in the target station_sid.
+    bool lcs_boundary_crossing = false;
 };
 
 }  // namespace engine::core

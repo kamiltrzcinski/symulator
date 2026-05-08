@@ -2,14 +2,17 @@
 
 ## Decision
 
-**One PostgreSQL instance, two schemas.**
+**One PostgreSQL instance, three schemas.**
 
 - Schema `fleet` — static reference data, loaded from config files at server startup. Read-mostly.
 - Schema `session` — live operational data written during simulation. Write-heavy (event log).
+- Schema `pip` — live PIP (Train Identification Panel) state; one row per track section. Written exclusively by the PIP_WRITER thread.
 
 Resolves open questions OQ-7 and OQ-8 from `02-system-requirements.md`.
 
-**Rationale for one instance:** At MVP scale (9 stations, up to ~36 clients) there is no operational justification for two PostgreSQL processes. One instance means one backup job, one connection pool, one monitoring target. Splitting into two instances is a deployment change only — no schema changes required — so the decision is reversible at any time.
+**Rationale for one instance:** At MVP scale (9 stations, up to ~36 clients) there is no operational justification for multiple PostgreSQL processes. One instance means one backup job, one connection pool, one monitoring target. Splitting into multiple instances is a deployment change only — no schema changes required — so the decision is reversible at any time.
+
+**Why a separate `pip` schema and not a table in `session`:** The `pip` schema is written by a dedicated PIP_WRITER thread that must not share a write path with the append-only `session.events` log. Keeping it in its own schema enforces ownership — only PIP_WRITER touches `pip.*` — and makes a future migration to a separate PostgreSQL instance a connection-string change, not a refactor.
 
 **EDR integration:** A new native C++ component will be written (not adapted from the C# prototype). It owns the `fleet.timetable_templates` table and the `session.edr_entries` table. It communicates with the engine via direct in-process call or Unix socket (Channel 2, same as defined in `09-communication-contract.md`).
 
@@ -168,6 +171,59 @@ CREATE INDEX ON session.chat_log (session_id, timestamp_us);
 
 ---
 
+## Schema `pip`
+
+Live PIP state. Written exclusively by the PIP_WRITER thread. Never written by the ENGINE, DISPATCHER, or DB_WRITER. Provides fast point-in-time reads for reconnecting clients without replaying the full event log.
+
+```sql
+-- Schema: pip
+
+-- One row per track section per session.
+-- UPSERT on every TrackOccupancyChanged / train number assignment.
+CREATE TABLE pip.track_state (
+    session_id      UUID        NOT NULL REFERENCES session.sessions(id),
+    section_gid     TEXT        NOT NULL,
+    trains          JSONB       NOT NULL DEFAULT '[]',
+                                -- Array of TrainSlot objects:
+                                -- [
+                                --   {
+                                --     "number": "IC1234",      -- up to 6 chars
+                                --     "has_extra_info": false, -- show "!" badge
+                                --     "manually_placed": false,-- blink on client
+                                --     "entry_side": "LEFT"     -- LEFT | RIGHT
+                                --   }
+                                -- ]
+                                -- 0 items = track empty / no number assigned
+                                -- 1 item  = standard display
+                                -- 2 items = alternating display (client animates 1 s)
+                                -- 3+ items = column display (client or server aggregates)
+    path_confirmed  BOOLEAN     NOT NULL DEFAULT FALSE,
+                                -- TRUE when a confirmed route is set over this section;
+                                -- client renders track in green and number in track colour
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (session_id, section_gid)
+);
+
+CREATE INDEX ON pip.track_state (session_id);
+```
+
+### Train number lifecycle
+
+| Event | Source | PIP_WRITER action |
+|---|---|---|
+| Pociąg wjeżdża na odcinek | ENGINE `TrackOccupancyChanged` | UPSERT: append `TrainSlot` to `trains` |
+| Pociąg wyjeżdża z odcinka | ENGINE `TrackOccupancyChanged` | UPSERT: remove matching `TrainSlot` from `trains` |
+| Pociąg przekracza granicę LCS | ENGINE `TrainCrossedLcsBoundary` | UPSERT target section + auto-create `session.edr_entry` if train unknown to target LCS |
+| Dyżurny wpisuje numer ręcznie | COMMAND `AssignTrainNumber` | UPSERT: add `TrainSlot{manually_placed=true}` |
+| Dyżurny usuwa numer ręcznie | COMMAND `RemoveTrainNumber` | UPSERT: remove `TrainSlot` |
+| Powiązana informacja dodatkowa | COMMAND `SetTrainExtraInfo` | UPSERT: set `has_extra_info=true` on matching slot |
+
+### Column display aggregation
+
+When `trains` contains more than 3 entries (line-block multi-section tracking), PIP_WRITER stores the raw full list. The client is responsible for rendering the column display: it shows `trains[0]`, a synthetic middle entry `"{N}*"` where N = `trains.size() - 2`, and `trains.back()`. The server never truncates the list — storing the full list allows the client to reconstruct any view and simplifies server logic.
+
+---
+
 ## EDR row volume estimate (Trójmiasto scenario)
 
 | Station                  | Through-trains/day | EDR rows/session |
@@ -195,6 +251,7 @@ A full Trójmiasto session generates ~1 000 EDR rows. This fits entirely in Post
 | `session.snapshots` | Keep only the 3 most recent snapshots per session (older ones are superseded). |
 | `session.edr_entries` | Retain for the lifetime of the session + 30 days.  |
 | `session.chat_log`  | Retain for the lifetime of the session + 30 days.   |
+| `pip.track_state`   | Delete all rows for a session when the session ends. No archiving needed — state is reconstructable from `session.events`. |
 | `fleet.*`           | Never deleted; refreshed only on explicit re-import. |
 
 Retention is enforced by a maintenance job (cron or pg_cron), not by application code.

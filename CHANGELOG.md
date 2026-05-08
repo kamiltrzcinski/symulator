@@ -11,6 +11,20 @@ Entry format:
 
 ---
 
+## [0.3.8] — 2026-05-08
+
+### Added
+- `engine/include/engine/core/types.hpp`: PIP vocabulary types — `EntrySide` enum (`LEFT`/`RIGHT`); `TrainSlot` struct (train number ≤6 chars, `has_extra_info`, `manually_placed`, `entry_side`; `operator==` defaulted); `PipEvent` struct (section GID, station SID, `TrackOccupancy`, `std::optional<TrainSlot>`, `lcs_boundary_crossing` flag) — produced by ENGINE, consumed exclusively by PIP_WRITER thread
+- `tests/engine/test_types.cpp`: 10 tests covering `EntrySide` distinctness, `TrainSlot` default-init / field roundtrip / 6-char number / manually-placed flag / equality operator, `PipEvent` with absent slot / present slot / LCS boundary crossing / section and station IDs / extra-info flag
+- `docs/03-initial-architecture.md`: PIP_WRITER as 4th fixed thread; `EventQueue<PipEvent>` in inter-thread communication map; updated total thread count (4 fixed + 2 pools = 8 at 4 vCPU); PIP_WRITER step added to shutdown sequence
+- `docs/11-database-model.md`: "three schemas" decision; `pip` schema with `pip.track_state` table (JSONB `trains` array, `path_confirmed` flag), `TrainSlot` JSONB shape documented, train-number lifecycle table, column-display aggregation rule; `pip.track_state` added to retention policy
+
+### Changed
+- `engine/include/engine/core/types.hpp`: added `<optional>` and `<vector>` includes (required by `PipEvent` and future `TrackDisplayState`)
+- `tests/engine/CMakeLists.txt`: register `test_types.cpp` in `tests_engine` executable
+
+---
+
 ## [0.3.7] — 2026-05-08
 
 ### Added
