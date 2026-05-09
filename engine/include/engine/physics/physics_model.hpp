@@ -34,9 +34,9 @@ struct DavisCoeff
 // Immutable consist-level parameters resolved once at train formation.
 struct TrainPhysicsParams
 {
-    float total_mass_t;     // total consist mass [t]
-    float max_traction_kn;  // maximum starting traction force [kN]
-    float max_speed_ms;     // consist speed limit [m/s]
+    float total_mass_t = 0.0f;     // total consist mass [t]
+    float max_traction_kn = 0.0f;  // maximum starting traction force [kN]
+    float max_speed_ms = 999.0f;   // consist speed limit [m/s]
 
     // Davis coefficients for the whole consist.
     // For a multi-vehicle consist, sum individual davis * mass_t contributions:
@@ -44,9 +44,9 @@ struct TrainPhysicsParams
     //   B_consist = Σ (b_i * m_i)   [N/(km/h)]
     //   C_consist = Σ (c_i * m_i)   [N/(km/h)²]
     // These are stored as absolute (pre-multiplied by mass) values.
-    float davis_A;  // [N]
-    float davis_B;  // [N/(km/h)]
-    float davis_C;  // [N/(km/h)²]
+    float davis_A = 0.0f;  // [N]
+    float davis_B = 0.0f;  // [N/(km/h)]
+    float davis_C = 0.0f;  // [N/(km/h)²]
 };
 
 // ── TrainPhysicsState ─────────────────────────────────────────────────────────

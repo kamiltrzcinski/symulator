@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 
 #include "engine/core/types.hpp"
@@ -55,6 +56,9 @@ struct DriverInput
     float distance_to_signal_m;         // metres until the signal mast
     float target_speed_ms;              // consist speed limit [m/s]
     float max_brake_kn;                 // consist full-service brake force [kN]
+    // Advisory context from the next signal (optional; used for proactive braking).
+    engine::core::SignalAspect next_aspect = engine::core::SignalAspect::S2_PROCEED;
+    float distance_to_next_signal_m = 1.0e9f;
 };
 
 // ── DriverOutput ──────────────────────────────────────────────────────────────
@@ -114,6 +118,29 @@ inline constexpr bool is_stop_aspect(engine::core::SignalAspect asp) noexcept
     return asp == engine::core::SignalAspect::S1_STOP;
 }
 
+// ── Advisory aspect to expected speed mapping ───────────────────────────────
+// Returns expected speed at the *next* signal for proactive braking.
+// Sentinel 999 means "no advisory expectation".
+inline constexpr float expected_next_speed_ms(engine::core::SignalAspect asp) noexcept
+{
+    using SA = engine::core::SignalAspect;
+    switch (asp)
+    {
+        case SA::S4_PROCEED_40_EXPECT_STOP:
+        case SA::S5_EXPECT_STOP:
+        case SA::S7_PROCEED_100_EXPECT_STOP:
+            return 0.0f;
+        case SA::S8_PROCEED_100_EXPECT_40:
+        case SA::S11_PROCEED_40_EXPECT_40:
+            return 40.0f / 3.6f;
+        case SA::S9_PROCEED_100_EXPECT_60:
+        case SA::S13_PROCEED_60_EXPECT_60:
+            return 60.0f / 3.6f;
+        default:
+            return 999.0f;
+    }
+}
+
 // ── DriverAI ──────────────────────────────────────────────────────────────────
 // Pure, stateless compute function.  Caller maintains DriverState externally.
 // Call once per simulation tick; returns the updated DriverOutput.
@@ -131,6 +158,29 @@ public:
     // Velocity below which we declare the train stopped [m/s].
     static constexpr float kStoppedThresholdMs = 0.05f;
 
+    // Braking distance to target speed (constant-deceleration approximation).
+    static constexpr float braking_distance_to_speed(const TrainPhysicsParams& p,
+                                                     const TrainPhysicsState& s, float brake_kn,
+                                                     float target_speed_ms) noexcept
+    {
+        const float mass_kg = p.total_mass_t * 1000.0f;
+        const float brake_n = brake_kn * 1000.0f;
+        if (mass_kg <= 0.0f || brake_n <= 0.0f)
+        {
+            return 1.0e9f;
+        }
+
+        const float v = std::max(0.0f, s.velocity_ms);
+        const float v_target = std::max(0.0f, target_speed_ms);
+        if (v <= v_target)
+        {
+            return 0.0f;
+        }
+
+        const float a_brake = brake_n / mass_kg;
+        return (v * v - v_target * v_target) / (2.0f * a_brake);
+    }
+
     // ── Main entry point ───────────────────────────────────────────────────────
     // prev_state  : DriverState from the previous tick
     // p           : immutable consist physics params
@@ -143,14 +193,15 @@ public:
     {
         DriverOutput out{};
 
-        // ── Effective speed limit (min of consist limit and signal limit) ─────
+        // ── Effective speed limits ─────────────────────────────────────────────
         const float signal_vmax = aspect_speed_ms(inp.aspect);
-        const float eff_vmax_ms =
-            (signal_vmax < inp.target_speed_ms) ? signal_vmax : inp.target_speed_ms;
+        const float eff_vmax_ms = std::min(signal_vmax, inp.target_speed_ms);
 
         // ── STOP ─────────────────────────────────────────────────────────────
         // Must stop at or before the signal mast.
         const bool must_stop = is_stop_aspect(inp.aspect);
+        // When STOP is far ahead, train can still run up to the line/consist limit.
+        const float movement_vmax_ms = must_stop ? inp.target_speed_ms : eff_vmax_ms;
 
         // ── Braking distance needed to reach 0 m/s ────────────────────────────
         // Use full service brake.
@@ -158,41 +209,65 @@ public:
         s_for_brake.brake_kn = inp.max_brake_kn;
         const float d_stop = PhysicsModel::braking_distance(p, s_for_brake) * kBrakingMargin;
 
+        // ── Proactive braking for warning aspects ─────────────────────────────
+        const float expected_next_vmax_ms = expected_next_speed_ms(inp.next_aspect);
+        const bool has_advisory_limit = expected_next_vmax_ms < 998.0f;
+        const float d_to_advisory_speed =
+            braking_distance_to_speed(p, s, inp.max_brake_kn, expected_next_vmax_ms) *
+            kBrakingMargin;
+        const bool advisory_brake_now = has_advisory_limit &&
+                                        s.velocity_ms > expected_next_vmax_ms + kSpeedBandMs &&
+                                        d_to_advisory_speed >= inp.distance_to_next_signal_m;
+
         // ── State transitions ─────────────────────────────────────────────────
         DriverState new_state = prev_state;
 
         if (must_stop)
         {
-            // Need to stop before signal
+            // Stop signal ahead: brake only once stopping distance reaches signal.
             if (s.velocity_ms <= kStoppedThresholdMs)
+            {
                 new_state = DriverState::STOPPED;
+            }
             else if (d_stop >= inp.distance_to_signal_m)
+            {
                 new_state = DriverState::BRAKING;
+            }
+            else if (s.velocity_ms >= movement_vmax_ms - kSpeedBandMs)
+            {
+                new_state = DriverState::CRUISING;
+            }
             else
-                new_state = DriverState::BRAKING;  // already committed to stopping
+            {
+                new_state = DriverState::ACCELERATING;
+            }
+        }
+        else if (advisory_brake_now)
+        {
+            new_state = DriverState::BRAKING;
         }
         else if (s.velocity_ms <= kStoppedThresholdMs && prev_state == DriverState::STOPPED)
         {
             // At rest, signal permits movement
-            if (eff_vmax_ms > kStoppedThresholdMs)
+            if (movement_vmax_ms > kStoppedThresholdMs)
                 new_state = DriverState::ACCELERATING;
             // else stay STOPPED
         }
-        else if (prev_state == DriverState::STOPPED && eff_vmax_ms > kStoppedThresholdMs)
+        else if (prev_state == DriverState::STOPPED && movement_vmax_ms > kStoppedThresholdMs)
         {
             new_state = DriverState::ACCELERATING;
         }
         else if (prev_state == DriverState::ACCELERATING)
         {
-            if (s.velocity_ms >= eff_vmax_ms - kSpeedBandMs)
+            if (s.velocity_ms >= movement_vmax_ms - kSpeedBandMs)
                 new_state = DriverState::CRUISING;
             // stay ACCELERATING if we haven't reached target yet
         }
         else if (prev_state == DriverState::CRUISING)
         {
-            if (s.velocity_ms > eff_vmax_ms + kSpeedBandMs)
+            if (s.velocity_ms > movement_vmax_ms + kSpeedBandMs)
                 new_state = DriverState::BRAKING;
-            else if (s.velocity_ms < eff_vmax_ms - kSpeedBandMs * 2.0f)
+            else if (s.velocity_ms < movement_vmax_ms - kSpeedBandMs * 2.0f)
                 new_state = DriverState::ACCELERATING;
             // else stay CRUISING
         }
@@ -200,8 +275,17 @@ public:
         {
             if (s.velocity_ms <= kStoppedThresholdMs && must_stop)
                 new_state = DriverState::STOPPED;
-            else if (!must_stop && s.velocity_ms <= eff_vmax_ms - kSpeedBandMs)
-                new_state = DriverState::CRUISING;
+            else if (!must_stop)
+            {
+                if (has_advisory_limit && s.velocity_ms > expected_next_vmax_ms + kSpeedBandMs)
+                {
+                    new_state = DriverState::BRAKING;
+                }
+                else if (s.velocity_ms <= movement_vmax_ms - kSpeedBandMs)
+                {
+                    new_state = DriverState::CRUISING;
+                }
+            }
             // else stay BRAKING
         }
 
@@ -223,7 +307,7 @@ public:
                 // Apply only enough traction to overcome Davis resistance.
                 // This keeps speed roughly constant without oscillation.
                 const float f_res = PhysicsModel::davis_resistance(p, s.velocity_ms);
-                out.traction_kn = f_res / 1000.0f;  // kN
+                out.traction_kn = std::min(f_res / 1000.0f, p.max_traction_kn);  // kN
                 out.brake_kn = 0.0f;
                 break;
             }

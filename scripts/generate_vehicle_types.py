@@ -4,7 +4,6 @@ Generate structured datasets for Polish rolling stock: Diesel locomotives, EMU, 
 Creates individual JSON files for each vehicle type without index files.
 """
 
-import os
 import json
 from pathlib import Path
 
@@ -15,10 +14,9 @@ VEHICLE_TYPES_ROOT = BASE_DIR / "data" / "vehicle_types"
 # Subdirectory layout: vehicle_types/{type}/{subtype}/
 # e.g. locomotive/diesel/, locomotive/electric/, emu_unit/motor/, dmu_unit/motor/
 SUBDIR_MAP = {
-    "DIESEL":      VEHICLE_TYPES_ROOT / "locomotive" / "diesel",
-    "EMU_UNIT":    VEHICLE_TYPES_ROOT / "emu_unit"   / "motor",
-    "DMU_UNIT":    VEHICLE_TYPES_ROOT / "dmu_unit"   / "motor",
-    "LOCOMOTIVE":  VEHICLE_TYPES_ROOT / "locomotive",   # fallback (subtype required)
+    "LOCOMOTIVE": VEHICLE_TYPES_ROOT / "locomotive",  # subtype required in calls
+    "EMU_UNIT": VEHICLE_TYPES_ROOT / "emu_unit" / "motor",
+    "DMU_UNIT": VEHICLE_TYPES_ROOT / "dmu_unit" / "motor",
     "SERVICE_WAGON": VEHICLE_TYPES_ROOT / "service_wagon",
     "FREIGHT_WAGON": VEHICLE_TYPES_ROOT / "freight_wagon" / "hopper",
 }
@@ -54,13 +52,14 @@ dmu = [
     "SA139", "SA140", "SN61", "SN81", "SN82", "SN83", "SN84", "VT627", "VT628"
 ]
 
-def create_template(name, vehicle_type):
+def create_template(name, vehicle_type, vehicle_subtype):
     """Create a vehicle type template JSON structure."""
+    type_token = name.replace('/', '_').replace(' ', '_').upper()
     return {
-        "typeID": f"VT-{vehicle_type.upper()}-{name.replace('/', '_')}-0000001",
+        "typeID": f"VT-GLB-{type_token}-0000001",
         "typeName": name,
         "vehicleType": vehicle_type.upper(),
-        "vehicleSubtype": None,
+        "vehicleSubtype": vehicle_subtype,
         "lengthM": None,
         "axleCount": None,
         "massEmptyT": None,
@@ -70,10 +69,9 @@ def create_template(name, vehicle_type):
         "powerKW": None,
         "tractionForceKN": None,
         "family": None,
-        "sourceReliability": "estimated"
     }
 
-def write_vehicle_group(vehicles, vehicle_type, out_dir=None):
+def write_vehicle_group(vehicles, vehicle_type, vehicle_subtype, out_dir=None):
     """Write vehicle JSON files for a specific type (DIESEL, EMU, DMU).
 
     Files are written to the appropriate subdirectory under data/vehicle_types/.
@@ -84,7 +82,7 @@ def write_vehicle_group(vehicles, vehicle_type, out_dir=None):
 
     created_files = []
     for vehicle_name in vehicles:
-        data = create_template(vehicle_name, vehicle_type)
+        data = create_template(vehicle_name, vehicle_type, vehicle_subtype)
         file_name = vehicle_name.replace('/', '_').lower()
         file_path = out_dir / f"{file_name}.json"
 
@@ -109,7 +107,7 @@ def main():
     # Generate diesel locomotives → locomotive/diesel/
     print("Generating Diesel Locomotives...")
     diesel_files = write_vehicle_group(
-        diesel, "LOCOMOTIVE",
+        diesel, "LOCOMOTIVE", "DIESEL",
         out_dir=VEHICLE_TYPES_ROOT / "locomotive" / "diesel")
     all_files.extend(diesel_files)
     print(f"  Total: {len(diesel_files)} files\n")
@@ -117,7 +115,7 @@ def main():
     # Generate EMU → emu_unit/motor/
     print("Generating EMU (Electric Multiple Units)...")
     emu_files = write_vehicle_group(
-        emu, "EMU_UNIT",
+        emu, "EMU_UNIT", "MOTOR",
         out_dir=VEHICLE_TYPES_ROOT / "emu_unit" / "motor")
     all_files.extend(emu_files)
     print(f"  Total: {len(emu_files)} files\n")
@@ -125,7 +123,7 @@ def main():
     # Generate DMU → dmu_unit/motor/
     print("Generating DMU (Diesel Multiple Units)...")
     dmu_files = write_vehicle_group(
-        dmu, "DMU_UNIT",
+        dmu, "DMU_UNIT", "MOTOR",
         out_dir=VEHICLE_TYPES_ROOT / "dmu_unit" / "motor")
     all_files.extend(dmu_files)
     print(f"  Total: {len(dmu_files)} files\n")

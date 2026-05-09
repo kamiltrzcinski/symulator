@@ -13,7 +13,6 @@
   "powerKW": 5000,
   "tractionForceKN": 333.3,
   "family": "PKP Electric Freight",
-  "sourceReliability": "estimated",
   "davisA": 34.335,
   "davisB": 0.17658,
   "davisC": 0.0024525

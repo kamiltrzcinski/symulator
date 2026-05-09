@@ -13,7 +13,6 @@
   "powerKW": 6400,
   "tractionForceKN": 426.7,
   "family": "Siemens Vectron",
-  "sourceReliability": "estimated",
   "davisA": 34.335,
   "davisB": 0.17658,
   "davisC": 0.0024525

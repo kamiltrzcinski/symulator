@@ -1,0 +1,11 @@
+{
+  "gID": "TRN-TRJ-TOW543210-0000001",
+  "pID": "Tow 543210",
+  "displayName": "Tow 543210 Gdynia — Katowice",
+  "vehicles": [
+    "VEH-TRJ-ET22-001-0000001",
+    "VEH-TRJ-452W-537-0000001",
+    "VEH-TRJ-452W-537-0000002"
+  ],
+  "trainCategory": "FREIGHT"
+}

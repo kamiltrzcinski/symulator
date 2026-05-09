@@ -13,7 +13,6 @@
   "powerKW": 2032,
   "tractionForceKN": 135.5,
   "family": "PKP Electric Passenger",
-  "sourceReliability": "estimated",
   "davisA": 34.335,
   "davisB": 0.17658,
   "davisC": 0.0024525

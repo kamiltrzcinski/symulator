@@ -24,9 +24,12 @@ static TrainPhysicsParams eu07_params()
 }
 
 static DriverInput make_proceed_input(float target_ms = 999.0f, float dist_m = 10000.0f,
-                                      float brake_kn = 150.0f)
+                                      float brake_kn = 150.0f,
+                                      SignalAspect next_aspect = SignalAspect::S2_PROCEED,
+                                      float dist_to_next_m = 1.0e9f)
 {
-    return DriverInput{SignalAspect::S2_PROCEED, dist_m, target_ms, brake_kn};
+    return DriverInput{
+        SignalAspect::S2_PROCEED, dist_m, target_ms, brake_kn, next_aspect, dist_to_next_m};
 }
 
 // ── PhysicsModel tests ────────────────────────────────────────────────────────
@@ -197,6 +200,49 @@ TEST(DriverAI, StopSignalCloseAheadTriggersBraking)
     EXPECT_EQ(out.state, DriverState::BRAKING);
     EXPECT_FLOAT_EQ(out.traction_kn, 0.0f);
     EXPECT_NEAR(out.brake_kn, 150.0f, 0.001f);
+}
+
+TEST(DriverAI, StopSignalFarAheadDoesNotForceImmediateBraking)
+{
+    auto p = eu07_params();
+    TrainPhysicsState s{};
+    s.velocity_ms = 80.0f / 3.6f;
+
+    // Red signal is far away: train should continue running and brake later.
+    DriverInput inp{SignalAspect::S1_STOP,    5000.0f, 125.0f / 3.6f, 150.0f,
+                    SignalAspect::S2_PROCEED, 1.0e9f};
+    auto out = DriverAI::tick(DriverState::CRUISING, p, s, inp);
+
+    EXPECT_NE(out.state, DriverState::BRAKING);
+    EXPECT_FLOAT_EQ(out.brake_kn, 0.0f);
+}
+
+TEST(DriverAI, WarningExpectStopTriggersProactiveBraking)
+{
+    auto p = eu07_params();
+    TrainPhysicsState s{};
+    s.velocity_ms = 100.0f / 3.6f;
+
+    // Current signal allows proceed; next signal is expected STOP and close enough.
+    auto inp =
+        make_proceed_input(125.0f / 3.6f, 5000.0f, 150.0f, SignalAspect::S5_EXPECT_STOP, 120.0f);
+    auto out = DriverAI::tick(DriverState::CRUISING, p, s, inp);
+
+    EXPECT_EQ(out.state, DriverState::BRAKING);
+    EXPECT_NEAR(out.brake_kn, 150.0f, 0.001f);
+}
+
+TEST(DriverAI, WarningExpectStopFarAwayKeepsCruising)
+{
+    auto p = eu07_params();
+    TrainPhysicsState s{};
+    s.velocity_ms = 100.0f / 3.6f;
+
+    auto inp =
+        make_proceed_input(125.0f / 3.6f, 5000.0f, 150.0f, SignalAspect::S5_EXPECT_STOP, 5000.0f);
+    auto out = DriverAI::tick(DriverState::CRUISING, p, s, inp);
+
+    EXPECT_NE(out.state, DriverState::BRAKING);
 }
 
 TEST(DriverAI, ProceedAt40LimitsViaS3Aspect)

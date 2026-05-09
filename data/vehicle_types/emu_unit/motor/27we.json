@@ -13,7 +13,6 @@
   "powerKW": 3200,
   "tractionForceKN": 457.1,
   "family": "unknown",
-  "sourceReliability": "estimated",
   "davisA": 34.335,
   "davisB": 0.17658,
   "davisC": 0.0014715

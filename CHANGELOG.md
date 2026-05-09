@@ -11,6 +11,28 @@ Entry format:
 
 ---
 
+## [0.3.12] — 2026-05-09
+
+### Added
+- `engine/src/fleet_registry.cpp` — full fleet loader implementation with recursive discovery of `vehicle_types`, `vehicles`, and `trains`; strict schema validation; category/folder consistency checks; derived consist metrics
+- `engine/include/engine/sim/train_sim.hpp` and `engine/src/train_sim.cpp` — orchestration layer for per-train simulation ticks with DI ports (`ITrainControlPolicy`, `IPhysicsIntegrator`, `ITrainEventSink`), default adapters, section-crossing events, and dead-end handling
+- `tests/engine/test_fleet_registry.cpp` — regression coverage for recursive loading, Davis defaulting, derived consist aggregation, and invalid-data rejection
+- `tests/engine/test_train_sim.cpp` — orchestration tests with fake policy/integrator/sink; crossing emission and dead-end stop behavior coverage
+- `scripts/migrate_fleet_layout.py` — idempotent migration script for fleet layout/schema updates (`sourceReliability` removal, train category fill, folder moves)
+
+### Changed
+- `engine/include/engine/core/fleet_registry.hpp` — extended model fields (`pkp_series`, `family`, `train_category`) and updated Davis default helper contract
+- `engine/include/engine/physics/driver_ai.hpp` — advisory-aware control inputs (`next_aspect`, `distance_to_next_signal_m`), proactive warning braking, and corrected stop-signal behavior for far-ahead red aspects
+- `engine/include/engine/physics/physics_model.hpp` — default initialization for `TrainPhysicsParams` to ensure correct consist speed aggregation and stable parameter construction
+- `engine/CMakeLists.txt` and `tests/engine/CMakeLists.txt` — registered new engine sources and test targets
+- `scripts/generate_vehicle_types.py` — removed `sourceReliability` output and aligned subtype/type generation templates
+- `data/vehicle_types/**/*.json` — removed legacy `sourceReliability`; retained normalized physics-identification fields (`pkpSeries`, `family`, `davisA/B/C`)
+- `data/vehicles/` and `data/trains/` — reorganized into typed/category subdirectories; train files now carry required `trainCategory`
+- `docs/10-vehicle-model.md` and `docs/00-contributing.md` — updated data tree layout, schema requirements, and current physics/DriverAI description
+
+### Fixed
+- `tests/engine/test_train_sim.cpp` / `engine/include/engine/physics/physics_model.hpp` — fixed `MakeTrainSimStateAggregatesVehicles` failure (`max_speed_ms` could collapse to `0` due to zero-initialized aggregation)
+
 ## [0.3.11] — 2026-05-09
 
 ### Added

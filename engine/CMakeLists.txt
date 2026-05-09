@@ -2,6 +2,8 @@ find_package(Threads REQUIRED)
 
 add_library(engine STATIC
     src/placeholder.cpp
+    src/fleet_registry.cpp
+    src/train_sim.cpp
 )
 
 target_include_directories(engine PUBLIC

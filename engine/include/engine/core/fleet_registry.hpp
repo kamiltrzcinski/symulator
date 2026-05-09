@@ -57,6 +57,8 @@ struct VehicleType
 {
     GID type_id;
     std::string type_name;
+    std::string pkp_series;  // e.g. ET22; empty when unknown
+    std::string family;      // optional grouping label; empty when unknown
     std::string
         vehicle_type;  // LOCOMOTIVE | EMU_UNIT | PASSENGER_WAGON | FREIGHT_WAGON | SERVICE_WAGON
     std::string
@@ -107,6 +109,7 @@ struct TrainConsist
     GID gid;
     std::string pid;
     std::string display_name;
+    TrainCategory train_category;
     std::vector<GID> vehicle_gids;  // front → rear
 
     // ── Derived (computed at load time) ────────────────────────────────────────
@@ -160,7 +163,7 @@ private:
     void load_consists_(const std::filesystem::path& consists_dir);
 
     static DavisCoefficients davis_defaults_(const std::string& vehicle_type,
-                                             const std::string& vehicle_subtype);
+                                             const std::string& vehicle_subtype, int max_speed_kmh);
 };
 
 }  // namespace engine::core

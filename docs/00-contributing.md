@@ -484,8 +484,8 @@ symulator/
   tests/                ← automated tests
   data/
     vehicle_types/      ← vehicle model/type definitions; subdirs: locomotive/{electric,diesel,steam}, emu_unit/motor, dmu_unit/motor, freight_wagon/hopper, service_wagon
-    vehicles/           ← individual numbered vehicle instances
-    trains/             ← train consist definitions
+    vehicles/           ← individual numbered vehicle instances grouped by vehicleType (e.g. locomotive/, emu_unit/, freight_wagon/)
+    trains/             ← train consist definitions grouped by category (passenger/, freight/, maintenance/)
   scenarios/
     reference/          ← reference station topologies used in integration tests
   proto/                ← FlatBuffers schema files (.fbs)
