@@ -93,6 +93,88 @@ TEST(TrainSim, MakeTrainSimStateAggregatesVehicles)
     EXPECT_GT(state.max_brake_kn, 0.0f);
 }
 
+TEST(TrainSim, MakeTrainSimStateCouplesSameTypeCapableLocomotives)
+{
+    core::TrainConsist consist{};
+    consist.gid = core::GID{"TRN-TRJ-TEST-0000002"};
+    consist.consist_lambda_pct = 100.0f;
+    consist.vehicle_gids = {core::GID{"VEH-1"}, core::GID{"VEH-2"}};
+
+    core::Vehicle v1{};
+    v1.gid = core::GID{"VEH-1"};
+    v1.type_id = core::GID{"VT-EU07"};
+    v1.vehicle_type = "LOCOMOTIVE";
+    v1.vehicle_subtype = "ELECTRIC";
+    v1.effective_mass_t = 80.0f;
+    v1.max_speed_kmh = 120;
+    v1.traction_capable = true;
+    v1.traction_status = core::TractionStatus::OPERATIONAL;
+    v1.multiple_coupling_capable = true;
+    v1.traction_force_kn = 280.0f;
+    v1.davis = core::DavisCoefficients{39.24f, 0.1962f, 0.0017658f};
+
+    core::Vehicle v2 = v1;
+    v2.gid = core::GID{"VEH-2"};
+
+    const sim::TrainSimState state = sim::make_train_sim_state(
+        consist, std::vector<core::Vehicle>{v1, v2}, core::GID{"OT-TEST-001"});
+
+    EXPECT_NEAR(state.physics_params.max_traction_kn, 560.0f, 0.001f);
+}
+
+TEST(TrainSim, MakeTrainSimStateKeepsUnknownCouplingAsBallast)
+{
+    core::TrainConsist consist{};
+    consist.gid = core::GID{"TRN-TRJ-TEST-0000003"};
+    consist.consist_lambda_pct = 100.0f;
+    consist.vehicle_gids = {core::GID{"VEH-1"}, core::GID{"VEH-2"}};
+
+    core::Vehicle v1{};
+    v1.gid = core::GID{"VEH-1"};
+    v1.type_id = core::GID{"VT-EU07"};
+    v1.vehicle_type = "LOCOMOTIVE";
+    v1.vehicle_subtype = "ELECTRIC";
+    v1.effective_mass_t = 80.0f;
+    v1.max_speed_kmh = 120;
+    v1.traction_capable = true;
+    v1.traction_status = core::TractionStatus::OPERATIONAL;
+    v1.multiple_coupling_capable = std::nullopt;
+    v1.traction_force_kn = 280.0f;
+    v1.davis = core::DavisCoefficients{39.24f, 0.1962f, 0.0017658f};
+
+    core::Vehicle v2 = v1;
+    v2.gid = core::GID{"VEH-2"};
+
+    const sim::TrainSimState state = sim::make_train_sim_state(
+        consist, std::vector<core::Vehicle>{v1, v2}, core::GID{"OT-TEST-001"});
+
+    EXPECT_NEAR(state.physics_params.max_traction_kn, 280.0f, 0.001f);
+}
+
+TEST(TrainSim, MakeTrainSimStateTreatsDefectiveEmuMotorAsBallast)
+{
+    core::TrainConsist consist{};
+    consist.gid = core::GID{"TRN-TRJ-TEST-0000004"};
+    consist.consist_lambda_pct = 100.0f;
+    consist.vehicle_gids = {core::GID{"VEH-1"}};
+
+    core::Vehicle motor{};
+    motor.gid = core::GID{"VEH-1"};
+    motor.vehicle_type = "EMU_UNIT";
+    motor.vehicle_subtype = "MOTOR";
+    motor.effective_mass_t = 40.0f;
+    motor.max_speed_kmh = 120;
+    motor.traction_capable = true;
+    motor.traction_status = core::TractionStatus::DEFECTIVE;
+    motor.traction_force_kn = 150.0f;
+    motor.davis = core::DavisCoefficients{34.335f, 0.17658f, 0.0014715f};
+
+    const sim::TrainSimState state = sim::make_train_sim_state(
+        consist, std::vector<core::Vehicle>{motor}, core::GID{"OT-TEST-001"});
+
+    EXPECT_NEAR(state.physics_params.max_traction_kn, 0.0f, 0.001f);
+}
+
 TEST(TrainSim, TickUsesInjectedPolicyAndIntegrator)
 {
     auto policy = std::make_shared<FakePolicy>();

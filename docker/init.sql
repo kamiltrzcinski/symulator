@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS fleet.vehicles (
     max_speed_kmh     INTEGER NOT NULL,
     power_kw          REAL,                          -- NULL for unpowered vehicles
     traction_force_kn REAL,                          -- NULL for unpowered vehicles
+    traction_capable  BOOLEAN NOT NULL DEFAULT FALSE,
+    traction_status   TEXT,                          -- OPERATIONAL | DEFECTIVE; NULL for non-traction vehicles
+    multiple_coupling_capable BOOLEAN,               -- traction-capable type capability; NULL = unknown/not applicable
     braking_lambda_pct INTEGER NOT NULL DEFAULT 100  -- UIC lambda %; see docs/10-vehicle-model.md
 );
 

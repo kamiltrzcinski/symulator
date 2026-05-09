@@ -55,7 +55,7 @@ dmu = [
 def create_template(name, vehicle_type, vehicle_subtype):
     """Create a vehicle type template JSON structure."""
     type_token = name.replace('/', '_').replace(' ', '_').upper()
-    return {
+    data = {
         "typeID": f"VT-GLB-{type_token}-0000001",
         "typeName": name,
         "vehicleType": vehicle_type.upper(),
@@ -70,6 +70,15 @@ def create_template(name, vehicle_type, vehicle_subtype):
         "tractionForceKN": None,
         "family": None,
     }
+
+    vt = vehicle_type.upper()
+    vs = vehicle_subtype.upper()
+    if vt == "LOCOMOTIVE":
+        data["multipleCouplingCapable"] = False
+    elif vt in {"EMU_UNIT", "DMU_UNIT"} and vs == "MOTOR":
+        data["multipleCouplingCapable"] = True
+
+    return data
 
 def write_vehicle_group(vehicles, vehicle_type, vehicle_subtype, out_dir=None):
     """Write vehicle JSON files for a specific type (DIESEL, EMU, DMU).

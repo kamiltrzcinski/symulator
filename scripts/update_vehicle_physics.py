@@ -2,6 +2,7 @@
 """
 Update all vehicle_type JSON files with:
   - tractionForceKN  (max starting traction force in kN)
+    - multipleCouplingCapable (type-level multiple-unit capability for traction-capable types)
   - davisA           (constant resistance term, N)
   - davisB           (speed-linear term, N per km/h)
   - davisC           (aerodynamic term, N per (km/h)^2)
@@ -153,6 +154,52 @@ def compute_traction_kn(type_name: str, vehicle_type: str, vehicle_subtype: str,
     return round(f_kn, 1)
 
 
+def _normalize_token(value: str) -> str:
+    return "".join(ch for ch in value.upper() if ch.isalnum())
+
+
+NON_MU_LOCOMOTIVE_TOKENS = {
+    "LS1000",
+    "LS1200",
+    "LS150",
+    "LS180",
+    "LS800",
+    "S200",
+    "SM03",
+    "SM04",
+    "SM30",
+    "SM31",
+    "SM32",
+    "SM40",
+    "SM41",
+    "SM42",
+    "SM48",
+    "SM60",
+    "TEM2",
+    "TKH49",
+}
+
+
+def infer_multiple_coupling_capable(type_name: str, vehicle_type: str, vehicle_subtype: str,
+                                    power_kw: float | None) -> bool | None:
+    if vehicle_type in {"EMU_UNIT", "DMU_UNIT"} and vehicle_subtype == "MOTOR":
+        return True
+
+    if vehicle_type != "LOCOMOTIVE":
+        return None
+
+    if vehicle_subtype == "STEAM":
+        return False
+
+    if _normalize_token(type_name) in NON_MU_LOCOMOTIVE_TOKENS:
+        return False
+
+    if vehicle_subtype == "DIESEL" and isinstance(power_kw, (int, float)) and power_kw < 1000:
+        return False
+
+    return True
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 3. DAVIS SPECIFIC RESISTANCE FACTORS
 # ──────────────────────────────────────────────────────────────────────────────
@@ -239,6 +286,17 @@ def process_file(path: str) -> tuple[bool, str]:
     mass_gross_t    = data.get("massGrossT") or data.get("massEmptyT") or 0
 
     changes = []
+
+    # Type-level coupling capability is explicitly tracked for traction-capable types.
+    capability = infer_multiple_coupling_capable(type_name, vehicle_type, vehicle_subtype, power_kw)
+    if capability is None:
+        if "multipleCouplingCapable" in data:
+            del data["multipleCouplingCapable"]
+            changes.append("multipleCouplingCapable removed (non-traction type)")
+    else:
+        if data.get("multipleCouplingCapable") != capability:
+            data["multipleCouplingCapable"] = capability
+            changes.append(f"multipleCouplingCapable = {str(capability).lower()}")
 
     # ── traction force ──────────────────────────────────────────────────────
     current_traction = data.get("tractionForceKN")

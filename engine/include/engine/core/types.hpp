@@ -121,6 +121,14 @@ enum class TrainCategory : std::uint8_t
     MAINTENANCE,  // Infrastructure maintenance or recovery train
 };
 
+// Operational condition of a traction-capable vehicle.
+// Applied to LOCOMOTIVE and EMU/DMU MOTOR instances.
+enum class TractionStatus : std::uint8_t
+{
+    OPERATIONAL,
+    DEFECTIVE,
+};
+
 // ── Dispatch form types (S-forms / Zapowiedniowiec) ───────────────────────────
 // Formal bilateral exchange forms between neighbouring LCS.
 // Full state machine documented in docs/15-dispatch-forms.md.

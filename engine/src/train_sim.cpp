@@ -1,10 +1,42 @@
 #include "engine/sim/train_sim.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <stdexcept>
 
 namespace engine::sim
 {
+
+namespace
+{
+
+[[nodiscard]] std::string to_upper(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::toupper(ch)); });
+    return s;
+}
+
+[[nodiscard]] bool is_locomotive(const core::Vehicle& vehicle)
+{
+    return to_upper(vehicle.vehicle_type) == "LOCOMOTIVE";
+}
+
+[[nodiscard]] bool is_operational_traction_unit(const core::Vehicle& vehicle)
+{
+    const bool traction_capable = vehicle.traction_capable ||
+                                  vehicle.traction_force_kn.has_value() ||
+                                  vehicle.power_kw.has_value();
+    if (!traction_capable)
+    {
+        return false;
+    }
+
+    return !vehicle.traction_status.has_value() ||
+           *vehicle.traction_status == core::TractionStatus::OPERATIONAL;
+}
+
+}  // namespace
 
 physics::DriverOutput DriverAIPolicy::compute(physics::DriverState prev_state,
                                               const physics::TrainPhysicsParams& params,
@@ -99,16 +131,64 @@ TrainSimState make_train_sim_state(const core::TrainConsist& consist,
 
     std::vector<physics::VehiclePhysicsContrib> contrib;
     contrib.reserve(vehicles.size());
+    std::vector<std::size_t> operational_locomotive_indices;
+
     for (const auto& vehicle : vehicles)
     {
+        float traction_kn = 0.0f;
+        if (is_operational_traction_unit(vehicle) && !is_locomotive(vehicle))
+        {
+            traction_kn = vehicle.traction_force_kn.value_or(0.0f);
+        }
+
+        if (is_operational_traction_unit(vehicle) && is_locomotive(vehicle))
+        {
+            operational_locomotive_indices.push_back(contrib.size());
+        }
+
         contrib.push_back(physics::VehiclePhysicsContrib{
             .mass_t = vehicle.effective_mass_t,
-            .traction_kn = vehicle.traction_force_kn.value_or(0.0f),
+            .traction_kn = traction_kn,
             .max_speed_ms = static_cast<float>(vehicle.max_speed_kmh) / 3.6f,
             .davis_a = vehicle.davis.a,
             .davis_b = vehicle.davis.b,
             .davis_c = vehicle.davis.c,
         });
+    }
+
+    if (!operational_locomotive_indices.empty())
+    {
+        if (operational_locomotive_indices.size() == 1)
+        {
+            const std::size_t idx = operational_locomotive_indices.front();
+            contrib[idx].traction_kn = vehicles[idx].traction_force_kn.value_or(0.0f);
+        }
+        else
+        {
+            const std::size_t first_idx = operational_locomotive_indices.front();
+            const core::Vehicle& first_locomotive = vehicles[first_idx];
+            const bool same_type = std::all_of(
+                operational_locomotive_indices.begin(), operational_locomotive_indices.end(),
+                [&vehicles, &first_locomotive](std::size_t idx)
+                { return vehicles[idx].type_id == first_locomotive.type_id; });
+
+            const bool coupling_allowed =
+                same_type && first_locomotive.multiple_coupling_capable.value_or(false);
+
+            if (coupling_allowed)
+            {
+                for (const std::size_t idx : operational_locomotive_indices)
+                {
+                    contrib[idx].traction_kn = vehicles[idx].traction_force_kn.value_or(0.0f);
+                }
+            }
+            else
+            {
+                // Unknown/unsupported/mixed coupling: first operational locomotive provides traction,
+                // additional locomotives remain ballast.
+                contrib[first_idx].traction_kn = first_locomotive.traction_force_kn.value_or(0.0f);
+            }
+        }
     }
 
     TrainSimState state{};

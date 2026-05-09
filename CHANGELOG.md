@@ -11,6 +11,27 @@ Entry format:
 
 ---
 
+## [0.3.13] — 2026-05-09
+
+### Added
+- `engine/include/engine/core/types.hpp` — `TractionStatus` enum (`OPERATIONAL`, `DEFECTIVE`) for traction-capable vehicle instances
+- `engine/include/engine/core/fleet_registry.hpp` — new fleet fields: type-level `multiple_coupling_capable`, instance-level `traction_capable`, `traction_status`, and resolved coupling capability copy
+- `tests/engine/test_fleet_registry.cpp` — regression coverage for default traction status, defective-units-as-ballast behavior, same-type coupling enabled path, unknown capability fallback, and mixed-type fallback
+- `tests/engine/test_train_sim.cpp` — simulation aggregation tests for same-type coupled locomotives, unknown coupling fallback, and defective EMU motor behavior
+
+### Changed
+- `engine/src/fleet_registry.cpp` — loader/parser support for `multipleCouplingCapable` (type) and `tractionStatus` (instance); `multipleCouplingCapable` is now accepted for all traction-capable type categories (`LOCOMOTIVE`, `EMU/DMU MOTOR`), while non-traction types are rejected; consist traction aggregation applies operational-state and locomotive coupling rules (same-type + capability gate)
+- `engine/src/train_sim.cpp` — `make_train_sim_state()` now mirrors consist traction rules: defective traction units contribute only ballast mass/drag; locomotive coupling applies only for same-type capability-enabled sets
+- `scripts/migrate_fleet_layout.py` — migration/backfill support for explicit `multipleCouplingCapable` boolean values across all traction-capable type files (`LOCOMOTIVE`, `EMU/DMU MOTOR`) and `tractionStatus` in traction-capable vehicle files
+- `scripts/generate_vehicle_types.py` and `scripts/update_vehicle_physics.py` — generation/update scripts now include `multipleCouplingCapable` handling for all traction-capable type categories
+- `data/vehicle_types/locomotive/**/*.json` and `data/vehicle_types/{emu_unit,dmu_unit}/motor/**/*.json` — `multipleCouplingCapable` fully backfilled to explicit boolean values (no `null` left in traction-capable type files)
+- `data/vehicles/locomotive/et22_001.json` — added `tractionStatus: OPERATIONAL`
+- `docs/10-vehicle-model.md` — resolved Q-VEH-1/Q-VEH-2; documented per-motor-unit traction semantics, `tractionStatus`, and same-type coupling rule with unknown-capability fallback
+- `docs/02-system-requirements.md`, `docs/11-database-model.md`, `docs/13-scenario-editor-architecture.md`, `docker/init.sql` — aligned requirements/schema/editor validation notes with new traction status and coupling capability model
+
+### Fixed
+- Consist and simulation traction computation no longer overestimates multi-locomotive traction when locomotives are defective, mixed-type, or have unknown coupling capability
+
 ## [0.3.12] — 2026-05-09
 
 ### Added

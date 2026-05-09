@@ -71,6 +71,11 @@ struct VehicleType
     int braking_lambda_pct;
     std::optional<float> power_kw;
     std::optional<float> traction_force_kn;
+    // For traction-capable type categories (LOCOMOTIVE, EMU/DMU MOTOR):
+    //   true  -> type supports same-type multiple-unit traction coupling
+    //   false -> type does not support coupling
+    //   null  -> unknown/unverified capability
+    std::optional<bool> multiple_coupling_capable;
     DavisCoefficients davis;  // resolved at load time (JSON or category default)
 };
 
@@ -97,6 +102,11 @@ struct Vehicle
     int braking_lambda_pct;
     std::optional<float> power_kw;
     std::optional<float> traction_force_kn;
+    bool traction_capable = false;
+    // Present only for traction-capable units.
+    std::optional<TractionStatus> traction_status;
+    // Copied from type; meaningful for traction-capable categories.
+    std::optional<bool> multiple_coupling_capable;
     DavisCoefficients davis;
 };
 

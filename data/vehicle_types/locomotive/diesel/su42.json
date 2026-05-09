@@ -15,5 +15,6 @@
   "family": "unknown",
   "davisA": 44.145,
   "davisB": 0.21582,
-  "davisC": 0.001962
+  "davisC": 0.001962,
+  "multipleCouplingCapable": false
 }

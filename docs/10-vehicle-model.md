@@ -134,6 +134,7 @@ A type file declares all physical properties that are identical across every uni
     "brakingLambdaPct": 100,
     "powerKW":          2000.0,
   "tractionForceKN":  196.0,
+  "multipleCouplingCapable": true,
   "davisA":           39.24,
   "davisB":           0.1962,
   "davisC":           0.0017658
@@ -182,6 +183,7 @@ A covered freight wagon type:
 | `brakingLambdaPct` | int | yes | UIC braking percentage λ |
 | `powerKW` | float‑or‑null | no | `null` for unpowered vehicles |
 | `tractionForceKN` | float‑or‑null | no | `null` for unpowered vehicles |
+| `multipleCouplingCapable` | bool‑or‑null | no | traction-capable type categories (`LOCOMOTIVE`, `EMU_UNIT`/`DMU_UNIT` + `MOTOR`); for locomotives it gates same-type coupled traction gain, for MU units it documents type-level MU compatibility |
 | `davisA` | float | no | per-tonne Davis A coefficient; defaults are applied if missing |
 | `davisB` | float | no | per-tonne Davis B coefficient; defaults are applied if missing |
 | `davisC` | float | no | per-tonne Davis C coefficient; defaults are applied if missing |
@@ -210,11 +212,18 @@ An instance references its type by `typeID`. Only fields that **differ from the 
     "gID":         "VEH-TRJ-ET22-001-0000001",
     "pID":         "ET22-001",
     "typeID":      "VT-GLB-ET22-0000001",
-    "displayName": "ET22-001"
+  "displayName": "ET22-001",
+  "tractionStatus": "OPERATIONAL"
 }
 ```
 
-Because `ET22-001` is a standard unit with no deviations from the type, only identity fields are needed.
+`tractionStatus` applies only to traction-capable instances:
+- `LOCOMOTIVE`
+- `EMU_UNIT` + `MOTOR`
+- `DMU_UNIT` + `MOTOR`
+
+When omitted for a traction-capable unit, the loader defaults it to `OPERATIONAL`.
+`DEFECTIVE` units contribute mass and drag, but not traction or power.
 
 ### JSON schema — freight wagon with a loaded-state override
 
@@ -247,6 +256,7 @@ The engine performs this merge once at load time and caches the resolved `Vehicl
 | `pID` | string | yes | operational number, e.g. `ET22-001` |
 | `typeID` | string | yes | must match a `typeID` in `data/vehicle_types/` |
 | `displayName` | string | yes | shown on screen |
+| `tractionStatus` | enum (`OPERATIONAL`\|`DEFECTIVE`) | no | valid only for traction-capable units; default `OPERATIONAL` |
 | any type field | — | no | present only when this unit deviates from the type default |
 
 Fields `powerKW` and `tractionForceKN` are used by the **v2 physics model** and ignored by v1. They must be present on the type so the registry is forward-compatible.
@@ -312,10 +322,19 @@ At consist build time, the engine resolves per-vehicle physics into one `TrainPh
 
 ```
 total_mass_t      = Σ mass_t
-max_traction_kn   = Σ tractionForceKN (traction-capable vehicles)
 max_speed_ms      = min(vehicle max speed)
 davis_A/B/C       = Σ (vehicle_davis * vehicle_mass_t)
 ```
+
+`max_traction_kn` is resolved with traction status and coupling rules:
+- `EMU_UNIT/DMU_UNIT MOTOR`: sum traction only for `OPERATIONAL` units.
+- `LOCOMOTIVE`:
+  - one operational locomotive: use it,
+  - multiple operational locomotives: sum all only if every operational locomotive has the same `typeID` and that type has `multipleCouplingCapable = true`,
+  - otherwise: only the first operational locomotive contributes traction (all other locomotives are ballast-only).
+- `DEFECTIVE` traction-capable units always contribute mass and resistance, but zero traction/power.
+
+In current engine logic, `multipleCouplingCapable` directly gates traction gain for locomotives. For EMU/DMU motor-car types, it is currently stored as verified type metadata and used by planning/editor validation.
 
 This keeps runtime simulation constant-time per train.
 
@@ -374,8 +393,8 @@ Behavior highlights:
 
 ---
 
-## Open questions
+## Resolved decisions
 
-- Q-VEH-1: Should multi-unit (EMU) vehicles define their power across the whole unit or per motor car? Per-unit is simpler for v2 physics.
-- Q-VEH-2: Should a single train consist allow multiple locomotives (e.g., double-headed freight)? V1 ignores this; V2 would need to sum `tractionForceKN` across all `LOCOMOTIVE` entries.
-- ~~Q-VEH-3~~: **Resolved.** Freight wagons carry `massGrossT` (loaded mass) and `massEmptyT` (tare). The engine uses `massGrossT` when present, `massEmptyT` otherwise. `brakingLambdaPct` covers the loaded/empty braking difference — a loaded wagon has a lower λ, so `a_decel` is automatically smaller.
+- Q-VEH-1: **Resolved.** EMU/DMU traction is modeled per powered car (`vehicleSubtype = MOTOR`), not per whole unit.
+- Q-VEH-2: **Resolved.** Multiple locomotives are allowed in a consist, but effective coupled traction is granted only for same-type locomotives with `multipleCouplingCapable = true`; otherwise additional locomotives are ballast-only.
+- Q-VEH-3: **Resolved.** Freight wagons carry `massGrossT` (loaded mass) and `massEmptyT` (tare). The engine uses `massGrossT` when present, `massEmptyT` otherwise. `brakingLambdaPct` covers the loaded/empty braking difference — a loaded wagon has a lower λ, so `a_decel` is automatically smaller.

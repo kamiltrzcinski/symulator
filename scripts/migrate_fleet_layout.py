@@ -50,7 +50,11 @@ TRAIN_DIR_HINTS = {
 class Stats:
     vehicle_types_scanned: int = 0
     source_reliability_removed: int = 0
+    multiple_coupling_backfilled: int = 0
+    invalid_multiple_coupling_removed: int = 0
     vehicles_scanned: int = 0
+    traction_status_backfilled: int = 0
+    invalid_traction_status_removed: int = 0
     vehicles_moved: int = 0
     trains_scanned: int = 0
     trains_moved: int = 0
@@ -77,6 +81,67 @@ def write_json(path: Path, data: dict) -> None:
 
 def type_dir_for_vehicle_type(vehicle_type: str) -> str:
     return VEHICLE_TYPE_TO_DIR.get(vehicle_type, "unknown")
+
+
+def is_traction_capable(vehicle_type: str, vehicle_subtype: str) -> bool:
+    vehicle_type = vehicle_type.upper()
+    vehicle_subtype = vehicle_subtype.upper()
+    if vehicle_type == "LOCOMOTIVE":
+        return True
+    if vehicle_type in {"EMU_UNIT", "DMU_UNIT"} and vehicle_subtype == "MOTOR":
+        return True
+    return False
+
+
+def normalize_token(value: str) -> str:
+    return "".join(ch for ch in value.upper() if ch.isalnum())
+
+
+NON_MU_LOCOMOTIVE_TOKENS = {
+    # Low-power shunters and yard-oriented variants are treated as non-MU in this dataset.
+    "LS1000",
+    "LS1200",
+    "LS150",
+    "LS180",
+    "LS800",
+    "S200",
+    "SM03",
+    "SM04",
+    "SM30",
+    "SM31",
+    "SM32",
+    "SM40",
+    "SM41",
+    "SM42",
+    "SM48",
+    "SM60",
+    "TEM2",
+    "TKH49",
+}
+
+
+def infer_multiple_coupling_capable(data: dict) -> bool | None:
+    vehicle_type = str(data.get("vehicleType") or "").upper()
+    vehicle_subtype = str(data.get("vehicleSubtype") or "").upper()
+
+    if vehicle_type in {"EMU_UNIT", "DMU_UNIT"} and vehicle_subtype == "MOTOR":
+        return True
+
+    if vehicle_type != "LOCOMOTIVE":
+        return None
+
+    if vehicle_subtype == "STEAM":
+        return False
+
+    type_token = normalize_token(str(data.get("typeName") or ""))
+    if type_token in NON_MU_LOCOMOTIVE_TOKENS:
+        return False
+
+    power_kw = data.get("powerKW")
+    if vehicle_subtype == "DIESEL" and isinstance(power_kw, (int, float)) and power_kw < 1000:
+        return False
+
+    return True
 
 
 def category_from_train_metadata(path: Path, data: dict) -> str:
@@ -108,15 +173,16 @@ def category_from_train_metadata(path: Path, data: dict) -> str:
     return "PASSENGER"
 
 
-def load_vehicle_type_index() -> dict[str, str]:
-    """Map typeID -> vehicleType using all vehicle type JSON files."""
-    index: dict[str, str] = {}
+def load_vehicle_type_index() -> dict[str, tuple[str, str]]:
+    """Map typeID -> (vehicleType, vehicleSubtype) using all vehicle type JSON files."""
+    index: dict[str, tuple[str, str]] = {}
     for path in iter_json_files(VEHICLE_TYPES_DIR):
         data = read_json(path)
         type_id = str(data.get("typeID") or "")
         vehicle_type = str(data.get("vehicleType") or "")
+        vehicle_subtype = str(data.get("vehicleSubtype") or "")
         if type_id:
-            index[type_id] = vehicle_type
+            index[type_id] = (vehicle_type, vehicle_subtype)
     return index
 
 
@@ -132,10 +198,28 @@ def migrate() -> Stats:
     for path in iter_json_files(VEHICLE_TYPES_DIR):
         stats.vehicle_types_scanned += 1
         data = read_json(path)
+        changed = False
+
         if "sourceReliability" in data:
             del data["sourceReliability"]
-            write_json(path, data)
             stats.source_reliability_removed += 1
+            changed = True
+
+        expected_capability = infer_multiple_coupling_capable(data)
+        if expected_capability is None:
+            if "multipleCouplingCapable" in data:
+                del data["multipleCouplingCapable"]
+                stats.invalid_multiple_coupling_removed += 1
+                changed = True
+        else:
+            current_capability = data.get("multipleCouplingCapable")
+            if not isinstance(current_capability, bool) or current_capability != expected_capability:
+                data["multipleCouplingCapable"] = expected_capability
+                stats.multiple_coupling_backfilled += 1
+                changed = True
+
+        if changed:
+            write_json(path, data)
 
     # Build type lookup after normalization.
     type_index = load_vehicle_type_index()
@@ -145,7 +229,20 @@ def migrate() -> Stats:
         stats.vehicles_scanned += 1
         data = read_json(path)
         type_id = str(data.get("typeID") or "")
-        vehicle_type = type_index.get(type_id, "")
+        vehicle_type, vehicle_subtype = type_index.get(type_id, ("", ""))
+
+        traction_capable = is_traction_capable(vehicle_type, vehicle_subtype)
+        if traction_capable:
+            traction_status = str(data.get("tractionStatus") or "").upper()
+            if traction_status not in {"OPERATIONAL", "DEFECTIVE"}:
+                data["tractionStatus"] = "OPERATIONAL"
+                stats.traction_status_backfilled += 1
+                write_json(path, data)
+        elif "tractionStatus" in data:
+            del data["tractionStatus"]
+            stats.invalid_traction_status_removed += 1
+            write_json(path, data)
+
         subdir = type_dir_for_vehicle_type(vehicle_type)
         target_dir = VEHICLES_DIR / subdir
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -183,7 +280,11 @@ def main() -> None:
     print("Fleet layout migration complete")
     print(f"  vehicle types scanned: {stats.vehicle_types_scanned}")
     print(f"  sourceReliability removed: {stats.source_reliability_removed}")
+    print(f"  multipleCouplingCapable backfilled: {stats.multiple_coupling_backfilled}")
+    print(f"  invalid multipleCouplingCapable removed: {stats.invalid_multiple_coupling_removed}")
     print(f"  vehicles scanned: {stats.vehicles_scanned}")
+    print(f"  tractionStatus backfilled: {stats.traction_status_backfilled}")
+    print(f"  invalid tractionStatus removed: {stats.invalid_traction_status_removed}")
     print(f"  vehicles moved: {stats.vehicles_moved}")
     print(f"  trains scanned: {stats.trains_scanned}")
     print(f"  trainCategory added/fixed: {stats.train_category_added_or_fixed}")

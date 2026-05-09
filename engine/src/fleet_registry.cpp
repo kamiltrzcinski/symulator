@@ -126,6 +126,76 @@ namespace
     return j.at(key).get<float>();
 }
 
+[[nodiscard]] std::optional<bool> optional_bool(const json& j, const char* key,
+                                                const std::filesystem::path& path)
+{
+    if (!j.contains(key) || j.at(key).is_null())
+    {
+        return std::nullopt;
+    }
+    if (!j.at(key).is_boolean())
+    {
+        throw FleetLoadError("Invalid boolean field '" + std::string(key) + "' in " +
+                             path.string());
+    }
+    return j.at(key).get<bool>();
+}
+
+[[nodiscard]] bool is_locomotive_type(const std::string& vehicle_type)
+{
+    return to_upper(vehicle_type) == "LOCOMOTIVE";
+}
+
+[[nodiscard]] bool is_traction_capable(const std::string& vehicle_type,
+                                       const std::string& vehicle_subtype)
+{
+    const std::string type = to_upper(vehicle_type);
+    const std::string subtype = to_upper(vehicle_subtype);
+
+    if (type == "LOCOMOTIVE")
+    {
+        return true;
+    }
+
+    if ((type == "EMU_UNIT" || type == "DMU_UNIT") && subtype == "MOTOR")
+    {
+        return true;
+    }
+
+    return false;
+}
+
+[[nodiscard]] TractionStatus parse_traction_status(const std::string& value,
+                                                   const std::filesystem::path& path)
+{
+    const std::string upper = to_upper(value);
+    if (upper == "OPERATIONAL")
+    {
+        return TractionStatus::OPERATIONAL;
+    }
+    if (upper == "DEFECTIVE")
+    {
+        return TractionStatus::DEFECTIVE;
+    }
+
+    throw FleetLoadError("Invalid tractionStatus value '" + value + "' in " + path.string());
+}
+
+[[nodiscard]] std::optional<TractionStatus> optional_traction_status(
+    const json& j, const char* key, const std::filesystem::path& path)
+{
+    if (!j.contains(key) || j.at(key).is_null())
+    {
+        return std::nullopt;
+    }
+    if (!j.at(key).is_string())
+    {
+        throw FleetLoadError("Invalid string field '" + std::string(key) + "' in " + path.string());
+    }
+
+    return parse_traction_status(j.at(key).get<std::string>(), path);
+}
+
 [[nodiscard]] TrainCategory parse_train_category(const std::string& value,
                                                  const std::filesystem::path& path)
 {
@@ -289,6 +359,15 @@ void FleetRegistry::load_types_(const std::filesystem::path& types_dir)
         type.braking_lambda_pct = require_int(j, "brakingLambdaPct", path);
         type.power_kw = optional_float(j, "powerKW", path);
         type.traction_force_kn = optional_float(j, "tractionForceKN", path);
+        type.multiple_coupling_capable = optional_bool(j, "multipleCouplingCapable", path);
+
+        if (!is_traction_capable(type.vehicle_type, type.vehicle_subtype) &&
+            type.multiple_coupling_capable.has_value())
+        {
+            throw FleetLoadError(
+                "multipleCouplingCapable is only valid for traction-capable type categories in " +
+                path.string());
+        }
 
         const bool has_davis_a = j.contains("davisA") && !j.at("davisA").is_null();
         const bool has_davis_b = j.contains("davisB") && !j.at("davisB").is_null();
@@ -368,6 +447,28 @@ void FleetRegistry::load_vehicles_(const std::filesystem::path& vehicles_dir)
         vehicle.power_kw = resolve_optional_float_override(j, "powerKW", type.power_kw, path);
         vehicle.traction_force_kn =
             resolve_optional_float_override(j, "tractionForceKN", type.traction_force_kn, path);
+        vehicle.multiple_coupling_capable = type.multiple_coupling_capable;
+
+        vehicle.traction_capable =
+            is_traction_capable(vehicle.vehicle_type, vehicle.vehicle_subtype);
+        const std::optional<TractionStatus> traction_status_override =
+            optional_traction_status(j, "tractionStatus", path);
+
+        if (vehicle.traction_capable)
+        {
+            vehicle.traction_status =
+                traction_status_override.value_or(TractionStatus::OPERATIONAL);
+        }
+        else
+        {
+            if (traction_status_override.has_value())
+            {
+                throw FleetLoadError(
+                    "tractionStatus is only valid for traction-capable vehicles in " +
+                    path.string());
+            }
+            vehicle.traction_status = std::nullopt;
+        }
 
         const bool has_any_davis_key =
             j.contains("davisA") || j.contains("davisB") || j.contains("davisC");
@@ -424,6 +525,7 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
         consist.total_power_kw = 0.0f;
 
         double lambda_mass_sum = 0.0;
+        std::vector<const Vehicle*> operational_locomotives;
 
         for (const auto& item : j.at("vehicles"))
         {
@@ -448,11 +550,60 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             consist.total_mass_t += vehicle.effective_mass_t;
             consist.max_speed_kmh =
                 std::min(consist.max_speed_kmh, static_cast<float>(vehicle.max_speed_kmh));
-            consist.total_traction_kn += vehicle.traction_force_kn.value_or(0.0f);
-            consist.total_power_kw += vehicle.power_kw.value_or(0.0f);
+
+            const bool operational = !vehicle.traction_status.has_value() ||
+                                     *vehicle.traction_status == TractionStatus::OPERATIONAL;
+            if (vehicle.traction_capable && operational)
+            {
+                if (is_locomotive_type(vehicle.vehicle_type))
+                {
+                    operational_locomotives.push_back(&vehicle);
+                }
+                else
+                {
+                    consist.total_traction_kn += vehicle.traction_force_kn.value_or(0.0f);
+                    consist.total_power_kw += vehicle.power_kw.value_or(0.0f);
+                }
+            }
 
             lambda_mass_sum +=
                 static_cast<double>(vehicle.braking_lambda_pct) * vehicle.effective_mass_t;
+        }
+
+        if (!operational_locomotives.empty())
+        {
+            const auto add_locomotive_traction = [&consist](const Vehicle& vehicle)
+            {
+                consist.total_traction_kn += vehicle.traction_force_kn.value_or(0.0f);
+                consist.total_power_kw += vehicle.power_kw.value_or(0.0f);
+            };
+
+            if (operational_locomotives.size() == 1)
+            {
+                add_locomotive_traction(*operational_locomotives.front());
+            }
+            else
+            {
+                const Vehicle& first = *operational_locomotives.front();
+                const bool same_type = std::all_of(
+                    operational_locomotives.begin(), operational_locomotives.end(),
+                    [&first](const Vehicle* vehicle) { return vehicle->type_id == first.type_id; });
+                const bool coupling_allowed =
+                    same_type && first.multiple_coupling_capable.value_or(false);
+
+                if (coupling_allowed)
+                {
+                    for (const Vehicle* vehicle : operational_locomotives)
+                    {
+                        add_locomotive_traction(*vehicle);
+                    }
+                }
+                else
+                {
+                    // Fallback policy: additional locomotives stay as ballast load.
+                    add_locomotive_traction(first);
+                }
+            }
         }
 
         if (consist.vehicle_gids.empty())

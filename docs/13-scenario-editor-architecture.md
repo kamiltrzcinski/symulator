@@ -209,6 +209,7 @@ Produces / manages `fleet.timetable_templates` rows (as described in `11-databas
 - Arrivals and departures monotonically increasing per train per day (no time-travel).
 - Scheduled travel time ≥ `floor(section.length_m / (section.max_speed_kmh / 3.6))` — physically reachable lower bound.
 - Every `composition_gid` referenced in a template exists in `fleet.train_definitions`.
+- For compositions containing multiple traction-capable units of the same category: the editor validates `multiple_coupling_capable`; for locomotives this controls effective coupled traction gain, and for EMU/DMU motor sets this controls MU-compatibility warnings.
 - No train spawns mid-route (must originate at a defined terminus or enter from outside the scenario boundary).
 - Dwell time at intermediate stations ≥ 30 s (configurable minimum).
 

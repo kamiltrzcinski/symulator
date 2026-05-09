@@ -191,6 +191,355 @@ TEST(FleetRegistry, AppliesDavisDefaultsWhenMissing)
     EXPECT_NEAR(type.davis.c, 0.0017658f, 0.000001f);
 }
 
+TEST(FleetRegistry, AcceptsMultipleCouplingCapabilityForEmuMotorType)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/emu_unit/motor/en57.json", R"json({
+  "typeID": "VT-GLB-EN57-0000001",
+  "typeName": "EN57",
+  "pkpSeries": "EN57",
+  "vehicleType": "EMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 64.97,
+  "axleCount": 12,
+  "massEmptyT": 123.0,
+  "massGrossT": 123.0,
+  "maxSpeedKmh": 110,
+  "brakingLambdaPct": 80,
+  "powerKW": 580.0,
+  "tractionForceKN": 80.0,
+  "multipleCouplingCapable": true,
+  "family": "en57"
+})json");
+
+    write_text(root / "vehicles/emu_unit/en57_001.json", R"json({
+  "gID": "VEH-TRJ-EN57-001-0000001",
+  "pID": "EN57-001",
+  "typeID": "VT-GLB-EN57-0000001",
+  "displayName": "EN57-001"
+})json");
+
+    write_text(root / "trains/passenger/test_train.json", R"json({
+  "gID": "TRN-TRJ-TEST-0000001",
+  "pID": "Test",
+  "displayName": "Test",
+  "trainCategory": "PASSENGER",
+  "vehicles": ["VEH-TRJ-EN57-001-0000001"]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& type = registry.get_type(GID{"VT-GLB-EN57-0000001"});
+    ASSERT_TRUE(type.multiple_coupling_capable.has_value());
+    EXPECT_TRUE(*type.multiple_coupling_capable);
+}
+
+TEST(FleetRegistry, RejectsMultipleCouplingCapabilityForNonTractionType)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/freight_wagon/hopper/452w.json", R"json({
+  "typeID": "VT-GLB-452W-0000002",
+  "typeName": "452W",
+  "pkpSeries": null,
+  "vehicleType": "FREIGHT_WAGON",
+  "vehicleSubtype": "HOPPER",
+  "lengthM": 14.04,
+  "axleCount": 4,
+  "massEmptyT": 22.0,
+  "massGrossT": 90.0,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 100,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "multipleCouplingCapable": true,
+  "family": "hopper"
+})json");
+
+    FleetRegistry registry;
+    EXPECT_THROW(registry.load(root), FleetLoadError);
+}
+
+TEST(FleetRegistry, DefaultsTractionStatusAndAppliesDefectiveAsBallast)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/locomotive/electric/201e.json", R"json({
+  "typeID": "VT-GLB-201E-0000001",
+  "typeName": "201E",
+  "pkpSeries": "ET22",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 19.24,
+  "axleCount": 6,
+  "massEmptyT": 120.0,
+  "massGrossT": 120.0,
+  "maxSpeedKmh": 125,
+  "brakingLambdaPct": 130,
+  "powerKW": 3000.0,
+  "tractionForceKN": 411.0,
+  "multipleCouplingCapable": true,
+  "family": "et22"
+})json");
+
+    write_text(root / "vehicle_types/freight_wagon/hopper/452w.json", R"json({
+  "typeID": "VT-GLB-452W-0000002",
+  "typeName": "452W",
+  "pkpSeries": null,
+  "vehicleType": "FREIGHT_WAGON",
+  "vehicleSubtype": "HOPPER",
+  "lengthM": 14.04,
+  "axleCount": 4,
+  "massEmptyT": 22.0,
+  "massGrossT": 90.0,
+  "maxSpeedKmh": 120,
+  "brakingLambdaPct": 100,
+  "powerKW": null,
+  "tractionForceKN": null,
+  "family": "hopper"
+})json");
+
+    write_text(root / "vehicles/locomotive/et22_001.json", R"json({
+  "gID": "VEH-TRJ-ET22-001-0000001",
+  "pID": "ET22-001",
+  "typeID": "VT-GLB-201E-0000001",
+  "displayName": "ET22-001"
+})json");
+
+    write_text(root / "vehicles/locomotive/et22_002.json", R"json({
+  "gID": "VEH-TRJ-ET22-002-0000001",
+  "pID": "ET22-002",
+  "typeID": "VT-GLB-201E-0000001",
+  "displayName": "ET22-002",
+  "tractionStatus": "DEFECTIVE"
+})json");
+
+    write_text(root / "vehicles/freight_wagon/452w_1.json", R"json({
+  "gID": "VEH-TRJ-452W-537-0000001",
+  "pID": "452W-5375001",
+  "typeID": "VT-GLB-452W-0000002",
+  "displayName": "452W-5375001"
+})json");
+
+    write_text(root / "trains/freight/tow54321.json", R"json({
+  "gID": "TRN-TRJ-TOW543210-0000001",
+  "pID": "Tow 543210",
+  "displayName": "Tow 543210",
+  "trainCategory": "FREIGHT",
+  "vehicles": [
+    "VEH-TRJ-ET22-001-0000001",
+    "VEH-TRJ-ET22-002-0000001",
+    "VEH-TRJ-452W-537-0000001"
+  ]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& operational_loco = registry.get_vehicle(GID{"VEH-TRJ-ET22-001-0000001"});
+    ASSERT_TRUE(operational_loco.traction_status.has_value());
+    EXPECT_EQ(*operational_loco.traction_status, TractionStatus::OPERATIONAL);
+    EXPECT_TRUE(operational_loco.traction_capable);
+
+    const auto& wagon = registry.get_vehicle(GID{"VEH-TRJ-452W-537-0000001"});
+    EXPECT_FALSE(wagon.traction_capable);
+    EXPECT_FALSE(wagon.traction_status.has_value());
+
+    const auto& consist = registry.get_consist(GID{"TRN-TRJ-TOW543210-0000001"});
+    EXPECT_NEAR(consist.total_traction_kn, 411.0f, 0.01f);
+    EXPECT_NEAR(consist.total_power_kw, 3000.0f, 0.01f);
+}
+
+TEST(FleetRegistry, CouplesOperationalLocomotivesWhenSameTypeAndCapable)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/locomotive/electric/eu07.json", R"json({
+  "typeID": "VT-GLB-EU07-0000001",
+  "typeName": "EU07",
+  "pkpSeries": "EU07",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 15.9,
+  "axleCount": 4,
+  "massEmptyT": 80.0,
+  "massGrossT": 80.0,
+  "maxSpeedKmh": 125,
+  "brakingLambdaPct": 100,
+  "powerKW": 2000.0,
+  "tractionForceKN": 280.0,
+  "multipleCouplingCapable": true,
+  "family": "eu07"
+})json");
+
+    write_text(root / "vehicles/locomotive/eu07_001.json", R"json({
+  "gID": "VEH-TRJ-EU07-001-0000001",
+  "pID": "EU07-001",
+  "typeID": "VT-GLB-EU07-0000001",
+  "displayName": "EU07-001"
+})json");
+
+    write_text(root / "vehicles/locomotive/eu07_002.json", R"json({
+  "gID": "VEH-TRJ-EU07-002-0000001",
+  "pID": "EU07-002",
+  "typeID": "VT-GLB-EU07-0000001",
+  "displayName": "EU07-002"
+})json");
+
+    write_text(root / "trains/freight/test_train.json", R"json({
+  "gID": "TRN-TRJ-TEST-0000001",
+  "pID": "Test",
+  "displayName": "Test",
+  "trainCategory": "FREIGHT",
+  "vehicles": [
+    "VEH-TRJ-EU07-001-0000001",
+    "VEH-TRJ-EU07-002-0000001"
+  ]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& consist = registry.get_consist(GID{"TRN-TRJ-TEST-0000001"});
+    EXPECT_NEAR(consist.total_traction_kn, 560.0f, 0.01f);
+    EXPECT_NEAR(consist.total_power_kw, 4000.0f, 0.01f);
+}
+
+TEST(FleetRegistry, DoesNotCoupleLocomotivesWhenCapabilityUnknown)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/locomotive/electric/eu07.json", R"json({
+  "typeID": "VT-GLB-EU07-0000001",
+  "typeName": "EU07",
+  "pkpSeries": "EU07",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 15.9,
+  "axleCount": 4,
+  "massEmptyT": 80.0,
+  "massGrossT": 80.0,
+  "maxSpeedKmh": 125,
+  "brakingLambdaPct": 100,
+  "powerKW": 2000.0,
+  "tractionForceKN": 280.0,
+  "family": "eu07"
+})json");
+
+    write_text(root / "vehicles/locomotive/eu07_001.json", R"json({
+  "gID": "VEH-TRJ-EU07-001-0000001",
+  "pID": "EU07-001",
+  "typeID": "VT-GLB-EU07-0000001",
+  "displayName": "EU07-001"
+})json");
+
+    write_text(root / "vehicles/locomotive/eu07_002.json", R"json({
+  "gID": "VEH-TRJ-EU07-002-0000001",
+  "pID": "EU07-002",
+  "typeID": "VT-GLB-EU07-0000001",
+  "displayName": "EU07-002"
+})json");
+
+    write_text(root / "trains/freight/test_train.json", R"json({
+  "gID": "TRN-TRJ-TEST-0000001",
+  "pID": "Test",
+  "displayName": "Test",
+  "trainCategory": "FREIGHT",
+  "vehicles": [
+    "VEH-TRJ-EU07-001-0000001",
+    "VEH-TRJ-EU07-002-0000001"
+  ]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& consist = registry.get_consist(GID{"TRN-TRJ-TEST-0000001"});
+    EXPECT_NEAR(consist.total_traction_kn, 280.0f, 0.01f);
+    EXPECT_NEAR(consist.total_power_kw, 2000.0f, 0.01f);
+}
+
+TEST(FleetRegistry, DoesNotCoupleLocomotivesAcrossDifferentTypes)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "vehicle_types/locomotive/electric/eu07.json", R"json({
+  "typeID": "VT-GLB-EU07-0000001",
+  "typeName": "EU07",
+  "pkpSeries": "EU07",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 15.9,
+  "axleCount": 4,
+  "massEmptyT": 80.0,
+  "massGrossT": 80.0,
+  "maxSpeedKmh": 125,
+  "brakingLambdaPct": 100,
+  "powerKW": 2000.0,
+  "tractionForceKN": 280.0,
+  "multipleCouplingCapable": true,
+  "family": "eu07"
+})json");
+
+    write_text(root / "vehicle_types/locomotive/electric/201e.json", R"json({
+  "typeID": "VT-GLB-201E-0000001",
+  "typeName": "201E",
+  "pkpSeries": "ET22",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 19.24,
+  "axleCount": 6,
+  "massEmptyT": 120.0,
+  "massGrossT": 120.0,
+  "maxSpeedKmh": 125,
+  "brakingLambdaPct": 130,
+  "powerKW": 3000.0,
+  "tractionForceKN": 411.0,
+  "multipleCouplingCapable": true,
+  "family": "et22"
+})json");
+
+    write_text(root / "vehicles/locomotive/eu07_001.json", R"json({
+  "gID": "VEH-TRJ-EU07-001-0000001",
+  "pID": "EU07-001",
+  "typeID": "VT-GLB-EU07-0000001",
+  "displayName": "EU07-001"
+})json");
+
+    write_text(root / "vehicles/locomotive/et22_001.json", R"json({
+  "gID": "VEH-TRJ-ET22-001-0000001",
+  "pID": "ET22-001",
+  "typeID": "VT-GLB-201E-0000001",
+  "displayName": "ET22-001"
+})json");
+
+    write_text(root / "trains/freight/test_train.json", R"json({
+  "gID": "TRN-TRJ-TEST-0000001",
+  "pID": "Test",
+  "displayName": "Test",
+  "trainCategory": "FREIGHT",
+  "vehicles": [
+    "VEH-TRJ-EU07-001-0000001",
+    "VEH-TRJ-ET22-001-0000001"
+  ]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& consist = registry.get_consist(GID{"TRN-TRJ-TEST-0000001"});
+    EXPECT_NEAR(consist.total_traction_kn, 280.0f, 0.01f);
+    EXPECT_NEAR(consist.total_power_kw, 2000.0f, 0.01f);
+}
+
 TEST(FleetRegistry, ThrowsOnUnknownTypeReference)
 {
     TempDir tmp;
