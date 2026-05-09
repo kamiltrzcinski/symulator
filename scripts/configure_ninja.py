@@ -1,0 +1,402 @@
+#!/usr/bin/env python3
+"""Configure Ninja builds with a shared third-party bootstrap directory.
+
+This script keeps build directories generator-specific (to avoid CMake cache
+mismatch) and optionally bootstraps vcpkg + dependencies, including Qt6.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import platform
+import shlex
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+THIRD_PARTY_DIR_NAME = "3rdParty"
+SUPPORTED_SYSTEMS = {"Windows", "Linux", "Darwin"}
+
+
+def run_command(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None, dry_run: bool = False) -> None:
+    printable = " ".join(shlex.quote(str(part)) for part in command)
+    print(f"[run] {printable}")
+    if dry_run:
+        return
+    subprocess.run(command, cwd=cwd, env=env, check=True)
+
+
+def detect_third_party_root(repo_root: Path, system_name: str) -> Path:
+    if system_name not in SUPPORTED_SYSTEMS:
+        raise RuntimeError(f"Unsupported operating system: {system_name}")
+
+    third_party_root = repo_root / THIRD_PARTY_DIR_NAME
+    third_party_root.mkdir(parents=True, exist_ok=True)
+    return third_party_root
+
+
+def detect_triplet(system_name: str, machine_name: str, override: str | None) -> str:
+    if override:
+        return override
+
+    machine = machine_name.lower()
+    if system_name == "Windows":
+        return "arm64-windows" if "arm" in machine else "x64-windows"
+    if system_name == "Darwin":
+        return "arm64-osx" if "arm" in machine else "x64-osx"
+    if system_name == "Linux":
+        return "arm64-linux" if "arm" in machine or "aarch64" in machine else "x64-linux"
+
+    raise RuntimeError(f"No default triplet mapping for OS: {system_name}")
+
+
+def read_manifest_dependencies(vcpkg_manifest: Path, include_qt: bool) -> list[str]:
+    data = json.loads(vcpkg_manifest.read_text(encoding="utf-8"))
+    dependencies: list[str] = []
+
+    for item in data.get("dependencies", []):
+        if isinstance(item, str):
+            dependencies.append(item)
+        elif isinstance(item, dict) and isinstance(item.get("name"), str):
+            dependencies.append(item["name"])
+
+    if include_qt and "qtbase" not in dependencies:
+        dependencies.append("qtbase")
+    if not include_qt:
+        dependencies = [dep for dep in dependencies if dep != "qtbase"]
+
+    # Preserve order while removing duplicates.
+    deduplicated: list[str] = []
+    seen: set[str] = set()
+    for dep in dependencies:
+        if dep not in seen:
+            deduplicated.append(dep)
+            seen.add(dep)
+
+    return deduplicated
+
+
+def ensure_vcpkg(third_party_root: Path, *, system_name: str, dry_run: bool) -> tuple[Path, Path]:
+    vcpkg_root = third_party_root / "vcpkg"
+    if not vcpkg_root.exists():
+        run_command(
+            [
+                "git",
+                "clone",
+                "--depth",
+                "1",
+                "https://github.com/microsoft/vcpkg.git",
+                str(vcpkg_root),
+            ],
+            dry_run=dry_run,
+        )
+
+    if system_name == "Windows":
+        vcpkg_executable = vcpkg_root / "vcpkg.exe"
+        bootstrap_script = vcpkg_root / "bootstrap-vcpkg.bat"
+    else:
+        vcpkg_executable = vcpkg_root / "vcpkg"
+        bootstrap_script = vcpkg_root / "bootstrap-vcpkg.sh"
+
+    if not vcpkg_executable.exists():
+        if bootstrap_script.suffix == ".sh" and not dry_run:
+            bootstrap_script.chmod(bootstrap_script.stat().st_mode | 0o111)
+
+        run_command([str(bootstrap_script)], cwd=vcpkg_root, dry_run=dry_run)
+
+    toolchain_file = vcpkg_root / "scripts" / "buildsystems" / "vcpkg.cmake"
+    return vcpkg_executable, toolchain_file
+
+
+def install_third_party(
+    *,
+    vcpkg_executable: Path,
+    dependencies: list[str],
+    triplet: str,
+    env: dict[str, str],
+    dry_run: bool,
+) -> None:
+    if not dependencies:
+        return
+
+    run_command(
+        [
+            str(vcpkg_executable),
+            "install",
+            "--classic",
+            *dependencies,
+            f"--triplet={triplet}",
+            "--clean-after-build",
+        ],
+        env=env,
+        dry_run=dry_run,
+    )
+
+
+def normalize_vcpkg_tools_layout(*, vcpkg_root: Path, triplet: str, dry_run: bool) -> None:
+    """Mirror tools installed under usr/local/tools into the canonical tools path.
+
+    Some autotools-based ports may install host tools under:
+      installed/<triplet>/usr/local/tools/<name>/...
+    while downstream ports expect:
+      installed/<triplet>/tools/<name>/...
+    """
+
+    legacy_tools_root = vcpkg_root / "installed" / triplet / "usr" / "local" / "tools"
+    if not legacy_tools_root.exists():
+        return
+
+    canonical_tools_root = vcpkg_root / "installed" / triplet / "tools"
+    if dry_run:
+        print(f"[run] mirror {legacy_tools_root} -> {canonical_tools_root}")
+        return
+
+    canonical_tools_root.mkdir(parents=True, exist_ok=True)
+    for entry in legacy_tools_root.iterdir():
+        destination = canonical_tools_root / entry.name
+        if entry.is_dir():
+            shutil.copytree(entry, destination, dirs_exist_ok=True)
+        else:
+            shutil.copy2(entry, destination)
+
+
+def normalize_vcpkg_pkgconfig_layout(*, vcpkg_root: Path, triplet: str, dry_run: bool) -> None:
+    """Mirror release pkg-config files into debug pkgconfig when missing.
+
+    Some ports only ship release .pc metadata; meson debug configuration in
+    downstream ports can fail if debug/lib/pkgconfig lacks matching entries.
+    """
+
+    release_pkgconfig_root = vcpkg_root / "installed" / triplet / "lib" / "pkgconfig"
+    if not release_pkgconfig_root.exists():
+        return
+
+    debug_pkgconfig_root = vcpkg_root / "installed" / triplet / "debug" / "lib" / "pkgconfig"
+    if dry_run:
+        print(f"[run] mirror missing *.pc {release_pkgconfig_root} -> {debug_pkgconfig_root}")
+        return
+
+    debug_pkgconfig_root.mkdir(parents=True, exist_ok=True)
+    for pc_file in release_pkgconfig_root.glob("*.pc"):
+        destination = debug_pkgconfig_root / pc_file.name
+        if not destination.exists():
+            shutil.copy2(pc_file, destination)
+
+
+def normalize_known_broken_pkgconfig_files(*, vcpkg_root: Path, triplet: str, dry_run: bool) -> None:
+    """Fix malformed libcap/libpsx .pc metadata emitted by current toolchain combo."""
+
+    release_pkgconfig_root = vcpkg_root / "installed" / triplet / "lib" / "pkgconfig"
+    debug_pkgconfig_root = vcpkg_root / "installed" / triplet / "debug" / "lib" / "pkgconfig"
+    known_broken = ("libcap.pc", "libpsx.pc")
+
+    def rewrite_file(pc_file: Path, *, debug_layout: bool) -> None:
+        if not pc_file.exists():
+            return
+
+        if dry_run:
+            print(f"[run] normalize {pc_file}")
+            return
+
+        lines = pc_file.read_text(encoding="utf-8").splitlines()
+        prefix_value = "${pcfiledir}/../../.." if debug_layout else "${pcfiledir}/../.."
+
+        updated: list[str] = []
+        saw_prefix = False
+        for line in lines:
+            if line.startswith("prefix="):
+                updated.append(f"prefix={prefix_value}")
+                saw_prefix = True
+            elif line.startswith("exec_prefix="):
+                updated.append("exec_prefix=${prefix}")
+            elif line.startswith("libdir=/lib"):
+                updated.append("libdir=${prefix}/lib")
+            elif line.startswith("includedir=/include"):
+                updated.append("includedir=${prefix}/include")
+            else:
+                updated.append(line)
+
+        if not saw_prefix:
+            updated.insert(0, f"prefix={prefix_value}")
+
+        normalized_text = "\n".join(updated) + "\n"
+        pc_file.write_text(normalized_text, encoding="utf-8")
+
+    for filename in known_broken:
+        rewrite_file(release_pkgconfig_root / filename, debug_layout=False)
+        rewrite_file(debug_pkgconfig_root / filename, debug_layout=True)
+
+
+def configure_ninja_build(
+    *,
+    repo_root: Path,
+    build_dir: Path,
+    build_type: str,
+    generator: str,
+    toolchain_file: Path | None,
+    env: dict[str, str],
+    dry_run: bool,
+    configure_only: bool,
+    headless: bool,
+) -> None:
+    command = [
+        "cmake",
+        "--fresh",
+        "-S",
+        str(repo_root),
+        "-B",
+        str(build_dir),
+        "-G",
+        generator,
+        f"-DCMAKE_BUILD_TYPE={build_type}",
+    ]
+
+    if toolchain_file is not None:
+        command.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}")
+        # We pre-install dependencies in classic mode.
+        command.append("-DVCPKG_MANIFEST_MODE=OFF")
+
+    if headless:
+        command.extend([
+            "-DBUILD_CLIENT=OFF",
+            "-DBUILD_EDITOR=OFF",
+        ])
+
+    run_command(command, env=env, dry_run=dry_run)
+
+    if not configure_only:
+        run_command(["cmake", "--build", str(build_dir)], env=env, dry_run=dry_run)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Configure a Ninja build and optionally bootstrap third-party dependencies.",
+    )
+    parser.add_argument("--build-type", default="Debug", help="CMAKE_BUILD_TYPE (default: Debug)")
+    parser.add_argument("--build-dir", default=None, help="Build directory path (default: build/ninja-<type>)")
+    parser.add_argument("--triplet", default=None, help="vcpkg triplet override (default: auto by host OS/arch)")
+    parser.add_argument("--generator", default="Ninja", help="CMake generator (default: Ninja)")
+    parser.add_argument("--headless", action="store_true", help="Configure server-only build (BUILD_CLIENT=OFF, BUILD_EDITOR=OFF)")
+    parser.add_argument("--without-qt", action="store_true", help="Do not install qtbase via vcpkg")
+    parser.add_argument("--no-third-party-install", action="store_true", help="Skip vcpkg install step")
+    parser.add_argument("--no-toolchain", action="store_true", help="Configure without vcpkg toolchain")
+    parser.add_argument(
+        "--host-system",
+        choices=["Windows", "Linux", "Darwin"],
+        default=None,
+        help="Override detected host OS (for dry-run validation only)",
+    )
+    parser.add_argument("--configure-only", action="store_true", help="Run CMake configure only (skip build)")
+    parser.add_argument("--dry-run", action="store_true", help="Print commands without executing them")
+    args = parser.parse_args()
+
+    repo_root = Path(__file__).resolve().parents[1]
+    if args.build_dir:
+        build_dir = Path(args.build_dir)
+    else:
+        suffix = "-headless" if args.headless else ""
+        build_dir = repo_root / "build" / f"ninja-{args.build_type.lower()}{suffix}"
+
+    actual_system = platform.system()
+    system_name = args.host_system or actual_system
+    if args.host_system and args.host_system != actual_system and not args.dry_run:
+        raise RuntimeError("--host-system different from current host is supported only with --dry-run")
+
+    third_party_root = detect_third_party_root(repo_root, system_name)
+    triplet = detect_triplet(system_name, platform.machine(), args.triplet)
+
+    downloads_dir = third_party_root / "vcpkg-downloads"
+    binary_cache_dir = third_party_root / "vcpkg-binary-cache"
+    downloads_dir.mkdir(parents=True, exist_ok=True)
+    binary_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    env = dict(os.environ)
+    env["VCPKG_DOWNLOADS"] = str(downloads_dir)
+    env["VCPKG_DEFAULT_BINARY_CACHE"] = str(binary_cache_dir)
+    env["VCPKG_DISABLE_METRICS"] = "1"
+
+    toolchain_file: Path | None = None
+
+    if not args.no_toolchain:
+        vcpkg_executable, toolchain_file = ensure_vcpkg(
+            third_party_root,
+            system_name=system_name,
+            dry_run=args.dry_run,
+        )
+        vcpkg_root = third_party_root / "vcpkg"
+        env["VCPKG_ROOT"] = str(vcpkg_root)
+
+        if not args.no_third_party_install:
+            include_qt = (not args.without_qt) and (not args.headless)
+            dependencies = read_manifest_dependencies(repo_root / "vcpkg.json", include_qt=include_qt)
+            normalize_vcpkg_tools_layout(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+            normalize_vcpkg_pkgconfig_layout(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+            normalize_known_broken_pkgconfig_files(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+            install_third_party(
+                vcpkg_executable=vcpkg_executable,
+                dependencies=dependencies,
+                triplet=triplet,
+                env=env,
+                dry_run=args.dry_run,
+            )
+            normalize_vcpkg_tools_layout(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+            normalize_vcpkg_pkgconfig_layout(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+            normalize_known_broken_pkgconfig_files(
+                vcpkg_root=vcpkg_root,
+                triplet=triplet,
+                dry_run=args.dry_run,
+            )
+
+    configure_ninja_build(
+        repo_root=repo_root,
+        build_dir=build_dir,
+        build_type=args.build_type,
+        generator=args.generator,
+        toolchain_file=toolchain_file,
+        env=env,
+        dry_run=args.dry_run,
+        configure_only=args.configure_only,
+        headless=args.headless,
+    )
+
+    print("\nDone.")
+    print(f"Detected host system: {system_name}")
+    print(f"Active third-party root: {third_party_root}")
+    print(f"Configured build directory: {build_dir}")
+    print(f"Detected triplet: {triplet}")
+    print("Use 'cmake --build <build_dir>' and 'ctest --test-dir <build_dir> --output-on-failure'.")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except subprocess.CalledProcessError as error:
+        print(f"\nCommand failed with exit code {error.returncode}.", file=sys.stderr)
+        raise SystemExit(error.returncode)
+    except Exception as error:  # pragma: no cover
+        print(f"\nError: {error}", file=sys.stderr)
+        raise SystemExit(1)

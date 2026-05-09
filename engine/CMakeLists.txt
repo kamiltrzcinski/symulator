@@ -13,6 +13,7 @@ target_include_directories(engine PUBLIC
 
 target_link_libraries(engine PUBLIC
     nlohmann_json::nlohmann_json
+    symulator_proto
     flatbuffers::flatbuffers
     Threads::Threads
 )

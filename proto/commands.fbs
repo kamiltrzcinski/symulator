@@ -65,6 +65,7 @@ table CommandAck {
 
 // ── Command rejection (S → C, msg_type 0x12) ────────────────────────────────
 enum NakReason : byte {
+    UNSPECIFIED     = 0,
     UNAUTHORIZED    = 1,  // client does not own the station
     SAFETY_BLOCK    = 2,  // interlocking rules prevent execution
     UNKNOWN_OBJECT  = 3,  // g_id not found in topology

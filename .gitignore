@@ -12,6 +12,10 @@ ui_*.h
 # vcpkg installed trees
 vcpkg_installed/
 
+# Third-party cache (shared root)
+3rdParty/*
+!3rdParty/README.md
+
 # Editor project files
 *.scendb
 

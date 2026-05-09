@@ -1,6 +1,10 @@
-// proto/session.fbs — Connection handshake messages
+// proto/session.fbs — Session lifecycle and control messages
 // msg_type 0x01 HANDSHAKE (C→S)
 // msg_type 0x02 HANDSHAKE_ACK (S→C)
+// msg_type 0x03 HEARTBEAT (C↔S)
+// msg_type 0x04 HEARTBEAT_ACK (C↔S)
+// msg_type 0x30 SNAPSHOT_REQUEST (C→S)
+// msg_type 0x40 SESSION_NOTICE (S→C)
 //
 // Compile with:
 //   flatc --cpp --gen-object-api -o generated/ session.fbs
@@ -44,6 +48,53 @@ table HandshakeAck {
 
     /// Current wall-clock time at session start, microseconds since Unix epoch.
     server_time_us: uint64;
+}
+
+/// C ↔ S  (msg_type 0x03)
+table Heartbeat {
+    /// Sender wall-clock time in microseconds (diagnostics/latency probe).
+    sender_time_us: uint64;
+}
+
+/// C ↔ S  (msg_type 0x04)
+table HeartbeatAck {
+    /// seq_id of HEARTBEAT frame being acknowledged.
+    req_seq_id: uint32;
+
+    /// Responder wall-clock time in microseconds.
+    responder_time_us: uint64;
+}
+
+/// C → S  (msg_type 0x30)
+table SnapshotRequest {
+    /// Optional cursor for incremental catch-up; 0 means full snapshot.
+    since_seq_id: uint32 = 0;
+
+    /// Force full snapshot even when server supports diff mode.
+    force_full: bool = true;
+}
+
+enum SessionNoticeType : byte {
+    INFO = 0,
+    WARNING = 1,
+    ERROR = 2,
+    STATE_CHANGE = 3,
+    OWNERSHIP_REVOKED = 4,
+}
+
+/// S → C  (msg_type 0x40)
+table SessionNotice {
+    type: SessionNoticeType = INFO;
+
+    /// Optional machine-readable code for client-side localization/UX.
+    code: uint16 = 0;
+
+    /// Human-readable fallback text.
+    message: string;
+
+    /// Optional context IDs.
+    station_sid: string;
+    posterunek_id: string;
 }
 
 root_type HandshakeAck;

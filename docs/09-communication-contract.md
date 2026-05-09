@@ -16,7 +16,7 @@ Every message on the wire, in both directions, is a single frame:
 Offset  Size  Field          Notes
 ──────  ────  ─────────────  ─────────────────────────────────────────────
  0       2    magic          0x5352  ('S','R') — rejects stray connections
- 2       1    msg_type       see message type table below
+ 2       1    msg_type       frame family (see message type table below)
  3       1    flags          bit 0 = IS_LAST_CHUNK; bits 1-7 reserved (0)
  4       4    seq_id         uint32, monotonically increasing per sender;
                              wraps at 2^32; used to correlate ACK/NAK
@@ -72,6 +72,22 @@ Value  Name                Direction          Category
 ```
 
 `msg_type` is 1 byte (256 slots). Currently allocated: 18. Ranges 0x80–0xFF reserved for future use.
+
+### Type hierarchy and capacity
+
+`msg_type` is a **family discriminator**, not the only discriminator in the protocol.
+
+- `COMMAND (0x10)` carries `cmd_type` (1 byte)
+- `DOMAIN_EVENT (0x20)` carries `event_type` (1 byte)
+- other families use dedicated payload tables per message
+
+This gives practical capacity far beyond 256 logical operations while keeping the frame header compact:
+
+- frame families: up to 256
+- command subtypes: up to 256
+- event subtypes: up to 256
+
+In practice this already covers current and near-future scope. If a future family needs more than 256 subtypes, that family can add an internal `uint16 ext_type` in its payload without changing the 16-byte transport header.
 
 ---
 
@@ -131,6 +147,7 @@ Server → Client (0x12 COMMAND_NAK):  req_seq_id, reason_code, reason_text
 Reason codes (uint8):
 
 ```
+0x00  UNSPECIFIED    — fallback/default value; should not be emitted intentionally
 0x01  UNAUTHORIZED   — client does not own the station
 0x02  SAFETY_BLOCK   — interlocking rules prevent execution
 0x03  UNKNOWN_OBJECT — gID not found in current topology
@@ -229,7 +246,7 @@ The server grants the request if: the requesting client is connected, the poster
 
 ### Chat (msg_type = 0x60)
 
-The client sends `CHAT_MESSAGE` to the server; the server routes it to the target and stores it in the event log (type = `CHAT`).
+The client sends `CHAT_MESSAGE` to the server; the server routes it to the target and stores it in `session.chat_log`.
 
 ```
 ChatMessage {
@@ -302,9 +319,9 @@ The additions in this revision (chat, voice signaling, multi-operator, vehicle m
 
 ```
 proto/
-  handshake.fbs
-  command.fbs
-  event.fbs
+  session.fbs     ← handshake, heartbeat, snapshot request, session notice
+  commands.fbs
+  events.fbs
   snapshot.fbs
   ownership.fbs
   chat.fbs
@@ -312,7 +329,7 @@ proto/
   common.fbs      ← shared enums (aspect, position, alarm_type, chat_target, …)
 ```
 
-The generated C++ headers are committed alongside the schema files. Schema changes follow a two-phase process: add fields with `= null` defaults first; remove deprecated fields only after both client and server have shipped the new version.
+The generated C++ headers are built by CMake target `generate_proto_headers` into `build/generated/proto` (they are not committed to the repository). Schema changes are validated by the `tests_proto` CTest suite. Schema evolution follows a two-phase process: add fields with `= null` defaults first; remove deprecated fields only after both client and server have shipped the new version.
 
 ---
 
@@ -323,4 +340,4 @@ The generated C++ headers are committed alongside the schema files. Schema chang
 - Q-COM-3: Is a `PING`/`PONG` latency probe needed separately from `HEARTBEAT`, or does the heartbeat timestamp difference suffice for N-001 monitoring?
 - Q-COM-4: Signal aspect enum: define a closed list per project now, or leave as a string for flexibility? Closed enum preferred for type safety; list needs to be agreed with the domain model.
 - Q-COM-5: Posterunek scope definition — should `object_gIDs[]` be an explicit allowlist per posterunek in the station config, or derived automatically from topology (e.g., all objects within a named zone polygon)?
-- Q-COM-6: Chat retention — should chat messages be stored in the event log (same table as domain events) or in a separate chat log? Event log is simpler for MVP replay.
+- Q-COM-6: ~~Chat retention — should chat messages be stored in the event log (same table as domain events) or in a separate chat log?~~ **Resolved:** use separate `session.chat_log` table to keep domain event replay independent from free-text communication payloads.

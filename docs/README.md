@@ -18,6 +18,10 @@ This folder contains the agreed scope and implementation plan.
 - `11-database-model.md` - PostgreSQL schema (`fleet` + `session`), EDR live model, retention policy.
 - `12-server-api.md` - internal C++ module interface contracts; PLK Open Railway Data API integration for timetable import.
 - `13-scenario-editor-architecture.md` - three-editor model (station, route, timetable); `sections.json` data model; `IScenarioLinter` three-layer validation; scenario directory layout; extended area assessment.
+- `14-interlocking-model.md` - safety rule catalog (R1-R7), route lifecycle, conflict checks.
+- `15-dispatch-forms.md` - S-form exchange model (S2/S24/S25/S26 and related forms).
+- `16-implementation-skeleton.md` - pre-commands/pre-devices class skeleton, registration flow, and bus-thread wiring.
+- `devlog.md` - chronological implementation log and session decisions.
 ## Update rules
 
 - Every major project decision should be captured in the relevant document.

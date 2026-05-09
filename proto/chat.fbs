@@ -1,0 +1,30 @@
+// proto/chat.fbs — Chat payloads
+// msg_type 0x60 CHAT_MESSAGE (C→S→C)
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ chat.fbs
+
+namespace proto;
+
+enum ChatTarget : byte {
+    BROADCAST = 0,
+    STATION = 1,
+    PLAYER = 2,
+}
+
+table ChatMessage {
+    target: ChatTarget = BROADCAST;
+
+    /// Station SID for target=STATION or client_id for target=PLAYER.
+    target_id: string;
+
+    /// Raw chat body; server enforces max length.
+    text: string (required);
+
+    /// Filled by server on outbound delivery.
+    sender_id: string;
+
+    timestamp_us: uint64;
+}
+
+root_type ChatMessage;

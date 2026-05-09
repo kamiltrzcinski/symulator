@@ -1,0 +1,32 @@
+// proto/ownership.fbs — Ownership transfer payloads
+// msg_type 0x50 TAKEOVER_REQUEST (C→S)
+// msg_type 0x51 TAKEOVER_RESPONSE (S→C)
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ ownership.fbs
+
+namespace proto;
+
+/// C → S  (msg_type 0x50)
+table TakeoverRequest {
+    posterunek_id: string (required);
+    station_sid: string (required);
+
+    /// True means release ownership instead of acquire.
+    release: bool = false;
+
+    /// Optional human-readable reason (audit/logging).
+    reason_text: string;
+}
+
+/// S → C  (msg_type 0x51)
+table TakeoverResponse {
+    granted: bool;
+    posterunek_id: string (required);
+    station_sid: string (required);
+
+    /// Present only when granted=false.
+    reject_reason: string;
+}
+
+root_type TakeoverResponse;

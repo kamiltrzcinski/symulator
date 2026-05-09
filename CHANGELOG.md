@@ -11,6 +11,28 @@ Entry format:
 
 ---
 
+## [0.3.14] — 2026-05-09
+
+### Added
+- `scripts/configure_ninja.py` — unified Ninja/vcpkg bootstrap flow with a single `3rdParty/` root, host override dry-run support, and dependency install orchestration
+- `scripts/install_system_deps.py` and `scripts/deps/{install_linux.sh,install_macos.sh,install_windows.ps1}` — cross-platform system dependency installation entrypoints
+- `scripts/verify_universal_build.py` — dry-run validation of Linux/Windows/macOS host bootstrap/configure command paths
+- `tests/qt6/test_qt6_sanity.cpp` and `tests/qt6/CMakeLists.txt` — Qt6 Core sanity coverage integrated into CTest when `Qt6::Core` is available
+- `proto/{chat.fbs,ownership.fbs,voice.fbs}` and `tests/proto/test_generated_headers.cpp` — additional protocol schemas with generated-header regression tests
+- `docs/16-implementation-skeleton.md` — implementation skeleton for pre-command/pre-device server wiring
+
+### Changed
+- `CMakeLists.txt` (root) — introduced `generate_proto_headers` and `symulator_proto`; FlatBuffers headers are generated into `build/generated/proto`
+- `engine/CMakeLists.txt`, `client/CMakeLists.txt`, `server/CMakeLists.txt` — linked against `symulator_proto`
+- `tests/CMakeLists.txt` — added `proto` tests and conditional `qt6` test subtree
+- `vcpkg.json` — added `qtbase` dependency and pinned `builtin-baseline`
+- `.gitignore` and `3rdParty/README.md` — switched to shared `3rdParty/` cache model
+- `docs/00-contributing.md`, `docs/03-initial-architecture.md`, `docs/09-communication-contract.md`, `docs/README.md` — updated contributor workflow and architecture/contract documentation
+- `proto/{commands.fbs,session.fbs,snapshot.fbs}` — extended protocol payloads and clarified enum/default/schema details
+
+### Fixed
+- `docs/00-contributing.md` — corrected stale clone/CI/project-structure instructions and repaired a broken section heading
+
 ## [0.3.13] — 2026-05-09
 
 ### Added

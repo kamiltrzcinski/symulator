@@ -139,34 +139,65 @@ You should see: `Hi username! You've successfully authenticated`.
 
 ---
 
-## One-time setup — Linux (Ubuntu / Debian)
+## One-time setup — dependency scripts (Linux / Windows / macOS)
 
-Open a terminal and run:
+The repository contains OS-specific dependency scripts plus one launcher:
+
+- `scripts/install_system_deps.py` (auto-detects host OS)
+- `scripts/deps/install_linux.sh`
+- `scripts/deps/install_windows.ps1`
+- `scripts/deps/install_macos.sh`
+
+Run from the repository root.
+
+### Linux (Ubuntu / Debian)
 
 ```bash
-sudo apt update
-sudo apt install -y \
-    git cmake ninja-build \
-    gcc g++ \
-    clang-format \
-    libgl1-mesa-dev \
-    pkg-config zip curl unzip tar
+python3 scripts/install_system_deps.py
 ```
 
-Verify versions:
+This installs compiler/build tools and Qt6 system prerequisites used by vcpkg (`libxcb*`, `libx11-xcb-dev`, `libxkbcommon-x11-dev`, etc.).
+
+### Windows (Developer Command Prompt for VS 2022)
+
+```bat
+py scripts\install_system_deps.py
+```
+
+This installs required tools via `winget` (Git, CMake, Ninja, LLVM, Python, VS Build Tools with C++ workload).
+
+### macOS
+
 ```bash
-cmake --version   # must be 3.25 or higher
-ninja --version
-g++ --version     # must be GCC 12 or higher (ships with Ubuntu 22.04+)
+python3 scripts/install_system_deps.py
+```
+
+This installs required tools via Homebrew (Git, CMake, Ninja, LLVM, Python, autotools).
+
+### Print-only mode (safe preview)
+
+Use this if you want to inspect commands before executing:
+
+```bash
+python3 scripts/install_system_deps.py --print-only
+```
+
+You can also preview another platform script without running it:
+
+```bash
+python3 scripts/install_system_deps.py --host-system Windows --print-only
+python3 scripts/install_system_deps.py --host-system Linux --print-only
+python3 scripts/install_system_deps.py --host-system Darwin --print-only
 ```
 
 Configure your Git identity:
+
 ```bash
 git config --global user.name "Firstname Lastname"
 git config --global user.email "you@example.com"
 ```
 
-Set up an SSH key the same way as described in Windows Step 6 above — the commands are identical in a Linux terminal.
+Set up an SSH key the same way as described in Windows Step 6 above.
 
 ---
 
@@ -175,15 +206,19 @@ Set up an SSH key the same way as described in Windows Step 6 above — the comm
 Once your tools are installed, download the repository. Open a terminal (or Git Bash on Windows) and run:
 
 ```bash
-git clone --recurse-submodules git@github.com:kamiltrzcinski/symulator.git
+git clone git@github.com:kamiltrzcinski/symulator.git
 cd symulator
 ```
 
-`--recurse-submodules` is important — it also downloads vcpkg, which lives inside the repository as a submodule. If you forget it, run this afterwards:
+The repository does not require a checked-in `vcpkg/` folder. Third-party dependencies are bootstrapped by `scripts/configure_ninja.py` into one shared directory:
 
-```bash
-git submodule update --init --recursive
-```
+- `3rdParty/`
+
+Inside `3rdParty/` you will see:
+
+- `vcpkg/`
+- `vcpkg-downloads/`
+- `vcpkg-binary-cache/`
 
 ---
 
@@ -195,45 +230,81 @@ git submodule update --init --recursive
 2. **vcpkg** (triggered by CMake) downloads and compiles all third-party libraries — Qt, nlohmann/json, and others. **This only happens on the very first build and takes 30–60 minutes.** After that, the compiled libraries are cached and reused.
 3. **Ninja** runs the compiler on the project's own source files. This takes a few seconds on subsequent builds.
 
+Recommended workflow: use the helper script below. It bootstraps vcpkg in `3rdParty/`, installs dependencies (including Qt6), and configures a dedicated Ninja build directory (`build/ninja-debug`) so CMake generator conflicts do not happen.
+
 ### Build commands — Linux
 
 Run these from inside the `symulator` folder:
 
 ```bash
-cmake -G Ninja \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-      -B build
+# Full build (client+editor, installs Qt6 via vcpkg):
+python3 scripts/configure_ninja.py --build-type Debug --configure-only
+cmake --build build/ninja-debug
+
+# Headless build (server/tests only, skips Qt6 install):
+python3 scripts/configure_ninja.py --build-type Debug --headless --configure-only
+cmake --build build/ninja-debug-headless
 ```
 
 This is the **configure** step — it prepares the build system. You only need to rerun it if you add new files or change `CMakeLists.txt`.
 
 ```bash
-cmake --build build
+cmake --build build/ninja-debug
 ```
 
 This is the **compile** step — it builds everything. Run this every time you want to compile your changes.
+
+If dependencies are already installed and you want a fast reconfigure only, pass `--no-third-party-install`.
+
+### Build commands — macOS
+
+Run these from inside the `symulator` folder:
+
+```bash
+# Full build (client+editor, installs Qt6 via vcpkg):
+python3 scripts/configure_ninja.py --build-type Debug --configure-only
+cmake --build build/ninja-debug
+
+# Headless build (server/tests only, skips Qt6 install):
+python3 scripts/configure_ninja.py --build-type Debug --headless --configure-only
+cmake --build build/ninja-debug-headless
+```
 
 ### Build commands — Windows (Developer Command Prompt for VS 2022)
 
 You must use the **Developer Command Prompt for VS 2022**, not a plain Command Prompt or PowerShell. Find it in the Start Menu under "Visual Studio 2022".
 
 ```bat
-cmake -G Ninja ^
-      -DCMAKE_BUILD_TYPE=Debug ^
-      -DCMAKE_TOOLCHAIN_FILE=vcpkg\scripts\buildsystems\vcpkg.cmake ^
-      -B build
+REM Full build (client+editor, installs Qt6 via vcpkg):
+py scripts\configure_ninja.py --build-type Debug --configure-only
+cmake --build build\ninja-debug
 
-cmake --build build
+REM Headless build (server/tests only, skips Qt6 install):
+py scripts\configure_ninja.py --build-type Debug --headless --configure-only
+cmake --build build\ninja-debug-headless
 ```
 
-The commands are identical to Linux; only the line-continuation character differs (`^` instead of `\`) and path separators use backslash.
+The helper script uses the shared `3rdParty/` directory on every host and keeps Ninja builds in `build/ninja-debug`, which avoids CMake cache conflicts with other generators.
 
 ### Where are the compiled programs?
 
 After a successful build, executables are in the `build/` folder. For example:
-- `build/client/symulator-client`
-- `build/editor/symulator-editor`
+- `build/ninja-debug/client/symulator-client`
+- `build/ninja-debug/editor/symulator-editor`
+
+---
+
+## Cross-platform verification
+
+To validate that dependency/bootstrap logic is universal for Linux, Windows, and macOS, run:
+
+```bash
+python3 scripts/verify_universal_build.py
+```
+
+This runs dry-run checks for all three host systems (no cross-platform compilation is attempted on your current machine).
+
+To validate real compilation, run native builds on each OS using the build commands from this guide.
 
 ---
 
@@ -242,8 +313,17 @@ After a successful build, executables are in the `build/` folder. For example:
 The project has automated tests. Run them after every change before submitting:
 
 ```bash
-cd build
-ctest --output-on-failure
+# Full build:
+ctest --test-dir build/ninja-debug --output-on-failure
+
+# Headless build:
+ctest --test-dir build/ninja-debug-headless --output-on-failure
+```
+
+Qt6 sanity is covered by `Qt6Sanity` tests in full builds. To run only that check:
+
+```bash
+ctest --test-dir build/ninja-debug -R Qt6Sanity --output-on-failure
 ```
 
 If any test fails, fix it before opening a pull request. Do not submit code with failing tests.
@@ -304,7 +384,8 @@ git commit --no-verify -m "wip: ..."
 Do not use `--no-verify` on commits that will be part of a pull request.
 
 ---
- a change — step by step
+
+## Making a change — step by step
 
 ### Step 1 — Get the latest code
 
@@ -453,7 +534,7 @@ This uploads your branch to GitHub. You only need to do this once per branch (or
 3. Write a short description of what your pull request does and why.
 4. Click **Create pull request**.
 
-After you open a PR, GitHub Actions will automatically build the code on Linux, Windows, and macOS and run the tests. You will see a status indicator on the PR page. Wait for it to turn green before asking for a review. If it turns red, click on the failed job to see the error, fix it, and push again.
+After you open a PR, check the status checks on the PR page and wait for all required checks to turn green before asking for a review. If any check turns red, open the failed job, inspect the error, fix it, and push again.
 
 ---
 
@@ -475,7 +556,7 @@ These actions could cause problems that are hard to undo:
 symulator/
   CMakeLists.txt        ← main build configuration (version read from CHANGELOG.md)
   vcpkg.json            ← list of third-party libraries the project uses
-  vcpkg/                ← the vcpkg tool itself (downloaded as part of the repo)
+  3rdParty/             ← local third-party cache (vcpkg checkout + download/binary caches), not committed
   engine/               ← core simulation logic (runs on the server, no graphics)
   server/               ← session management and client communication
   libtrackview/         ← shared library for drawing the track schematic
@@ -490,7 +571,7 @@ symulator/
     reference/          ← reference station topologies used in integration tests
   proto/                ← FlatBuffers schema files (.fbs)
   docker/               ← docker-compose, Dockerfile, database init script
-  scripts/              ← helper scripts (check-changelog.py, git-hooks/)
+  scripts/              ← helper/build scripts (configure_ninja.py, install_system_deps.py, deps/, git-hooks/)
   docs/                 ← all project documentation (you are here)
   build/                ← generated by CMake; not committed to Git
 ```

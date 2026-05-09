@@ -59,6 +59,74 @@ if(NOT flatbuffers_FOUND)
     find_package(FlatBuffers CONFIG REQUIRED)
 endif()
 
+# ── Protocol schemas (FlatBuffers) ─────────────────────────────────────────
+set(SYMULATOR_PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/proto")
+set(SYMULATOR_PROTO_SCHEMAS
+    "${SYMULATOR_PROTO_DIR}/common.fbs"
+    "${SYMULATOR_PROTO_DIR}/session.fbs"
+    "${SYMULATOR_PROTO_DIR}/commands.fbs"
+    "${SYMULATOR_PROTO_DIR}/events.fbs"
+    "${SYMULATOR_PROTO_DIR}/snapshot.fbs"
+    "${SYMULATOR_PROTO_DIR}/ownership.fbs"
+    "${SYMULATOR_PROTO_DIR}/chat.fbs"
+    "${SYMULATOR_PROTO_DIR}/voice.fbs"
+)
+
+set(SYMULATOR_PROTO_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/proto")
+set(SYMULATOR_PROTO_GENERATED_HEADERS
+    "${SYMULATOR_PROTO_GENERATED_DIR}/common_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/session_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/commands_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/events_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/snapshot_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/ownership_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/chat_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/voice_generated.h"
+)
+
+if(TARGET flatbuffers::flatc)
+    set(SYMULATOR_FLATC_EXECUTABLE "$<TARGET_FILE:flatbuffers::flatc>")
+elseif(DEFINED FLATBUFFERS_FLATC_EXECUTABLE AND FLATBUFFERS_FLATC_EXECUTABLE)
+    set(SYMULATOR_FLATC_EXECUTABLE "${FLATBUFFERS_FLATC_EXECUTABLE}")
+else()
+    find_program(SYMULATOR_FLATC_EXECUTABLE NAMES flatc REQUIRED)
+endif()
+
+add_custom_command(
+    OUTPUT ${SYMULATOR_PROTO_GENERATED_HEADERS}
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${SYMULATOR_PROTO_GENERATED_DIR}"
+    COMMAND ${SYMULATOR_FLATC_EXECUTABLE}
+            --cpp
+            --gen-object-api
+            -I "${SYMULATOR_PROTO_DIR}"
+            -o "${SYMULATOR_PROTO_GENERATED_DIR}"
+            ${SYMULATOR_PROTO_SCHEMAS}
+    DEPENDS ${SYMULATOR_PROTO_SCHEMAS}
+    COMMENT "Generating FlatBuffers headers from proto/*.fbs"
+    VERBATIM
+)
+
+add_custom_target(generate_proto_headers DEPENDS ${SYMULATOR_PROTO_GENERATED_HEADERS})
+
+set(SYMULATOR_PROTO_VALIDATE_DIR "${CMAKE_BINARY_DIR}/generated/proto-validate")
+add_custom_target(validate_proto_schemas
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${SYMULATOR_PROTO_VALIDATE_DIR}"
+    COMMAND ${SYMULATOR_FLATC_EXECUTABLE}
+            --cpp
+            --gen-object-api
+            -I "${SYMULATOR_PROTO_DIR}"
+            -o "${SYMULATOR_PROTO_VALIDATE_DIR}"
+            ${SYMULATOR_PROTO_SCHEMAS}
+    DEPENDS ${SYMULATOR_PROTO_SCHEMAS}
+    COMMENT "Validating FlatBuffers schemas in proto/*.fbs"
+    VERBATIM
+)
+
+add_library(symulator_proto INTERFACE)
+target_include_directories(symulator_proto INTERFACE "${SYMULATOR_PROTO_GENERATED_DIR}")
+target_link_libraries(symulator_proto INTERFACE flatbuffers::flatbuffers)
+add_dependencies(symulator_proto generate_proto_headers)
+
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 

@@ -6,8 +6,9 @@
         "flatbuffers",
         "nlohmann-json",
         "gtest",
-        "openssl"
+        "openssl",
+        "qtbase"
     ],
     "overrides": [],
-    "builtin-baseline": ""
+    "builtin-baseline": "99a97de2cb371449d4fb9dc970f2ac562d689ec2"
 }

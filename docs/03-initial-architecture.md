@@ -28,12 +28,12 @@
    - one tab per station for train register data,
    - operator can switch station context without leaving the application.
 
-   The operator client communicates with the Session Server over a persistent connection; native runtime allows TCP or UDP (see Channel 1).
+   The operator client communicates with the Session Server over a persistent TCP connection (see Channel 1).
 4. EDR — Electronic Traffic Register (server-side)
    - master train data provider for the simulation engine (train definitions, routes, timetable inputs),
-   - runs as a server-side process and communicates with the Core Simulation Engine via REST API,
+   - runs as a server-side module (or sibling process) and communicates with the engine via in-process calls or the internal subscriber bus,
    - the client-side EDR view is part of the native C++ application (see component 3); no separate browser interface,
-   - existing C# prototype (Tymon) is the integration candidate; path (adapt vs rewrite) is an open question,
+   - implemented as a native C++ component (no C# runtime dependency in MVP),
    - a supervisor/monitoring sub-module may be needed to coordinate EDR↔engine data flow (open question).
 5. Persistence Layer
    - station configuration storage,
@@ -41,7 +41,7 @@
    - session snapshots.
 6. AI Module (separate process/service, post-MVP)
    - designed as an independent module from day one; not embedded in the engine,
-   - communicates with the Core Simulation Engine via REST API (see F-010, F-017),
+   - communicates with the Core Simulation Engine via the same command/event contract as human operators (TCP framing when remote, internal bus when co-located),
    - traffic planning and movement management,
    - handling of LCS boundary interactions,
    - optional random events generation.
@@ -66,12 +66,14 @@ The server process runs a fixed set of named threads with clearly defined owners
 Thread          Owner              Blocking allowed    Notes
 ──────────────  ─────────────────  ──────────────────  ──────────────────────────────────────────
 ENGINE          SimulationEngine   NO                  20 Hz tick loop; must not wait on I/O
-DISPATCHER      EventDispatcher    YES (cv::wait)      Drains EventQueue<DomainEvent> from engine
+DISPATCH_BUS    DispatchBus        YES (cv::wait)      Drains EventQueue<DomainEvent> and fan-outs to subscribers
 DB_WRITER       DatabaseManager    YES (libpqxx I/O)   Drains EventQueue<EventLogEntry>
 PIP_WRITER      PipStateManager    YES (libpqxx I/O)   Drains EventQueue<PipEvent>; UPSERT pip.track_state
 ```
 
-The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCHER, DB_WRITER, or PIP_WRITER.
+The engine thread never holds a mutex for longer than a single `push()` into an outbound queue. All I/O, serialization, and database work happens exclusively on DISPATCH_BUS, DB_WRITER, or PIP_WRITER.
+
+**DISPATCH_BUS** is a dedicated subscriber bus thread. Modules register handlers during startup and receive immutable event envelopes. Publication is single-writer (the bus thread), and payload lifetime is released only after all registered subscribers complete, which avoids cross-thread memory-ownership races.
 
 **PIP_WRITER** is dedicated to the Train Identification Panel (PIP) subsystem. It receives `PipEvent` records from the ENGINE whenever a track section changes occupancy or a train number is assigned/removed. Its sole responsibility is maintaining the `pip.track_state` table (UPSERT per section). PIP and EDR are independent subsystems — PIP_WRITER never touches `session.edr_entries`. PIP_WRITER never communicates back to the ENGINE — it is a write-only sink. An awaria (crash/stall) of PIP_WRITER does not affect the engine tick loop or the client broadcast path; at worst the PIP display in reconnecting clients will be stale until the writer recovers.
 
@@ -94,13 +96,13 @@ Pool sizes are read from a config file at startup and capped by `hardware_concur
 Producer → Queue → Consumer
 ────────────────────────────────────────────────────────────────
 WORK_POOL    → PriorityCommandQueue<Command>   → ENGINE
-ENGINE       → EventQueue<DomainEvent>         → DISPATCHER
+ENGINE       → EventQueue<DomainEvent>         → DISPATCH_BUS
 ENGINE       → EventQueue<PipEvent>            → PIP_WRITER
-DISPATCHER   → EventQueue<EventLogEntry>       → DB_WRITER
-DISPATCHER   → per-station broadcast sets      → IO_POOL (strands)
+DISPATCH_BUS → EventQueue<EventLogEntry>       → DB_WRITER
+DISPATCH_BUS → per-station broadcast sets      → IO_POOL (strands)
 ```
 
-**`EventQueue<PipEvent>`** is a dedicated MPSC queue (ENGINE is the sole producer). `PipEvent` carries the section `gID`, new `TrackOccupancy`, and an optional `train_number` (present on entry/exit). The queue is separate from `EventQueue<DomainEvent>` so that a PIP_WRITER stall cannot apply backpressure to the DISPATCHER and vice versa.
+**`EventQueue<PipEvent>`** is a dedicated MPSC queue (ENGINE is the sole producer). `PipEvent` carries the section `gID`, new `TrackOccupancy`, and an optional `train_number` (present on entry/exit). The queue is separate from `EventQueue<DomainEvent>` so that a PIP_WRITER stall cannot apply backpressure to DISPATCH_BUS and vice versa.
 
 **`PriorityCommandQueue`** uses four FIFO buckets (EMERGENCY=0, SAFETY=1, NORMAL=2, BACKGROUND=3). The engine always drains the highest non-empty bucket first. Within one priority level FIFO order is preserved. A configurable `MAX_CMDS_PER_TICK` cap (default 32) ensures the tick duration stays within the 5 ms SLO regardless of input burst.
 
@@ -114,7 +116,7 @@ DISPATCHER   → per-station broadcast sets      → IO_POOL (strands)
 
 1. `io_context.stop()` — IO_POOL and WORK_POOL drain and exit.
 2. Engine tick loop exits on stop flag.
-3. `EventQueue<DomainEvent>` is flushed — DISPATCHER processes remaining events and exits.
+3. `EventQueue<DomainEvent>` is flushed — DISPATCH_BUS processes remaining events and exits.
 4. `EventQueue<PipEvent>` is flushed — PIP_WRITER commits remaining UPSERTs and exits.
 5. `EventQueue<EventLogEntry>` is flushed — DB_WRITER commits remaining inserts and exits.
 
@@ -142,7 +144,7 @@ The server runs on Linux only. All end-user components (operator client, scenari
 | nlohmann/json | ≥ 3.11 | engine, editor, server | Header-only via vcpkg; no separate binary |
 | OpenSSL | system | server only | System-provided on Linux server; not required in client distributions |
 | **Boost.Asio** | ≥ 1.84 | server | Header-only (Asio standalone mode); vcpkg `boost-asio` port; not linked into client or editor |
-| FlatBuffers | ≥ 23.x | engine, server, client | vcpkg; `flatc` compiler run as CMake custom target; generated headers checked in |
+| FlatBuffers | ≥ 23.x | engine, server, client | vcpkg; `flatc` compiler run as CMake custom target (`generate_proto_headers`); headers generated into `build/generated/proto` (not checked in) |
 | libpqxx | ≥ 7.x | server | vcpkg; server only; links against system `libpq` on Linux |
 | ONNX Runtime | ≥ 1.18 (post-MVP) | AI module | vcpkg `onnxruntime-gpu` port; AI process only; CUDA provider for RTX GPU |
 
@@ -218,7 +220,7 @@ Detailed step-by-step setup instructions for both Linux and Windows are in `docs
 - Rationale: both components run on the same server. Introducing HTTP/REST would add a second protocol stack and a second serialization format with no benefit. The same binary framing used for client↔server can be reused if a socket boundary is needed; more likely a direct function call or message bus suffices.
 
 ### Channel 3: AI Module ↔ Engine (post-MVP)
-- Protocol: **deferred.** Decided when the AI module is actually being designed. If co-located: same approach as Channel 2. If remote: TCP with the existing framing is the default candidate; REST only if interoperability with an external system requires it.
+- Protocol: **deferred.** Decided when the AI module is actually being designed. If co-located: same approach as Channel 2. If remote: TCP with the existing framing is the default candidate.
 
 ### Channel 4: Engine ↔ Session Server (intra-server)
 - Same process or same host: direct function call or in-process event bus — no network protocol needed.

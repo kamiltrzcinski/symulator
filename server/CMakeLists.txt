@@ -8,6 +8,7 @@ target_include_directories(symulator-server PRIVATE
 
 target_link_libraries(symulator-server PRIVATE
     engine
+    symulator_proto
     flatbuffers::flatbuffers
     OpenSSL::SSL
     OpenSSL::Crypto

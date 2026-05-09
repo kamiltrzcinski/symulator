@@ -38,7 +38,7 @@ table DerailerState {
     position: DerailerPosition;
 }
 
-table BlockSectionState {
+table BlockSectionSnapshotState {
     g_id:  string (required);
     state: BlockSectionState;
 }
@@ -49,8 +49,6 @@ table RouteState {
     to_g_id:     string (required);
     section_ids: [string];
 }
-
-enum AlarmType : byte;   // forward-declared; defined in events.fbs
 
 table AlarmState {
     alarm_id:    string (required);
@@ -94,7 +92,7 @@ table Snapshot {
     track_sections:         [TrackSectionState];
     signals:                [SignalState];
     derailers:              [DerailerState];
-    block_sections:         [BlockSectionState];
+    block_sections:         [BlockSectionSnapshotState];
     active_routes:          [RouteState];
     active_alarms:          [AlarmState];
     posterunek_assignments: [PosterunekOwnership];

@@ -1,0 +1,33 @@
+// proto/voice.fbs — Voice signaling payloads (audio stream is separate UDP/DTLS)
+// msg_type 0x70 VOICE_CHAN_JOIN (C→S)
+// msg_type 0x71 VOICE_CHAN_LEAVE (C→S)
+// msg_type 0x72 VOICE_CHAN_STATE (S→C)
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o generated/ voice.fbs
+
+namespace proto;
+
+/// C → S  (msg_type 0x70)
+table VoiceChanJoin {
+    channel_id: string (required);
+}
+
+/// C → S  (msg_type 0x71)
+table VoiceChanLeave {
+    channel_id: string (required);
+}
+
+table VoiceParticipant {
+    client_id: string (required);
+    muted: bool = false;
+    deafened: bool = false;
+}
+
+/// S → C  (msg_type 0x72)
+table VoiceChanState {
+    channel_id: string (required);
+    participants: [VoiceParticipant];
+}
+
+root_type VoiceChanState;
