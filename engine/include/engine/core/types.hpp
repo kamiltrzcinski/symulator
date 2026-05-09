@@ -166,6 +166,33 @@ enum class ExchangeStatus : std::uint8_t
     CANCELLED,     // Exchange withdrawn via S35
 };
 
+// ── Cause of a state change ───────────────────────────────────────────────────
+// Shared by domain events (SwitchPositionChanged, SignalAspectChanged, …).
+// Mirrors proto/common.fbs ChangeCause; kept in C++ for engine-layer use.
+
+enum class ChangeCause : std::uint8_t
+{
+    COMMAND,  // result of an explicit operator command
+    AUTO,     // engine-initiated (route setting, train detection, timeout)
+    TIMEOUT,  // timer-driven release
+};
+
+// ── Derailer state ────────────────────────────────────────────────────────────
+
+enum class DerailerState : std::uint8_t
+{
+    LOCKED,    // default safe position — derails any passing train
+    UNLOCKED,  // passage allowed
+};
+
+// ── Block section state (blok liniowy) ───────────────────────────────────────
+
+enum class BlockSectionState : std::uint8_t
+{
+    CLOSED,  // blocked — no entry permitted
+    OPEN,    // free to enter
+};
+
 // ── PIP (Train Identification Panel) types ───────────────────────────────────
 // These types are shared between the ENGINE (producer) and PIP_WRITER (consumer).
 // See docs/03-initial-architecture.md and docs/11-database-model.md for the

@@ -1,0 +1,20 @@
+{
+  "typeID": "VT-GLB-EM10-0000001",
+  "typeName": "EM10",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 16.34,
+  "axleCount": 4,
+  "massEmptyT": 72,
+  "massGrossT": 72,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 110,
+  "powerKW": 960,
+  "tractionForceKN": 131.5,
+  "family": "unknown",
+  "sourceReliability": "estimated",
+  "davisA": 39.24,
+  "davisB": 0.1962,
+  "davisC": 0.0017658
+}

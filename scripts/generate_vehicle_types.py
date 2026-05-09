@@ -10,10 +10,21 @@ from pathlib import Path
 
 # Define base path
 BASE_DIR = Path(__file__).parent.parent
-DATA_DIR = BASE_DIR / "data" / "vehicle_types"
+VEHICLE_TYPES_ROOT = BASE_DIR / "data" / "vehicle_types"
 
-# Ensure directory exists
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+# Subdirectory layout: vehicle_types/{type}/{subtype}/
+# e.g. locomotive/diesel/, locomotive/electric/, emu_unit/motor/, dmu_unit/motor/
+SUBDIR_MAP = {
+    "DIESEL":      VEHICLE_TYPES_ROOT / "locomotive" / "diesel",
+    "EMU_UNIT":    VEHICLE_TYPES_ROOT / "emu_unit"   / "motor",
+    "DMU_UNIT":    VEHICLE_TYPES_ROOT / "dmu_unit"   / "motor",
+    "LOCOMOTIVE":  VEHICLE_TYPES_ROOT / "locomotive",   # fallback (subtype required)
+    "SERVICE_WAGON": VEHICLE_TYPES_ROOT / "service_wagon",
+    "FREIGHT_WAGON": VEHICLE_TYPES_ROOT / "freight_wagon" / "hopper",
+}
+
+# Legacy alias: DATA_DIR kept for backward compat in create_template()
+DATA_DIR = VEHICLE_TYPES_ROOT
 
 # Vehicle type lists
 diesel = [
@@ -62,23 +73,30 @@ def create_template(name, vehicle_type):
         "sourceReliability": "estimated"
     }
 
-def write_vehicle_group(vehicles, vehicle_type):
-    """Write vehicle JSON files for a specific type (DIESEL, EMU, DMU)."""
+def write_vehicle_group(vehicles, vehicle_type, out_dir=None):
+    """Write vehicle JSON files for a specific type (DIESEL, EMU, DMU).
+
+    Files are written to the appropriate subdirectory under data/vehicle_types/.
+    """
+    if out_dir is None:
+        out_dir = SUBDIR_MAP.get(vehicle_type, VEHICLE_TYPES_ROOT / vehicle_type.lower())
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     created_files = []
-    
     for vehicle_name in vehicles:
         data = create_template(vehicle_name, vehicle_type)
         file_name = vehicle_name.replace('/', '_').lower()
-        file_path = DATA_DIR / f"{file_name}.json"
-        
+        file_path = out_dir / f"{file_name}.json"
+
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             created_files.append(str(file_path))
-            print(f"✓ Created: {file_name}.json ({vehicle_type})")
+            rel = file_path.relative_to(VEHICLE_TYPES_ROOT)
+            print(f"✓ Created: {rel} ({vehicle_type})")
         except IOError as e:
             print(f"✗ Error writing {file_name}.json: {e}")
-    
+
     return created_files
 
 def main():
@@ -88,21 +106,27 @@ def main():
     
     all_files = []
     
-    # Generate diesel locomotives
+    # Generate diesel locomotives → locomotive/diesel/
     print("Generating Diesel Locomotives...")
-    diesel_files = write_vehicle_group(diesel, "DIESEL")
+    diesel_files = write_vehicle_group(
+        diesel, "LOCOMOTIVE",
+        out_dir=VEHICLE_TYPES_ROOT / "locomotive" / "diesel")
     all_files.extend(diesel_files)
     print(f"  Total: {len(diesel_files)} files\n")
-    
-    # Generate EMU (Electric Multiple Units)
+
+    # Generate EMU → emu_unit/motor/
     print("Generating EMU (Electric Multiple Units)...")
-    emu_files = write_vehicle_group(emu, "EMU")
+    emu_files = write_vehicle_group(
+        emu, "EMU_UNIT",
+        out_dir=VEHICLE_TYPES_ROOT / "emu_unit" / "motor")
     all_files.extend(emu_files)
     print(f"  Total: {len(emu_files)} files\n")
-    
-    # Generate DMU (Diesel Multiple Units)
+
+    # Generate DMU → dmu_unit/motor/
     print("Generating DMU (Diesel Multiple Units)...")
-    dmu_files = write_vehicle_group(dmu, "DMU")
+    dmu_files = write_vehicle_group(
+        dmu, "DMU_UNIT",
+        out_dir=VEHICLE_TYPES_ROOT / "dmu_unit" / "motor")
     all_files.extend(dmu_files)
     print(f"  Total: {len(dmu_files)} files\n")
     

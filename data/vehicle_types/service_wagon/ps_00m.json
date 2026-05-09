@@ -1,0 +1,20 @@
+{
+  "typeID": "VT-GLB-PS_00M-0000001",
+  "typeName": "PS-00M",
+  "pkpSeries": null,
+  "vehicleType": "SERVICE_WAGON",
+  "vehicleSubtype": null,
+  "lengthM": 25.88,
+  "axleCount": 4,
+  "massEmptyT": 50,
+  "massGrossT": 50,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 80,
+  "powerKW": 240,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated",
+  "davisA": 24.525,
+  "davisB": 0.12753,
+  "davisC": 0.0011772
+}

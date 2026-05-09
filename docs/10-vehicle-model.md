@@ -33,13 +33,33 @@ All three components read the same `data/` tree from the filesystem (path config
 ```
 data/
   vehicle_types/
-    et22.json          ← one file per vehicle model / type
-    ep09.json
-    en57.json
-    112a.json
-    134a.json
-    403z.json
-    …
+    locomotive/
+      electric/        ← electric mainline and shunting locos
+        et22.json
+        eu07.json
+        ep09.json
+        …
+      diesel/          ← diesel mainline and shunting locos
+        sm42.json
+        sp32.json
+        …
+      steam/           ← steam locomotives
+        …
+    emu_unit/
+      motor/           ← electric multiple unit motor/control cars
+        en57.json
+        ed250.json
+        …
+    dmu_unit/
+      motor/           ← diesel multiple unit motor cars
+        sa134.json
+        …
+    freight_wagon/
+      hopper/
+        452w.json
+        …
+    service_wagon/     ← track machines, maintenance vehicles
+        …
   vehicles/
     et22_001.json      ← one file per numbered vehicle instance
     et22_002.json
@@ -55,6 +75,8 @@ scenarios/
       topology.json    ← track sections, switches
       objects.json     ← signals, derailers, posterunki
 ```
+
+The engine scans `data/vehicle_types/` **recursively** — all `*.json` files in any subdirectory are loaded.  Subdirectories are named after `vehicleType` (lowercase) with a level for `vehicleSubtype` where applicable.
 
 ---
 

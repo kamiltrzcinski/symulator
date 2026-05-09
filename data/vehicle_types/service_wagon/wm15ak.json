@@ -1,0 +1,20 @@
+{
+  "typeID": "VT-GLB-WM15AK-0000001",
+  "typeName": "WM15Ak",
+  "pkpSeries": null,
+  "vehicleType": "SERVICE_WAGON",
+  "vehicleSubtype": null,
+  "lengthM": 12.45,
+  "axleCount": 4,
+  "massEmptyT": 20,
+  "massGrossT": 20,
+  "maxSpeedKmh": 80,
+  "brakingLambdaPct": 80,
+  "powerKW": 147,
+  "tractionForceKN": null,
+  "family": "unknown",
+  "sourceReliability": "estimated",
+  "davisA": 24.525,
+  "davisB": 0.12753,
+  "davisC": 0.0011772
+}

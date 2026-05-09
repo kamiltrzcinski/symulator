@@ -483,7 +483,7 @@ symulator/
   editor/               ← the scenario editor (for building station layouts)
   tests/                ← automated tests
   data/
-    vehicle_types/      ← vehicle model/type definitions (shared by engine, client, editor)
+    vehicle_types/      ← vehicle model/type definitions; subdirs: locomotive/{electric,diesel,steam}, emu_unit/motor, dmu_unit/motor, freight_wagon/hopper, service_wagon
     vehicles/           ← individual numbered vehicle instances
     trains/             ← train consist definitions
   scenarios/

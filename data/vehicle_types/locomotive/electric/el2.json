@@ -1,0 +1,20 @@
+{
+  "typeID": "VT-GLB-EL2-0000001",
+  "typeName": "EL2",
+  "pkpSeries": null,
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "ELECTRIC",
+  "lengthM": 13.7,
+  "axleCount": 4,
+  "massEmptyT": 100,
+  "massGrossT": 100,
+  "maxSpeedKmh": 65,
+  "brakingLambdaPct": 110,
+  "powerKW": 1120,
+  "tractionForceKN": 153.4,
+  "family": "unknown",
+  "sourceReliability": "estimated",
+  "davisA": 39.24,
+  "davisB": 0.1962,
+  "davisC": 0.0017658
+}

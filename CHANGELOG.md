@@ -11,7 +11,29 @@ Entry format:
 
 ---
 
-## [0.3.10] — 2026-05-08
+## [0.3.11] — 2026-05-09
+
+### Added
+- `engine/include/engine/physics/physics_model.hpp` — header-only Newton/Davis physics model: `TrainPhysicsParams`, `TrainPhysicsState`, `PhysicsModel` (Davis resistance, braking distance, forward-Euler integration), `VehiclePhysicsContrib`, `build_train_params()`
+- `engine/include/engine/physics/driver_ai.hpp` — deterministic 4-state driver automaton (STOPPED / ACCELERATING / CRUISING / BRAKING); maps all `SignalAspect` values to speed limits; pure/stateless `DriverAI::tick()`
+- `tests/engine/test_physics.cpp` — 15 GTest cases for physics model and DriverAI (107 tests total, all passing)
+
+### Changed
+- `data/vehicle_types/` — reorganised from a flat directory into a typed subdirectory tree:
+  - `locomotive/electric/` (81 files) — electric mainline and shunting locomotives
+  - `locomotive/diesel/`  (67 files) — diesel mainline and shunting locomotives
+  - `locomotive/steam/`   (21 files) — steam locomotives
+  - `emu_unit/motor/`     (73 files) — electric multiple unit motor/control cars
+  - `dmu_unit/motor/`     (38 files) — diesel multiple unit motor cars
+  - `freight_wagon/hopper/` (1 file)
+  - `service_wagon/`      (19 files) — track machines and maintenance vehicles
+- `scripts/update_vehicle_physics.py` — updated to scan `vehicle_types/**/*.json` recursively
+- `scripts/generate_vehicle_types.py` — updated to write new files into the correct subdirectory (`SUBDIR_MAP`); generator now sets correct `vehicleType`/`vehicleSubtype` per group
+- `engine/include/engine/core/fleet_registry.hpp` — updated `load_types_` comment: uses recursive scan (`**/*.json`)
+- `docs/10-vehicle-model.md` — updated File Layout section to show new subdirectory structure
+- `docs/00-contributing.md` — updated `vehicle_types/` description to reflect subdirs
+
+
 
 ### Fixed
 - `docs/03-initial-architecture.md`: removed incorrect claim that PIP_WRITER auto-creates `session.edr_entry` on LCS boundary crossing — PIP and EDR are independent subsystems

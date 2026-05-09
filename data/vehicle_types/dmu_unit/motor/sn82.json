@@ -1,0 +1,20 @@
+{
+  "typeID": "VT-GLB-SN82-0000001",
+  "typeName": "SN82",
+  "pkpSeries": null,
+  "vehicleType": "DMU_UNIT",
+  "vehicleSubtype": "MOTOR",
+  "lengthM": 22.31,
+  "axleCount": 8,
+  "massEmptyT": 37,
+  "massGrossT": 37,
+  "maxSpeedKmh": 100,
+  "brakingLambdaPct": 80,
+  "powerKW": 210,
+  "tractionForceKN": 30.0,
+  "family": "unknown",
+  "sourceReliability": "estimated",
+  "davisA": 39.24,
+  "davisB": 0.1962,
+  "davisC": 0.0017658
+}
