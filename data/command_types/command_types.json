@@ -1,0 +1,187 @@
+{
+  "$comment": "Canonical command type catalog for JSON-first authoring. Runtime transport remains binary.",
+  "schema_version": 1,
+  "catalog_kind": "command_types",
+  "source": "proto/commands.fbs",
+  "payload_schema_format": "json-schema-subset-v1",
+  "command_types": [
+    {
+      "cmd_type": "SetSwitchPosition",
+      "cmd_code": "0x01",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "g_id",
+          "position"
+        ],
+        "properties": {
+          "g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "REVERSE"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "SetSignalAspect",
+      "cmd_code": "0x02",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "g_id",
+          "aspect"
+        ],
+        "properties": {
+          "g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          },
+          "aspect": {
+            "type": "string",
+            "enum": [
+              "STOP",
+              "S1",
+              "S2",
+              "SH1",
+              "OFF",
+              "S3",
+              "MS1",
+              "MS2"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "SetDerailerPosition",
+      "cmd_code": "0x03",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "g_id",
+          "position"
+        ],
+        "properties": {
+          "g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "LOCKED",
+              "UNLOCKED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "SetBlockSection",
+      "cmd_code": "0x04",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "g_id",
+          "state"
+        ],
+        "properties": {
+          "g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "CLOSED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "RequestRoute",
+      "cmd_code": "0x05",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_signal_g_id",
+          "to_signal_g_id"
+        ],
+        "properties": {
+          "from_signal_g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          },
+          "to_signal_g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 3,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "CancelRoute",
+      "cmd_code": "0x06",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "route_id"
+        ],
+        "properties": {
+          "route_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    {
+      "cmd_type": "AcknowledgeAlarm",
+      "cmd_code": "0x07",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alarm_id"
+        ],
+        "properties": {
+          "alarm_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    }
+  ]
+}

@@ -11,6 +11,18 @@ Entry format:
 
 ---
 
+## [0.3.15] — 2026-05-10
+
+### Added
+- `data/command_types/command_types.json` — canonical JSON command type catalog with strict per-command `payload_schema` (required fields, enums, `additionalProperties: false`)
+- `data/device_types/device_type_catalog.json` — canonical JSON registry of loadable device type definitions
+- `data/device_types/semafor_2komorowy.json` — dedicated 2-chamber signal type with constrained `supportedAspects`
+- `docs/examples/json/commands/command_types.example.json` and `docs/examples/json/devices/device_types.example.json` — updated JSON type-catalog examples for authoring and validation
+
+### Changed
+- `data/device_types/semafor.json` — redefined as an explicit 5-chamber signal type (`headType`, `chamberCount`) with formal control capabilities (`acceptedCommandTypes`, `controlBehavior`, `supportedAspects`)
+- `data/device_types/naped_eea4.json` — added explicit switch-machine behavior contract (`acceptedCommandTypes`, `stateModel`, `controlBehavior`, `safetyInterlocks`)
+
 ## [0.3.14] — 2026-05-09
 
 ### Added

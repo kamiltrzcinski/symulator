@@ -1,7 +1,37 @@
 {
     "typeID":       "DVT-GLB-SEM-0000001",
-    "typeName":     "Semafor",
+    "typeName":     "Semafor pięciokomorowy",
     "deviceType":   "SIGNAL",
+    "hardware": {
+      "headType": "FIVE_CHAMBER",
+      "chamberCount": 5
+    },
+    "acceptedCommandTypes": [
+      "SetSignalAspect",
+      "RequestRoute"
+    ],
+    "controlBehavior": {
+      "defaultAspect": "S1_STOP",
+      "failSafeAspect": "S1_STOP",
+      "additionalAspectAllowed": false
+    },
+    "supportedAspects": [
+      "S1_STOP",
+      "S2_PROCEED",
+      "S3_PROCEED_40",
+      "S4_PROCEED_40_EXPECT_STOP",
+      "S5_EXPECT_STOP",
+      "S6_PROCEED_100",
+      "S7_PROCEED_100_EXPECT_STOP",
+      "S8_PROCEED_100_EXPECT_40",
+      "S9_PROCEED_100_EXPECT_60",
+      "S10_PROCEED_40",
+      "S11_PROCEED_40_EXPECT_40",
+      "S12_PROCEED_60",
+      "S13_PROCEED_60_EXPECT_60",
+      "MS1_STOP",
+      "MS2_SHUNTING_ALLOWED"
+    ],
     "aspects": 
     [
       { "id": "S1_STOP", "pkpCode": "S1", "name": "Stój", "maxSpeedKmh": 0 },

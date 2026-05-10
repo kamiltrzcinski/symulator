@@ -1,0 +1,22 @@
+{
+  "$comment": "Device type catalog (JSON prototype).",
+  "schema_version": 1,
+  "catalog_kind": "device_types",
+  "device_types": [
+    {
+      "device_type": "SIGNAL",
+      "type_id": "DVT-GLB-SEM-0000001",
+      "source_file": "data/device_types/semafor.json"
+    },
+    {
+      "device_type": "SIGNAL",
+      "type_id": "DVT-GLB-SEM-2K-0000003",
+      "source_file": "data/device_types/semafor_2komorowy.json"
+    },
+    {
+      "device_type": "SWITCH_MACHINE",
+      "type_id": "DVT-GLB-ZWR-EEA4-0000002",
+      "source_file": "data/device_types/naped_eea4.json"
+    }
+  ]
+}

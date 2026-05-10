@@ -4,5 +4,29 @@
     "deviceType":     "SWITCH_MACHINE",
     "motorVoltageV":  220,
     "throwTimeS":     4.5,
-    "manualOverride": true
+    "manualOverride": true,
+    "acceptedCommandTypes": [
+        "SetSwitchPosition"
+    ],
+    "stateModel": {
+        "states": [
+            "NORMAL",
+            "REVERSE",
+            "MOVING"
+        ],
+        "targetStates": [
+            "NORMAL",
+            "REVERSE"
+        ],
+        "transitionState": "MOVING"
+    },
+    "controlBehavior": {
+        "allowCommandWhileMoving": false,
+        "requirePositionFeedback": true,
+        "failSafeOnFeedbackLoss": true
+    },
+    "safetyInterlocks": {
+        "rejectWhenOccupied": true,
+        "rejectWhenRouteLocked": true
+    }
 }
