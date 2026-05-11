@@ -23,5 +23,37 @@
     "S3_PROCEED_40",
     "S4_PROCEED_40_EXPECT_STOP",
     "S5_EXPECT_STOP"
+  ],
+  "aspects": [
+    {
+      "id": "S1_STOP",
+      "pkpCode": "S1",
+      "name": "Stój",
+      "maxSpeedKmh": 0
+    },
+    {
+      "id": "S2_PROCEED",
+      "pkpCode": "S2",
+      "name": "Wolna droga",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "S3_PROCEED_40",
+      "pkpCode": "S3",
+      "name": "Jazda z prędkością do 40 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S4_PROCEED_40_EXPECT_STOP",
+      "pkpCode": "S4",
+      "name": "Jazda z prędkością do 40 km/h, następny semafor wskazuje Stój",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S5_EXPECT_STOP",
+      "pkpCode": "S5",
+      "name": "Wolna droga, następny semafor wskazuje Stój",
+      "maxSpeedKmh": null
+    }
   ]
 }
