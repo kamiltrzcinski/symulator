@@ -1,0 +1,73 @@
+{
+  "typeID": "DVT-GLB-SEM-4K-O-0000007",
+  "typeName": "Semafor czterokomorowy z pomarańczowym pasem",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "FOUR_CHAMBER",
+    "chamberCount": 4,
+    "greenStripe": false,
+    "orangeStripe": true
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "S1_STOP",
+    "failSafeAspect": "S1_STOP",
+    "additionalAspectAllowed": true
+  },
+  "supportedAspects": [
+    "S1_STOP",
+    "S2_PROCEED",
+    "S3_PROCEED_40",
+    "S4_PROCEED_40_EXPECT_STOP",
+    "S5_EXPECT_STOP",
+    "S10_PROCEED_40",
+    "S11_PROCEED_40_EXPECT_40"
+  ],
+  "aspects": [
+    {
+      "id": "S1_STOP",
+      "pkpCode": "S1",
+      "name": "Stój",
+      "maxSpeedKmh": 0
+    },
+    {
+      "id": "S2_PROCEED",
+      "pkpCode": "S2",
+      "name": "Wolna droga",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "S3_PROCEED_40",
+      "pkpCode": "S3",
+      "name": "Jazda z prędkością do 40 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S4_PROCEED_40_EXPECT_STOP",
+      "pkpCode": "S4",
+      "name": "Jazda z prędkością do 40 km/h, następny semafor wskazuje Stój",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S5_EXPECT_STOP",
+      "pkpCode": "S5",
+      "name": "Wolna droga, następny semafor wskazuje Stój",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "S10_PROCEED_40",
+      "pkpCode": "S10",
+      "name": "Jazda z prędkością do 40 km/h przez następny semafor",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S11_PROCEED_40_EXPECT_40",
+      "pkpCode": "S11",
+      "name": "Jazda z prędkością do 40 km/h, następny semafor zezwala również na 40 km/h",
+      "maxSpeedKmh": 40
+    }
+  ]
+}
