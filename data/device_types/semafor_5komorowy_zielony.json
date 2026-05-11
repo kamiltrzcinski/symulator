@@ -1,0 +1,101 @@
+{
+  "typeID": "DVT-GLB-SEM-5K-G-0000010",
+  "typeName": "Semafor pięciokomorowy z zielonym pasem",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "FIVE_CHAMBER",
+    "chamberCount": 5,
+    "greenStripe": true,
+    "orangeStripe": false
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "S1_STOP",
+    "failSafeAspect": "S1_STOP",
+    "additionalAspectAllowed": true
+  },
+  "supportedAspects": [
+    "S1_STOP",
+    "S2_PROCEED",
+    "S3_PROCEED_40",
+    "S4_PROCEED_40_EXPECT_STOP",
+    "S5_EXPECT_STOP",
+    "S6_PROCEED_100",
+    "S7_PROCEED_100_EXPECT_STOP",
+    "S10_PROCEED_40",
+    "S11_PROCEED_40_EXPECT_40",
+    "S12_PROCEED_100",
+    "S13_PROCEED_100_EXPECT_100"
+  ],
+  "aspects": [
+    {
+      "id": "S1_STOP",
+      "pkpCode": "S1",
+      "name": "Stój",
+      "maxSpeedKmh": 0
+    },
+    {
+      "id": "S2_PROCEED",
+      "pkpCode": "S2",
+      "name": "Wolna droga",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "S3_PROCEED_40",
+      "pkpCode": "S3",
+      "name": "Jazda z prędkością do 40 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S4_PROCEED_40_EXPECT_STOP",
+      "pkpCode": "S4",
+      "name": "Jazda z prędkością do 40 km/h, następny semafor wskazuje Stój",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S5_EXPECT_STOP",
+      "pkpCode": "S5",
+      "name": "Wolna droga, następny semafor wskazuje Stój",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "S6_PROCEED_100",
+      "pkpCode": "S6",
+      "name": "Jazda z prędkością do 100 km/h",
+      "maxSpeedKmh": 100
+    },
+    {
+      "id": "S7_PROCEED_100_EXPECT_STOP",
+      "pkpCode": "S7",
+      "name": "Jazda z prędkością do 100 km/h, następny semafor wskazuje Stój",
+      "maxSpeedKmh": 100
+    },
+    {
+      "id": "S10_PROCEED_40",
+      "pkpCode": "S10",
+      "name": "Jazda z prędkością do 40 km/h przez następny semafor",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S11_PROCEED_40_EXPECT_40",
+      "pkpCode": "S11",
+      "name": "Jazda z prędkością do 40 km/h, następny semafor zezwala również na 40 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S12_PROCEED_100",
+      "pkpCode": "S12",
+      "name": "Jazda z prędkością do 100 km/h przez następny semafor",
+      "maxSpeedKmh": 100
+    },
+    {
+      "id": "S13_PROCEED_100_EXPECT_100",
+      "pkpCode": "S13",
+      "name": "Jazda z prędkością do 100 km/h, następny semafor zezwala również na 100 km/h",
+      "maxSpeedKmh": 100
+    }
+  ]
+}
