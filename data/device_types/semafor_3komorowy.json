@@ -1,0 +1,27 @@
+{
+  "typeID": "DVT-GLB-SEM-3K-0000001",
+  "typeName": "Semafor trójkomorowy",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "THREE_CHAMBER",
+    "chamberCount": 3,
+    "greenStripe": false,
+    "orangeStripe": false
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "S1_STOP",
+    "failSafeAspect": "S1_STOP",
+    "additionalAspectAllowed": false
+  },
+  "supportedAspects": [
+    "S1_STOP",
+    "S2_PROCEED",
+    "S3_PROCEED_40",
+    "S4_PROCEED_40_EXPECT_STOP",
+    "S5_EXPECT_STOP"
+  ]
+}
