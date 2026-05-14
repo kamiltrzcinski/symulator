@@ -11,6 +11,38 @@ Entry format:
 
 ---
 
+## [0.3.17] — 2026-05-14
+
+### Added
+- `data/device_types/signal_templates.json` — master template containing the full suite of PKP signal aspects and descriptions (renamed from `semafor.json`)
+- `data/device_types/semafor_zaporowy.json` — new signal type for barrier signals supporting S1, Sz, and Ms2 aspects
+- `data/device_types/tarcza_manewrowa_tm.json` — new shunting shield type (Ms1, Ms2)
+- `data/device_types/tarcza_ostrzegawcza.json` — new warning signal type (To1-To4) with green flashing aspect (To3 — expecting 100 km/h)
+- `data/device_types/sygnalizator_powtarzajacy.json` — new repeating signal type (Sp1-Sp4) with white auxiliary light
+- `data/device_types/semafor_m_*.json` — 15 new shunting-enabled variants (`Ms2`) for all existing semaphore configurations (2, 3, 4, and 5-chamber)
+
+### Changed
+- Refactored all semaphore configurations to use official PKP technical descriptions for aspects S1 through S13a.
+- **Hardware-Enforced Signaling**: Implemented logic where speed-specific aspects require corresponding physical stripes (100 km/h → green, 60 km/h → orange).
+- **Expectation Signaling**: Enabled flashing aspects (S3, S4) on all multi-chamber semaphores to allow warning about upcoming speed restrictions regardless of local stripe presence.
+- Updated `S2` description to "Jazda z największą dozwoloną prędkością" and added `SZ_SUBSTITUTION` (Sygnał zastępczy, 40 km/h) to all semaphores.
+- Enabled `additionalAspectAllowed` across all complex signal types to support flexible route signaling and simulation of non-organized movements
+
+---
+
+## [0.3.16] — 2026-05-11
+
+### Added
+- `data/device_types/semafor_3komorowy.json`, `semafor_4komorowy.json` — multi-chamber signal types for standard aspect sequences
+- `data/device_types/semafor_3komorowy_pas_{zielony,pomaranczowy,zielony_pomaranczowy}.json` — 3-chamber signal variants with speed-indicating stripes
+- `data/device_types/semafor_4komorowy_pas_{zielony,pomaranczowy,zielony_pomaranczowy}.json` — 4-chamber signal variants with speed-indicating stripes
+- `data/device_types/semafor_5komorowy_{zielony,pomaranczowy,zielony_pomaranczowy}.json` — 5-chamber signals with complex stripe configurations (DVT-GLB-SEM-5K series)
+
+### Changed
+- `data/device_types/semafor_3komorowy_pasz.json` — renamed to `semafor_3komorowy_pas_zielony.json` for naming consistency across signal variants
+
+---
+
 ## [0.3.15] — 2026-05-10
 
 ### Added
