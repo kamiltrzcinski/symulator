@@ -3,33 +3,33 @@
 
     "boundary_nodes": [
         {
-            "gID": "BND-TRJ-GDO-N",
+            "gID": "BND-TRJ-GOr-N",
             "pID": "granica_polnocna",
-            "sID": "GDO",
+            "sID": "GOr",
             "description": "North boundary — connects to Gdynia Główna Osobowa (line 250)"
         },
         {
-            "gID": "BND-TRJ-GDO-S",
+            "gID": "BND-TRJ-GOr-S",
             "pID": "granica_poludniowa",
-            "sID": "GDO",
+            "sID": "GOr",
             "description": "South boundary — connects to Sopot (line 250)"
         }
     ],
 
     "track_sections": [
         {
-            "gID": "OT-TRJ-GDO-tor1a",
+            "gID": "OT-TRJ-GOr-tor1a",
             "pID": "tor_1a",
-            "sID": "GDO",
+            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GDO-N",
-                "itID":       "IT-TRJ-GDO-N-tor1",
-                "signals":    ["SEM-TRJ-GDO-Wp1"]
+                "neighborID": "BND-TRJ-GOr-N",
+                "itID":       "IT-TRJ-GOr-N-tor1",
+                "signals":    ["SEM-TRJ-GOr-Wp1"]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GDO-zwr1",
-                "izID":       "IZ-TRJ-GDO-zwr1-trunk",
-                "signals":    ["SEM-TRJ-GDO-Ww1"]
+                "neighborID": "ZWR-TRJ-GOr-zwr1",
+                "izID":       "IZ-TRJ-GOr-zwr1-trunk",
+                "signals":    ["SEM-TRJ-GOr-Ww1"]
             },
             "lengthM":     320.0,
             "electrified":  true,
@@ -37,18 +37,18 @@
             "occupied":     false
         },
         {
-            "gID": "OT-TRJ-GDO-tor2a",
+            "gID": "OT-TRJ-GOr-tor2a",
             "pID": "tor_2a",
-            "sID": "GDO",
+            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GDO-N",
-                "itID":       "IT-TRJ-GDO-N-tor2",
-                "signals":    ["SEM-TRJ-GDO-Wp2"]
+                "neighborID": "BND-TRJ-GOr-N",
+                "itID":       "IT-TRJ-GOr-N-tor2",
+                "signals":    ["SEM-TRJ-GOr-Wp2"]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GDO-zwr2",
-                "izID":       "IZ-TRJ-GDO-zwr2-trunk",
-                "signals":    ["SEM-TRJ-GDO-Ww2"]
+                "neighborID": "ZWR-TRJ-GOr-zwr2",
+                "izID":       "IZ-TRJ-GOr-zwr2-trunk",
+                "signals":    ["SEM-TRJ-GOr-Ww2"]
             },
             "lengthM":     320.0,
             "electrified":  true,
@@ -56,18 +56,18 @@
             "occupied":     false
         },
         {
-            "gID": "OT-TRJ-GDO-tor1b",
+            "gID": "OT-TRJ-GOr-tor1b",
             "pID": "tor_1b",
-            "sID": "GDO",
+            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GDO-zwr1",
-                "izID":       "IZ-TRJ-GDO-zwr1-straight",
+                "neighborID": "ZWR-TRJ-GOr-zwr1",
+                "izID":       "IZ-TRJ-GOr-zwr1-straight",
                 "signals":    []
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GDO-S",
-                "itID":       "IT-TRJ-GDO-S-tor1",
-                "signals":    ["SEM-TRJ-GDO-Sp1"]
+                "neighborID": "BND-TRJ-GOr-S",
+                "itID":       "IT-TRJ-GOr-S-tor1",
+                "signals":    ["SEM-TRJ-GOr-Sp1"]
             },
             "lengthM":     280.0,
             "electrified":  true,
@@ -75,18 +75,18 @@
             "occupied":     false
         },
         {
-            "gID": "OT-TRJ-GDO-tor2b",
+            "gID": "OT-TRJ-GOr-tor2b",
             "pID": "tor_2b",
-            "sID": "GDO",
+            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GDO-zwr2",
-                "izID":       "IZ-TRJ-GDO-zwr2-straight",
+                "neighborID": "ZWR-TRJ-GOr-zwr2",
+                "izID":       "IZ-TRJ-GOr-zwr2-straight",
                 "signals":    []
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GDO-S",
-                "itID":       "IT-TRJ-GDO-S-tor2",
-                "signals":    ["SEM-TRJ-GDO-Sp2"]
+                "neighborID": "BND-TRJ-GOr-S",
+                "itID":       "IT-TRJ-GOr-S-tor2",
+                "signals":    ["SEM-TRJ-GOr-Sp2"]
             },
             "lengthM":     280.0,
             "electrified":  true,
@@ -94,17 +94,17 @@
             "occupied":     false
         },
         {
-            "gID": "OT-TRJ-GDO-peron1",
+            "gID": "OT-TRJ-GOr-peron1",
             "pID": "peron_1",
-            "sID": "GDO",
+            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GDO-zwr1",
-                "izID":       "IZ-TRJ-GDO-zwr1-divergent",
+                "neighborID": "ZWR-TRJ-GOr-zwr1",
+                "izID":       "IZ-TRJ-GOr-zwr1-divergent",
                 "signals":    []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GDO-zwr2",
-                "izID":       "IZ-TRJ-GDO-zwr2-divergent",
+                "neighborID": "ZWR-TRJ-GOr-zwr2",
+                "izID":       "IZ-TRJ-GOr-zwr2-divergent",
                 "signals":    []
             },
             "lengthM":     210.0,
@@ -116,23 +116,23 @@
 
     "switches": [
         {
-            "gID":    "ZWR-TRJ-GDO-zwr1",
+            "gID":    "ZWR-TRJ-GOr-zwr1",
             "pID":    "zwr_1",
-            "sID":    "GDO",
+            "sID":    "GOr",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GDO-tor1a",
-                "izID":       "IZ-TRJ-GDO-zwr1-trunk",
+                "neighborID": "OT-TRJ-GOr-tor1a",
+                "izID":       "IZ-TRJ-GOr-zwr1-trunk",
                 "signals":    []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GDO-tor1b",
-                "izID":       "IZ-TRJ-GDO-zwr1-straight",
+                "neighborID": "OT-TRJ-GOr-tor1b",
+                "izID":       "IZ-TRJ-GOr-zwr1-straight",
                 "signals":    []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GDO-peron1",
-                "izID":       "IZ-TRJ-GDO-zwr1-divergent",
+                "neighborID": "OT-TRJ-GOr-peron1",
+                "izID":       "IZ-TRJ-GOr-zwr1-divergent",
                 "signals":    []
             },
             "lengthM":              28.5,
@@ -140,23 +140,23 @@
             "maxSpeedDivergentKmh": 40
         },
         {
-            "gID":    "ZWR-TRJ-GDO-zwr2",
+            "gID":    "ZWR-TRJ-GOr-zwr2",
             "pID":    "zwr_2",
-            "sID":    "GDO",
+            "sID":    "GOr",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GDO-tor2a",
-                "izID":       "IZ-TRJ-GDO-zwr2-trunk",
+                "neighborID": "OT-TRJ-GOr-tor2a",
+                "izID":       "IZ-TRJ-GOr-zwr2-trunk",
                 "signals":    []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GDO-tor2b",
-                "izID":       "IZ-TRJ-GDO-zwr2-straight",
+                "neighborID": "OT-TRJ-GOr-tor2b",
+                "izID":       "IZ-TRJ-GOr-zwr2-straight",
                 "signals":    []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GDO-peron1",
-                "izID":       "IZ-TRJ-GDO-zwr2-divergent",
+                "neighborID": "OT-TRJ-GOr-peron1",
+                "izID":       "IZ-TRJ-GOr-zwr2-divergent",
                 "signals":    []
             },
             "lengthM":              28.5,

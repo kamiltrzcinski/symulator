@@ -42,3 +42,6 @@ __pycache__/
 
 # Private devlog
 docs/devlog.md
+
+# PKP proprietary documents — must not be published
+docs/instructions/

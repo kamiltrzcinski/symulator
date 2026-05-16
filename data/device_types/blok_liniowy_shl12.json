@@ -1,0 +1,49 @@
+{
+    "typeID":       "DVT-GLB-BL-SHL12-0000005",
+    "typeName":     "Blok liniowy SHL-12",
+    "deviceType":   "BLOCK_SECTION",
+    "standard":     "SHL-12",
+    "acceptedCommandTypes": [
+        "SetBlockDirection",
+        "InitAxleCounterReset",
+        "ResetAxleCounter"
+    ],
+    "stateModel": {
+        "occupancyStates": [
+            "CLOSED",
+            "OPEN"
+        ],
+        "directionStates": [
+            "NEUTRAL",
+            "OUTBOUND_PENDING",
+            "OUTBOUND",
+            "INBOUND_PENDING",
+            "INBOUND",
+            "EMERGENCY",
+            "RESET_PENDING"
+        ],
+        "failSafeOccupancyState": "CLOSED",
+        "failSafeDirectionState": "NEUTRAL"
+    },
+    "shl12Operations": {
+        "BLW":  { "description": "Zażądanie wolnej drogi (NEUTRAL → OUTBOUND_PENDING)" },
+        "BLP":  { "description": "Pozwolenie na nastawienie kierunku (OUTBOUND_PENDING → OUTBOUND lub INBOUND_PENDING → INBOUND)" },
+        "BLO":  { "description": "Odwołanie żądania (OUTBOUND_PENDING → NEUTRAL)" },
+        "BLZ":  { "description": "Zwolnienie kierunku (OUTBOUND/INBOUND → NEUTRAL)" },
+        "BLAI": { "description": "Inicjowanie nadzwyczajnej zmiany kierunku" },
+        "BLA":  { "description": "Nadzwyczajna zmiana kierunku" },
+        "OPS":  { "description": "Odwołanie postępowania szczególnego" },
+        "SLI":  { "description": "Inicjowanie kasowania licznika osi (→ RESET_PENDING)" },
+        "SLK":  { "description": "Kasowanie licznika osi (RESET_PENDING → NEUTRAL/CLOSED)" }
+    },
+    "safetyInterlocks": {
+        "rejectBLW_when": [
+            "direction != NEUTRAL",
+            "outbound_signal not at STOP"
+        ],
+        "rejectBLZ_when": [
+            "axle_count != 0",
+            "train_on_block"
+        ]
+    }
+}

@@ -1,29 +1,48 @@
-# Implementation Skeleton (Pre-Commands / Pre-Devices)
+# Implementation Skeleton
+
+**Status:** Partially implemented — domain layer and SRK interface complete; ENGINE tick loop integration pending.
 
 ## Purpose
 
-This document defines **class-level scaffolding** and **module registration flow** that can be prepared now, without guessing device behavior or command semantics.
+This document describes the server-side class structure and module wiring as of the current implementation state.  Earlier revisions were marked "pre-commands / pre-devices" scaffolding.  The domain layer is now implemented; remaining work is the ENGINE tick-loop integration and client broadcast pipeline.
 
-Current rule:
-- no speculative interlocking/device logic,
-- no speculative command payload semantics,
-- only stable wiring, boundaries, and responsibilities.
+---
+
+## Implemented domain layer
+
+### engine/core headers
+
+| Header | Description |
+|--------|-------------|
+| `types.hpp` | Vocabulary types: `GID`, `SID`, `DispatchAreaID`, `PlayerID`, `ControlSystemID`; all enums (`SwitchPosition`, `SignalAspect`, `DerailerState`, `BlockSectionState`, `BlockDirectionState`, `TrackOccupancy`, `ChangeCause`, …) |
+| `track_model.hpp` | Value-type structs for runtime device state: `TrackSection`, `Switch`, `Signal`, `Derailer`, `BlockSection`, `RouteState`, `AlarmState`, `BoundaryNode` |
+| `command.hpp` | `Command = std::variant<...>` (10 types, cmd_type 0x01–0x0A); `Shl12Op` enum; `CommandMeta`; `EnvelopedCommand` |
+| `state_view.hpp` | `IStateView` — pure read-only interface; `find_*` and `for_each_*` methods |
+| `engine_state.hpp` / `.cpp` | `EngineState : IStateView` — mutable world state owned by ENGINE thread; `insert_*`, `apply_*` mutators |
+| `engine_snapshot.hpp` / `.cpp` | `EngineSnapshot : IStateView` — immutable deep copy; `AtomicSnapshot` for lock-free cross-thread reads |
+| `control_system.hpp` | `DeviceStateChange` variant (11 types); `InterlockingViolation`; `IControlSystem` interface |
+| `control_system_registry.hpp` / `.cpp` | Singleton factory; `register_static()` for static-init self-registration |
+
+### srk/ libraries
+
+| Library | Registered ID | Rules |
+|---------|---------------|-------|
+| `libsrk_common` | — (helper, not standalone) | `check_set_switch_position`, `check_set_signal_aspect`, `check_unlock_derailer`, `check_set_block_section`, `check_request_route`, `check_acknowledge_alarm`; `find_route_path()` BFS |
+| `libsrk_ebilock` | `"ebilock_x4"` | R1–R7; EEA-4 throw timer; route auto-release |
+| `libsrk_ml8` | `"estw_ml8"` | R1–R7 + SHL-12 (R8–R10: BLW/BLP/BLO/BLZ/BLAI/BLA/OPS/SLI/SLK) |
 
 ---
 
 ## Current constraint baseline
 
-Not yet available (blocking functional implementation):
-- final command catalog and command semantics,
-- complete device catalog and runtime representation,
-- final topology/device coupling rules.
+Not yet implemented (blocking next phases):
+- ENGINE tick loop integration: `StateApplier` visitor, per-tick `IControlSystem::on_tick()`, per-command `check_command()` + `execute_command()` (see Q-SRK-1 in [doc 17](17-control-system-interface.md)),
+- topology loader: `topology.json` → `EngineState` inserts,
+- `SnapshotService`: `AtomicSnapshot::load()` → FlatBuffers serialization → chunked `SNAPSHOT_CHUNK`,
+- client broadcast pipeline: `DeviceStateChange` → `DomainEvent` wire encoding,
+- `ZapowiedniowiecManager` and S-form state machine integration.
 
-Therefore, this stage focuses on:
-- interfaces,
-- bus/thread ownership,
-- lifecycle wiring,
-- error propagation contracts,
-- observability points.
+The sections below describe the remaining wiring and interface contracts.
 
 ---
 
@@ -114,10 +133,12 @@ public:
 ### A) COMMAND frame
 
 1. `TransportGateway` receives frame.
-2. `CommandIngress` deserializes envelope.
-3. `OwnershipGuard` validates ownership.
-4. Accepted command goes to priority queue for `EngineLoop`.
-5. `EngineLoop` emits resulting domain events.
+2. `CommandIngress` deserializes envelope; maps `cmd_type` byte to `Command` variant.
+3. `OwnershipGuard` checks `player_id` owns `posterunek_id` (NAK 0x08 on failure).
+4. Accepted command goes to `PriorityCommandQueue` for `EngineLoop`.
+5. **[TODO]** `EngineLoop` calls `IControlSystem::check_command(engine_state, cmd)` — NAK on violation.
+6. **[TODO]** `EngineLoop` calls `IControlSystem::execute_command(engine_state, cmd)` — applies each `DeviceStateChange` via `StateApplier`.
+7. `EngineLoop` emits resulting domain events.
 6. `DispatchBus` fans out to:
    - client broadcast,
    - DB writer,
@@ -134,32 +155,25 @@ public:
 ### C) SNAPSHOT request
 
 1. `TransportGateway` receives request.
-2. `SnapshotService` builds response using snapshot provider/store.
-3. snapshot chunks sent back to client.
+2. `SnapshotService` calls `AtomicSnapshot::load()` to get the latest `EngineSnapshot`.
+3. Snapshot serialized to FlatBuffers and sent as `SNAPSHOT_CHUNK` frames.
 
 ---
 
-## Interface placeholders (safe to create before command/device commit)
+## Interface placeholders (safe to create before ENGINE integration)
 
-Use these as stable seams:
+Use these as stable seams for the remaining implementation phases:
 
 ```cpp
-class ICommandEnvelopeParser;
-class ICommandAuthorizer;
-class ICommandQueue;
-class IEngineTickRunner;
-class IDomainEventStore;
-class ISnapshotStore;
-class IPipProjectionStore;
-class IClientBroadcastSink;
+class ICommandEnvelopeParser;   // FlatBuffers bytes → Command variant
+class ICommandAuthorizer;        // ownership + session-state pre-check
+class ICommandQueue;             // PriorityCommandQueue<EnvelopedCommand>
+class IEngineTickRunner;         // 20 Hz timer; calls IControlSystem + StateApplier
+class IDomainEventStore;         // DeviceStateChange → DomainEventEnvelope
+class ISnapshotStore;            // AtomicSnapshot access
+class IPipProjectionStore;       // pip.track_state UPSERT sink
+class IClientBroadcastSink;      // per-station broadcast to IO_POOL strands
 ```
-
-At this stage they should define only:
-- input/output ownership,
-- error model,
-- threading guarantees.
-
-Do not lock payload schemas yet.
 
 ---
 
@@ -189,14 +203,14 @@ Even before functional device logic:
 
 ---
 
-## What must wait for the command/device commit
+## What must wait for ENGINE tick-loop integration
 
-Blocked (intentionally):
-- concrete `Command` variant/types,
-- concrete `DomainEvent` variant/types,
-- device state model and mutation rules,
-- interlocking checks and route conflict indexing,
-- command-to-device execution mapping.
+Intentionally not yet done (see Q-SRK-1 in [doc 17](17-control-system-interface.md)):
+- `StateApplier` visitor (`std::visit` over `DeviceStateChange` → `EngineState` mutation),
+- `IControlSystem::on_tick()` call in the 20 Hz loop,
+- `IControlSystem::check_command()` + `execute_command()` call-chain in `EngineLoop`,
+- topology loader (`topology.json` → `EngineState::insert_*`),
+- `DeviceStateChange` → FlatBuffers wire encoding → `DOMAIN_EVENT` broadcast.
 
 ---
 

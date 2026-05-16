@@ -1,19 +1,19 @@
 {
     "$comment": "Track sections on szlak Gdynia Orłowo – Sopot (line 250). Each track section is bounded by two It axle counters (one per side). Signals listed under each side face trains approaching from that direction and control entry into this section. Sections are bidirectional — sideA/sideB carry no implied direction.",
     "line_number": 250,
-    "szlak": "GDO-SOP",
+    "szlak": "GOr-SOP",
     "track_sections": [
         {
-            "gID":  "OT-TRJ-GDO-SOP-0001",
-            "pID":  "GDO-SOP-0001",
+            "gID":  "OT-TRJ-GOr-SOP-0001",
+            "pID":  "GOr-SOP-0001",
             "sideA": {
-                "neighborID": "BND-TRJ-GDO-S",
-                "itID":       "IT-TRJ-GDO-SOP-0001A",
-                "signals":    ["SEM-TRJ-GDO-Ww1", "SEM-TRJ-GDO-Ww2"]
+                "neighborID": "BND-TRJ-GOr-S",
+                "itID":       "IT-TRJ-GOr-SOP-0001A",
+                "signals":    ["SEM-TRJ-GOr-Ww1", "SEM-TRJ-GOr-Ww2"]
             },
             "sideB": {
-                "neighborID": "OT-TRJ-GDO-SOP-0002",
-                "itID":       "IT-TRJ-GDO-SOP-0001B",
+                "neighborID": "OT-TRJ-GOr-SOP-0002",
+                "itID":       "IT-TRJ-GOr-SOP-0001B",
                 "signals":    []
             },
             "lengthM":    1800,
@@ -21,16 +21,16 @@
             "occupied":    false
         },
         {
-            "gID":  "OT-TRJ-GDO-SOP-0002",
-            "pID":  "GDO-SOP-0002",
+            "gID":  "OT-TRJ-GOr-SOP-0002",
+            "pID":  "GOr-SOP-0002",
             "sideA": {
-                "neighborID": "OT-TRJ-GDO-SOP-0001",
-                "itID":       "IT-TRJ-GDO-SOP-0002A",
+                "neighborID": "OT-TRJ-GOr-SOP-0001",
+                "itID":       "IT-TRJ-GOr-SOP-0002A",
                 "signals":    []
             },
             "sideB": {
                 "neighborID": "BND-TRJ-SOP-N",
-                "itID":       "IT-TRJ-GDO-SOP-0002B",
+                "itID":       "IT-TRJ-GOr-SOP-0002B",
                 "signals":    ["SEM-TRJ-SOP-Wp1", "SEM-TRJ-SOP-Wp2"]
             },
             "lengthM":    1800,

@@ -1,0 +1,19 @@
+{
+    "typeID":       "DVT-GLB-WK-0000004",
+    "typeName":     "Wykolejnica torowa",
+    "deviceType":   "DERAILER",
+    "acceptedCommandTypes": [
+        "SetDerailerPosition"
+    ],
+    "stateModel": {
+        "states": [
+            "LOCKED",
+            "UNLOCKED"
+        ],
+        "failSafeState": "LOCKED"
+    },
+    "safetyInterlocks": {
+        "rejectWhenOccupied": true,
+        "rejectWhenRouteLocked": true
+    }
+}

@@ -17,6 +17,16 @@
       "device_type": "SWITCH_MACHINE",
       "type_id": "DVT-GLB-ZWR-EEA4-0000002",
       "source_file": "data/device_types/naped_eea4.json"
+    },
+    {
+      "device_type": "DERAILER",
+      "type_id": "DVT-GLB-WK-0000004",
+      "source_file": "data/device_types/wykolejnica.json"
+    },
+    {
+      "device_type": "BLOCK_SECTION",
+      "type_id": "DVT-GLB-BL-SHL12-0000005",
+      "source_file": "data/device_types/blok_liniowy_shl12.json"
     }
   ]
 }

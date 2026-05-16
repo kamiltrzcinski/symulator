@@ -43,6 +43,12 @@ struct PlayerID
     auto operator<=>(const PlayerID&) const = default;
 };
 
+struct ControlSystemID
+{
+    std::string value;
+    auto operator<=>(const ControlSystemID&) const = default;
+};
+
 // ── Command priority ─────────────────────────────────────────────────────────
 // Determines the bucket order inside PriorityCommandQueue.
 // Lower numeric value = higher priority; ordering is intentional.
@@ -90,7 +96,8 @@ enum class SignalAspect : std::uint8_t
     S11_PROCEED_40_EXPECT_40,
     S12_PROCEED_60,
     S13_PROCEED_60_EXPECT_60,
-    MS2_SHUNTING_ALLOWED,
+    MS1_STOP,              // Shunting signal — stop (Ms1)
+    MS2_SHUNTING_ALLOWED,  // Shunting signal — manoeuvre allowed (Ms2)
 };
 
 // ── Random event types ────────────────────────────────────────────────────────
@@ -193,6 +200,22 @@ enum class DerailerState : std::uint8_t
     UNLOCKED,  // passage allowed
 };
 
+// ── SHL-12 block direction state ──────────────────────────────────────────────
+// State of a line block section in the SHL-12 automatic block system.
+// Managed by libsrk_ml8; libsrk_ebilock uses only BlockSectionState (OPEN/CLOSED).
+// See docs/14-interlocking-model.md and docs/17-control-system-interface.md.
+
+enum class BlockDirectionState : std::uint8_t
+{
+    NEUTRAL,           // No established direction
+    OUTBOUND_PENDING,  // BLW sent; waiting for BLP from neighbour
+    OUTBOUND,          // Direction established — this station may dispatch trains
+    INBOUND_PENDING,   // Neighbour BLW received; this station must respond with BLP
+    INBOUND,           // Neighbour is dispatching trains toward this station
+    EMERGENCY,         // Emergency procedure active (BLAI issued)
+    RESET_PENDING,     // Axle-counter reset in progress (SLI sent; waiting for SLK)
+};
+
 // ── Block section state (blok liniowy) ───────────────────────────────────────
 
 enum class BlockSectionState : std::uint8_t
@@ -282,6 +305,15 @@ template<>
 struct std::hash<engine::core::PlayerID>
 {
     std::size_t operator()(const engine::core::PlayerID& id) const noexcept
+    {
+        return std::hash<std::string>{}(id.value);
+    }
+};
+
+template<>
+struct std::hash<engine::core::ControlSystemID>
+{
+    std::size_t operator()(const engine::core::ControlSystemID& id) const noexcept
     {
         return std::hash<std::string>{}(id.value);
     }

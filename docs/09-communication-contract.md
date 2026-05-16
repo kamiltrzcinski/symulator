@@ -127,15 +127,20 @@ The `COMMAND` payload begins with a 1-byte `cmd_type` field followed by the Flat
 
 | cmd_type | Name                  | Key fields                                              |
 |----------|-----------------------|---------------------------------------------------------|
-| 0x01     | SetSwitchPosition     | `gID`, `position` (NORMAL \| REVERSE)                  |
-| 0x02     | SetSignalAspect       | `gID`, `aspect` (STOP \| S1 \| S2 \| SH1 \| OFF \| …) |
+| 0x01     | SetSwitchPosition     | `gID`, `position` (STRAIGHT \| DIVERGENT)              |
+| 0x02     | SetSignalAspect       | `gID`, `aspect` (S1_STOP \| S2_PROCEED \| MS1_STOP \| …) |
 | 0x03     | SetDerailerPosition   | `gID`, `position` (LOCKED \| UNLOCKED)                 |
 | 0x04     | SetBlockSection       | `gID`, `state` (OPEN \| CLOSED)                        |
 | 0x05     | RequestRoute          | `from_signal_gID`, `to_signal_gID`                     |
-| 0x06     | CancelRoute           | `route_id`                                             |
+| 0x06     | CancelRoute           | `route_id`, `force` (bool)                             |
 | 0x07     | AcknowledgeAlarm      | `alarm_id`                                             |
+| 0x08     | SetBlockDirection     | `block_section_gID`, `operation` (BLW \| BLP \| BLO \| BLZ \| BLAI \| BLA \| OPS) — ML8/SHL-12 only |
+| 0x09     | InitAxleCounterReset  | `block_section_gID` — SLI procedure, ML8 only          |
+| 0x0A     | ResetAxleCounter      | `block_section_gID` — SLK procedure, ML8 only          |
 
 `RequestRoute` is the primary high-level command. The engine resolves required switch positions and signal aspects internally. Low-level commands (`SetSwitchPosition`, `SetSignalAspect`) remain available for manual override.
+
+Commands 0x08–0x0A are only accepted when the scenario's `control_system` is `"estw_ml8"`.  An EbiLock X4 session will reject them with NAK 0x07 (`UNSUPPORTED`).  See [doc 17](17-control-system-interface.md) for the SHL-12 state machine.
 
 ### Command acknowledgement
 
@@ -148,12 +153,18 @@ Reason codes (uint8):
 
 ```
 0x00  UNSPECIFIED    — fallback/default value; should not be emitted intentionally
-0x01  UNAUTHORIZED   — client does not own the station
+0x01  NOT_FOUND      — gID not found in current topology (previously UNKNOWN_OBJECT)
 0x02  SAFETY_BLOCK   — interlocking rules prevent execution
-0x03  UNKNOWN_OBJECT — gID not found in current topology
-0x04  INVALID_STATE  — object in a state that rejects this command
-0x05  SESSION_PAUSED — session is not accepting commands
+0x03  INVALID_STATE  — object in a state that rejects this command
+0x04  ROUTE_LOCKED   — a route currently locks the device
+0x05  NO_PATH        — BFS found no route between entry and exit signals
+0x06  SWITCH_MOVING  — switch is in MOVING state; cannot command it
+0x07  UNSUPPORTED    — command type not handled by the active SRK system
+0x08  UNAUTHORIZED   — client does not own the posterunek
+0x09  SESSION_PAUSED — session is not accepting commands
 ```
+
+> **Note:** codes 0x01–0x07 are defined and checked by the SRK libraries (`libsrk_ebilock`, `libsrk_ml8`).  Codes 0x08–0x09 are checked earlier, on WORK_POOL, by `OwnershipGuard` and session state before the command reaches the engine.
 
 ---
 
@@ -168,7 +179,8 @@ The `DOMAIN_EVENT` payload begins with a 1-byte `event_type` field, a 4-byte `ev
 | 0x03       | SignalAspectChanged          | `gID`, `new_aspect`, `cause`                                     |
 | 0x04       | TrackSectionOccupancyChanged | `gID`, `occupied`, `axle_count`, `train_gID`                     |
 | 0x05       | DerailerPositionChanged      | `gID`, `new_position`, `cause`                                   |
-| 0x06       | BlockSectionStateChanged     | `gID`, `new_state`                                               |
+| 0x06       | BlockSectionStateChanged     | `gID`, `new_state` (OPEN \| CLOSED)                              |
+| 0x10       | BlockDirectionStateChanged   | `gID`, `new_direction`, `requires_neighbor_confirmation` (bool)  |
 | 0x07       | RouteSet                     | `route_id`, `from_gID`, `to_gID`, `section_ids[]`                |
 | 0x08       | RouteReleased                | `route_id`, `reason`                                             |
 | 0x09       | TrainMovement                | `train_gID`, `section_gID`, `direction`, `speed_kmh`             |
@@ -185,7 +197,11 @@ Events are **broadcast to all connected clients**. The client filters display by
 
 ## Snapshot structure (msg_type = 0x31)
 
-A snapshot is the complete current engine state serialized as a FlatBuffers `Snapshot` table, split into chunks of ≤ 64 kB each. Fields:
+A snapshot is the complete current engine state serialized as a FlatBuffers `Snapshot` table, split into chunks of ≤ 64 kB each.
+
+Snapshots are produced from `EngineSnapshot` — an immutable deep copy of all world-state maps published by the ENGINE after each tick via `AtomicSnapshot`.  Any thread (IO_POOL, WORK_POOL) may call `AtomicSnapshot::load()` to obtain the most recent snapshot without blocking the ENGINE.  See [doc 17](17-control-system-interface.md) for the `AtomicSnapshot` API.
+
+Fields:
 
 ```
 Snapshot {
@@ -197,7 +213,7 @@ Snapshot {
   track_sections:   [TrackSectionState]
   signals:          [SignalState]
   derailers:        [DerailerState]
-  block_sections:   [BlockSectionState]
+  block_sections:   [BlockSectionState]  // includes direction (BlockDirectionState) for SHL-12 blocks
   active_routes:    [RouteState]
   active_alarms:    [AlarmState]
   posterunek_assignments: [PosterunekOwnership]

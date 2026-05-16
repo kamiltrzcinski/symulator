@@ -1,4 +1,5 @@
 add_subdirectory(engine)
+add_subdirectory(srk)
 add_subdirectory(server)
 add_subdirectory(integration)
 add_subdirectory(proto)

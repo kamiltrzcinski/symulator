@@ -11,6 +11,43 @@ Entry format:
 
 ---
 
+## [0.3.18] — 2026-05-16
+
+### Added
+- `engine/core/track_model.hpp` — value-type device structs: `TrackSection`, `Switch`, `Signal`, `Derailer`, `BlockSection`, `RouteState`, `AlarmState`, `BoundaryNode`
+- `engine/core/command.hpp` — `Command` variant (10 types, cmd_type 0x01–0x0A), `Shl12Op`, `CommandMeta`, `EnvelopedCommand`
+- `engine/core/state_view.hpp` — `IStateView` pure read-only interface
+- `engine/core/engine_state.hpp` / `.cpp` — mutable world state owned by ENGINE thread; implements `IStateView`; `apply_*` and `insert_*` mutators
+- `engine/core/engine_snapshot.hpp` / `.cpp` — immutable deep-copy snapshot; `AtomicSnapshot` for lock-free cross-thread reads
+- `engine/core/control_system.hpp` — `IControlSystem` universal interface; `DeviceStateChange` variant (11 types); `InterlockingViolation`
+- `engine/core/control_system_registry.hpp` / `.cpp` — singleton factory; `register_static()` for static-init self-registration
+- `srk/common/` (`libsrk_common`) — shared interlocking helpers: `device_rules` (R1–R7 check/execute), `route_graph` (BFS path finder)
+- `srk/ebilock/` (`libsrk_ebilock`) — `EbiLockSystem`: R1–R7, EEA-4 throw timer (90 ticks), self-registration as `"ebilock_x4"`
+- `srk/ml8/` (`libsrk_ml8`) — `Ml8System`: R1–R7 + full SHL-12 state machine (R8–R10: BLW/BLP/BLO/BLZ/BLAI/BLA/OPS/SLI/SLK), self-registration as `"estw_ml8"`
+- `tests/srk/test_ebilock_interlocking.cpp` — 22 tests: R1–R7, EEA-4 timer, ControlSystemRegistry
+- `tests/srk/test_ml8_shl12.cpp` — 17 tests: full SHL-12 state machine
+- `data/device_types/wykolejnica.json` — `DERAILER` device type (`DVT-GLB-WK-0000004`)
+- `data/device_types/blok_liniowy_shl12.json` — `BLOCK_SECTION` device type (`DVT-GLB-BL-SHL12-0000005`)
+- `docs/17-control-system-interface.md` — IControlSystem/IStateView/DeviceStateChange contract, ControlSystemRegistry, AtomicSnapshot, EbiLock X4, ML8 SHL-12
+
+### Changed
+- `engine/core/types.hpp` — added `ControlSystemID`, `MS1_STOP` signal aspect, `BlockDirectionState` enum and `std::hash` specialisation
+- `engine/CMakeLists.txt` — added `engine_state.cpp`, `engine_snapshot.cpp`, `control_system_registry.cpp`
+- `CMakeLists.txt` (root) and `tests/CMakeLists.txt` — `add_subdirectory(srk)`
+- `data/device_types/device_type_catalog.json` — entries for `wykolejnica` and `blok_liniowy_shl12`
+- `scenarios/reference/gdynia_orlowo/meta.json` — added `"control_system": "ebilock_x4"` field
+- `scenarios/reference/gdynia_orlowo/topology.json`, `scenarios/reference/lines/250.json` — corrected station code `GDO` → `GOr` in all GIDs
+- `docs/09-communication-contract.md` — commands 0x08–0x0A; NAK codes 0x01–0x09; `BlockDirectionStateChanged` event 0x10; AtomicSnapshot description
+- `docs/14-interlocking-model.md` — `IControlSystem` method signature; updated NAK codes; SHL-12 rules R8–R10
+- `docs/16-implementation-skeleton.md` — reflects actual implementation; remaining ENGINE integration TODO list
+- `docs/README.md` — added doc 17; updated descriptions for docs 14 and 16
+
+### Fixed
+- `engine/core/engine_snapshot.hpp` — renamed `session_id` data member to `session` to resolve name conflict with `IStateView::session_id()` virtual method
+- `tests/srk/test_ebilock_interlocking.cpp` — added missing `#include <engine/core/control_system_registry.hpp>`
+
+---
+
 ## [0.3.17] — 2026-05-14
 
 ### Added

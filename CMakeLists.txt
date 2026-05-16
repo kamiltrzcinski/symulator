@@ -144,6 +144,7 @@ endif()
 
 # ── Sub-components ──────────────────────────────────────────────────────────
 add_subdirectory(engine)
+add_subdirectory(srk)
 add_subdirectory(server)
 
 if(BUILD_CLIENT OR BUILD_EDITOR)
