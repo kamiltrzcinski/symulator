@@ -1,12 +1,12 @@
 {
-  "typeID": "DVT-GLB-SEM-4K-G-0000006",
-  "typeName": "Semafor czterokomorowy z zielonym pasem",
+  "typeID": "DVT-GLB-SEM-M-5K-GO-0000012",
+  "typeName": "Semafor pięciokomorowy z zielonym i pomarańczowym pasem z sygnałem manewrowym",
   "deviceType": "SIGNAL",
   "hardware": {
-    "headType": "FOUR_CHAMBER",
-    "chamberCount": 4,
+    "headType": "FIVE_CHAMBER",
+    "chamberCount": 5,
     "greenStripe": true,
-    "orangeStripe": false
+    "orangeStripe": true
   },
   "acceptedCommandTypes": [
     "SetSignalAspect",
@@ -31,7 +31,12 @@
     "S6_PROCEED_100",
     "S7_PROCEED_100_EXPECT_100",
     "S8_PROCEED_100_EXPECT_40_60",
-    "S9_PROCEED_100_EXPECT_STOP"
+    "S9_PROCEED_100_EXPECT_STOP",
+    "S10A_PROCEED_60",
+    "S11A_PROCEED_60_EXPECT_100",
+    "S12A_PROCEED_60_EXPECT_40_60",
+    "S13A_PROCEED_60_EXPECT_STOP",
+    "MS2_SHUNTING_ALLOWED"
   ],
   "aspects": [
     {
@@ -117,6 +122,36 @@
       "pkpCode": "S9",
       "name": "Jazda z prędkością nieprzekraczającą 100km/h, a następny semafor wskazuje sygnał \"Stój\"",
       "maxSpeedKmh": 100
+    },
+    {
+      "id": "S10A_PROCEED_60",
+      "pkpCode": "S10a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a potem z największą dozwoloną prędkością",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S11A_PROCEED_60_EXPECT_100",
+      "pkpCode": "S11a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S12A_PROCEED_60_EXPECT_40_60",
+      "pkpCode": "S12a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 40 lub 60 km/h",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S13A_PROCEED_60_EXPECT_STOP",
+      "pkpCode": "S13a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a następny semafor wskazuje sygnał \"Stój\"",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "MS2_SHUNTING_ALLOWED",
+      "pkpCode": "Ms2",
+      "name": "Manewry dozwolone",
+      "maxSpeedKmh": 25
     }
   ]
 }

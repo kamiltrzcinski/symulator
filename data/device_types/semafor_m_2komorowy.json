@@ -1,6 +1,6 @@
 {
-  "typeID": "DVT-GLB-SEM-2K-0000003",
-  "typeName": "Semafor dwukomorowy",
+  "typeID": "DVT-GLB-SEM-M-2K-0000003",
+  "typeName": "Semafor dwukomorowy z sygnałem manewrowym",
   "deviceType": "SIGNAL",
   "hardware": {
     "headType": "TWO_CHAMBER",
@@ -18,7 +18,8 @@
   "supportedAspects": [
     "S1_STOP",
     "SZ_SUBSTITUTION",
-    "S2_PROCEED"
+    "S2_PROCEED",
+    "MS2_SHUNTING_ALLOWED"
   ],
   "aspects": [
     {
@@ -38,6 +39,12 @@
       "pkpCode": "S2",
       "name": "Jazda z największą dozwoloną prędkością",
       "maxSpeedKmh": null
+    },
+    {
+      "id": "MS2_SHUNTING_ALLOWED",
+      "pkpCode": "Ms2",
+      "name": "Manewry dozwolone",
+      "maxSpeedKmh": 25
     }
   ]
 }

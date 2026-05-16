@@ -19,12 +19,23 @@
   },
   "supportedAspects": [
     "S1_STOP",
+    "SZ_SUBSTITUTION",
     "S2_PROCEED",
-    "S3_PROCEED_40",
-    "S4_PROCEED_40_EXPECT_STOP",
+    "S3_PROCEED_EXPECT_100",
+    "S4_EXPECT_40_60",
     "S5_EXPECT_STOP",
+    "S10_PROCEED_40",
+    "S11_PROCEED_40_EXPECT_100",
+    "S12_PROCEED_40_EXPECT_40_60",
+    "S13_PROCEED_40_EXPECT_STOP",
     "S6_PROCEED_100",
-    "S7_PROCEED_100_EXPECT_STOP"
+    "S7_PROCEED_100_EXPECT_100",
+    "S8_PROCEED_100_EXPECT_40_60",
+    "S9_PROCEED_100_EXPECT_STOP",
+    "S10A_PROCEED_60",
+    "S11A_PROCEED_60_EXPECT_100",
+    "S12A_PROCEED_60_EXPECT_40_60",
+    "S13A_PROCEED_60_EXPECT_STOP"
   ],
   "aspects": [
     {
@@ -34,40 +45,106 @@
       "maxSpeedKmh": 0
     },
     {
+      "id": "SZ_SUBSTITUTION",
+      "pkpCode": "Sz",
+      "name": "Sygnał zastępczy",
+      "maxSpeedKmh": 40
+    },
+    {
       "id": "S2_PROCEED",
       "pkpCode": "S2",
-      "name": "Wolna droga",
+      "name": "Jazda z największą dozwoloną prędkością",
       "maxSpeedKmh": null
     },
     {
-      "id": "S3_PROCEED_40",
+      "id": "S3_PROCEED_EXPECT_100",
       "pkpCode": "S3",
-      "name": "Jazda z prędkością do 40 km/h",
-      "maxSpeedKmh": 40
+      "name": "Jazda z największą dozwoloną prędkością, a przy następnym semaforze jazda z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": null
     },
     {
-      "id": "S4_PROCEED_40_EXPECT_STOP",
+      "id": "S4_EXPECT_40_60",
       "pkpCode": "S4",
-      "name": "Jazda z prędkością do 40 km/h, następny semafor wskazuje Stój",
-      "maxSpeedKmh": 40
+      "name": "Następny semafor wskazuje sygnał zezwalający na jazdę z prędkością zmniejszoną do 40 lub 60 km/h",
+      "maxSpeedKmh": null
     },
     {
       "id": "S5_EXPECT_STOP",
       "pkpCode": "S5",
-      "name": "Wolna droga, następny semafor wskazuje Stój",
+      "name": "Następny semafor wskazuje sygnał \"Stój\"",
       "maxSpeedKmh": null
+    },
+    {
+      "id": "S10_PROCEED_40",
+      "pkpCode": "S10",
+      "name": "Jazda z prędkością nieprzekraczającą 40 km/h, a potem z największą dozwoloną prędkością",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S11_PROCEED_40_EXPECT_100",
+      "pkpCode": "S11",
+      "name": "Jazda z prędkością nieprzekraczającą 40 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S12_PROCEED_40_EXPECT_40_60",
+      "pkpCode": "S12",
+      "name": "Jazda z prędkością nieprzekraczającą 40 km/h, a przy następnym semaforze z prędkością nieprzekraczającą do 40 lub 60 km/h",
+      "maxSpeedKmh": 40
+    },
+    {
+      "id": "S13_PROCEED_40_EXPECT_STOP",
+      "pkpCode": "S13",
+      "name": "Jazda z prędkością nieprzekraczającą 40 km/h, a następny semafor wskazuje sygnał \"Stój\"",
+      "maxSpeedKmh": 40
     },
     {
       "id": "S6_PROCEED_100",
       "pkpCode": "S6",
-      "name": "Jazda z prędkością do 100 km/h",
+      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a potem z największą dozwoloną prędkością",
       "maxSpeedKmh": 100
     },
     {
-      "id": "S7_PROCEED_100_EXPECT_STOP",
+      "id": "S7_PROCEED_100_EXPECT_100",
       "pkpCode": "S7",
-      "name": "Jazda z prędkością do 100 km/h, następny semafor wskazuje Stój",
+      "name": "Jazda z prędkością nieprzekraczającą 100km/h przy tym i następnym semaforze",
       "maxSpeedKmh": 100
+    },
+    {
+      "id": "S8_PROCEED_100_EXPECT_40_60",
+      "pkpCode": "S8",
+      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a przy następnym semaforze z prędkością zmniejszoną do 40 lub 60 km/h",
+      "maxSpeedKmh": 100
+    },
+    {
+      "id": "S9_PROCEED_100_EXPECT_STOP",
+      "pkpCode": "S9",
+      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a następny semafor wskazuje sygnał \"Stój\"",
+      "maxSpeedKmh": 100
+    },
+    {
+      "id": "S10A_PROCEED_60",
+      "pkpCode": "S10a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a potem z największą dozwoloną prędkością",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S11A_PROCEED_60_EXPECT_100",
+      "pkpCode": "S11a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S12A_PROCEED_60_EXPECT_40_60",
+      "pkpCode": "S12a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 40 lub 60 km/h",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "S13A_PROCEED_60_EXPECT_STOP",
+      "pkpCode": "S13a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a następny semafor wskazuje sygnał \"Stój\"",
+      "maxSpeedKmh": 60
     }
   ]
 }

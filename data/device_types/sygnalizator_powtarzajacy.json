@@ -1,0 +1,50 @@
+{
+  "typeID": "DVT-GLB-SP-0000001",
+  "typeName": "Sygnalizator powtarzający",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "SPECIAL",
+    "chamberCount": 3
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "SP1_STOP",
+    "failSafeAspect": "SP1_STOP",
+    "additionalAspectAllowed": true
+  },
+  "supportedAspects": [
+    "SP1_STOP",
+    "SP2_PROCEED",
+    "SP3_REDUCED",
+    "SP4_REDUCED_FLASHING"
+  ],
+  "aspects": [
+    {
+      "id": "SP1_STOP",
+      "pkpCode": "Sp1",
+      "name": "Semafor wskazuje sygnał \"Stój\" (S1)",
+      "maxSpeedKmh": 0
+    },
+    {
+      "id": "SP2_PROCEED",
+      "pkpCode": "Sp2",
+      "name": "Semafor wskazuje sygnał zezwalający",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "SP3_REDUCED",
+      "pkpCode": "Sp3",
+      "name": "Semafor wskazuje sygnał zezwalający na jazdę ze zmniejszoną prędkością",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "SP4_REDUCED_FLASHING",
+      "pkpCode": "Sp4",
+      "name": "Semafor wskazuje sygnał „Wolna droga ze zmniejszoną prędkością”",
+      "maxSpeedKmh": null
+    }
+  ]
+}

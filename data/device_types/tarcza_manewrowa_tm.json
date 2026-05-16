@@ -1,0 +1,36 @@
+{
+  "typeID": "DVT-GLB-TM-0000001",
+  "typeName": "Tarcza manewrowa Tm",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "TWO_CHAMBER",
+    "chamberCount": 2
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "MS1_STOP",
+    "failSafeAspect": "MS1_STOP",
+    "additionalAspectAllowed": true
+  },
+  "supportedAspects": [
+    "MS1_STOP",
+    "MS2_SHUNTING_ALLOWED"
+  ],
+  "aspects": [
+    {
+      "id": "MS1_STOP",
+      "pkpCode": "Ms1",
+      "name": "Stój",
+      "maxSpeedKmh": 0
+    },
+    {
+      "id": "MS2_SHUNTING_ALLOWED",
+      "pkpCode": "Ms2",
+      "name": "Manewry dozwolone",
+      "maxSpeedKmh": 25
+    }
+  ]
+}

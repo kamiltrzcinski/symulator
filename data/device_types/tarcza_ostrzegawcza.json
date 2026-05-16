@@ -1,0 +1,50 @@
+{
+  "typeID": "DVT-GLB-TO-0000001",
+  "typeName": "Tarcza ostrzegawcza świetlna",
+  "deviceType": "SIGNAL",
+  "hardware": {
+    "headType": "SPECIAL",
+    "chamberCount": 3
+  },
+  "acceptedCommandTypes": [
+    "SetSignalAspect",
+    "RequestRoute"
+  ],
+  "controlBehavior": {
+    "defaultAspect": "TO_STOP",
+    "failSafeAspect": "TO_STOP",
+    "additionalAspectAllowed": true
+  },
+  "supportedAspects": [
+    "TO_STOP",
+    "TO_PROCEED",
+    "TO_EXPECT_100",
+    "TO_REDUCED_FLASHING"
+  ],
+  "aspects": [
+    {
+      "id": "TO_STOP",
+      "pkpCode": "To1",
+      "name": "Semafor wskazuje sygnał \"Stój\" (S1) lub sygnał zmniejszonej prędkości",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "TO_PROCEED",
+      "pkpCode": "To2",
+      "name": "Semafor wskazuje sygnał zezwalający na jazdę z maksymalną prędkością",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "TO_EXPECT_100",
+      "pkpCode": "To3",
+      "name": "Semafor wskazuje jazdę z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": null
+    },
+    {
+      "id": "TO_REDUCED_FLASHING",
+      "pkpCode": "To4",
+      "name": "Semafor wskazuje sygnał „Wolna droga ze zmniejszoną prędkością” (S3 lub S4)",
+      "maxSpeedKmh": null
+    }
+  ]
+}

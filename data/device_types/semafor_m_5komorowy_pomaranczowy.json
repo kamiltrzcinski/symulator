@@ -1,12 +1,12 @@
 {
-  "typeID": "DVT-GLB-SEM-4K-G-0000006",
-  "typeName": "Semafor czterokomorowy z zielonym pasem",
+  "typeID": "DVT-GLB-SEM-M-5K-O-0000011",
+  "typeName": "Semafor pięciokomorowy z pomarańczowym pasem z sygnałem manewrowym",
   "deviceType": "SIGNAL",
   "hardware": {
-    "headType": "FOUR_CHAMBER",
-    "chamberCount": 4,
-    "greenStripe": true,
-    "orangeStripe": false
+    "headType": "FIVE_CHAMBER",
+    "chamberCount": 5,
+    "greenStripe": false,
+    "orangeStripe": true
   },
   "acceptedCommandTypes": [
     "SetSignalAspect",
@@ -28,10 +28,11 @@
     "S11_PROCEED_40_EXPECT_100",
     "S12_PROCEED_40_EXPECT_40_60",
     "S13_PROCEED_40_EXPECT_STOP",
-    "S6_PROCEED_100",
-    "S7_PROCEED_100_EXPECT_100",
-    "S8_PROCEED_100_EXPECT_40_60",
-    "S9_PROCEED_100_EXPECT_STOP"
+    "S10A_PROCEED_60",
+    "S11A_PROCEED_60_EXPECT_100",
+    "S12A_PROCEED_60_EXPECT_40_60",
+    "S13A_PROCEED_60_EXPECT_STOP",
+    "MS2_SHUNTING_ALLOWED"
   ],
   "aspects": [
     {
@@ -95,28 +96,34 @@
       "maxSpeedKmh": 40
     },
     {
-      "id": "S6_PROCEED_100",
-      "pkpCode": "S6",
-      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a potem z największą dozwoloną prędkością",
-      "maxSpeedKmh": 100
+      "id": "S10A_PROCEED_60",
+      "pkpCode": "S10a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a potem z największą dozwoloną prędkością",
+      "maxSpeedKmh": 60
     },
     {
-      "id": "S7_PROCEED_100_EXPECT_100",
-      "pkpCode": "S7",
-      "name": "Jazda z prędkością nieprzekraczającą 100km/h przy tym i następnym semaforze",
-      "maxSpeedKmh": 100
+      "id": "S11A_PROCEED_60_EXPECT_100",
+      "pkpCode": "S11a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 100 km/h",
+      "maxSpeedKmh": 60
     },
     {
-      "id": "S8_PROCEED_100_EXPECT_40_60",
-      "pkpCode": "S8",
-      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a przy następnym semaforze z prędkością zmniejszoną do 40 lub 60 km/h",
-      "maxSpeedKmh": 100
+      "id": "S12A_PROCEED_60_EXPECT_40_60",
+      "pkpCode": "S12a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a przy następnym semaforze z prędkością nieprzekraczającą 40 lub 60 km/h",
+      "maxSpeedKmh": 60
     },
     {
-      "id": "S9_PROCEED_100_EXPECT_STOP",
-      "pkpCode": "S9",
-      "name": "Jazda z prędkością nieprzekraczającą 100km/h, a następny semafor wskazuje sygnał \"Stój\"",
-      "maxSpeedKmh": 100
+      "id": "S13A_PROCEED_60_EXPECT_STOP",
+      "pkpCode": "S13a",
+      "name": "Jazda z prędkością nieprzekraczającą 60 km/h, a następny semafor wskazuje sygnał \"Stój\"",
+      "maxSpeedKmh": 60
+    },
+    {
+      "id": "MS2_SHUNTING_ALLOWED",
+      "pkpCode": "Ms2",
+      "name": "Manewry dozwolone",
+      "maxSpeedKmh": 25
     }
   ]
 }
