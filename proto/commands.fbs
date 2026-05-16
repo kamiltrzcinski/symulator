@@ -57,6 +57,36 @@ table AcknowledgeAlarm {
     alarm_id: string (required);
 }
 
+// ── cmd_type 0x08 ────────────────────────────────────────────────────────────
+/// SHL-12 block-section direction control (ESTW ML8 only).
+/// Values must match engine::core::Shl12Op (engine/include/engine/core/command.hpp).
+enum Shl12Op : byte {
+    BLW  = 0,  // żądaj kierunku wyjazdowego (NEUTRAL → OUTBOUND_PENDING)
+    BLP  = 1,  // Potwierdź kierunek (OUTBOUND_PENDING → OUTBOUND / INBOUND_PENDING → INBOUND)
+    BLO  = 2,  // Cofnij żądanie (OUTBOUND_PENDING → NEUTRAL)
+    BLZ  = 3,  // Zwolnij kierunek (OUTBOUND/INBOUND → NEUTRAL)
+    BLAI = 4,  // Inicjuj awaryjną zmianę kierunku
+    BLA  = 5,  // Wykonaj awaryjną zmianę kierunku
+    OPS  = 6,  // Anuluj procedurę specjalną
+}
+
+table SetBlockDirection {
+    block_section_g_id: string (required);
+    operation:          Shl12Op;
+}
+
+// ── cmd_type 0x09 ────────────────────────────────────────────────────────────
+/// Initiate axle-counter reset sequence (SLI — ESTW ML8 only).
+table InitAxleCounterReset {
+    block_section_g_id: string (required);
+}
+
+// ── cmd_type 0x0A ────────────────────────────────────────────────────────────
+/// Execute axle-counter reset (SLK — ESTW ML8 only).
+table ResetAxleCounter {
+    block_section_g_id: string (required);
+}
+
 // ── Command acknowledgement (S → C, msg_type 0x11) ──────────────────────────
 table CommandAck {
     req_seq_id: uint32;   // seq_id of the original COMMAND frame
@@ -65,12 +95,16 @@ table CommandAck {
 
 // ── Command rejection (S → C, msg_type 0x12) ────────────────────────────────
 enum NakReason : byte {
-    UNSPECIFIED     = 0,
-    UNAUTHORIZED    = 1,  // client does not own the station
-    SAFETY_BLOCK    = 2,  // interlocking rules prevent execution
-    UNKNOWN_OBJECT  = 3,  // g_id not found in topology
-    INVALID_STATE   = 4,  // object state rejects this command
-    SESSION_PAUSED  = 5,  // session is not accepting commands
+    UNSPECIFIED    = 0,
+    NOT_FOUND      = 1,  // object GID not in topology
+    SAFETY_BLOCK   = 2,  // interlocking rule violated
+    INVALID_STATE  = 3,  // device state rejects this command
+    ROUTE_LOCKED   = 4,  // a route is locking the device
+    NO_PATH        = 5,  // no topology path between entry and exit signals
+    SWITCH_MOVING  = 6,  // switch is currently transitioning
+    UNSUPPORTED    = 7,  // command type not handled by this SRK
+    UNAUTHORIZED   = 8,  // client does not own the station
+    SESSION_PAUSED = 9,  // session is not accepting commands
 }
 
 table CommandNak {

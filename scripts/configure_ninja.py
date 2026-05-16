@@ -15,9 +15,16 @@ import shlex
 import shutil
 import subprocess
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 THIRD_PARTY_DIR_NAME = "3rdParty"
+# Standalone asio release — headers-only, no Boost dependency.
+ASIO_VERSION_TAG = "asio-1-28-1"
+ASIO_DOWNLOAD_URL = (
+    f"https://github.com/chriskohlhoff/asio/archive/refs/tags/{ASIO_VERSION_TAG}.zip"
+)
 SUPPORTED_SYSTEMS = {"Windows", "Linux", "Darwin"}
 
 
@@ -109,6 +116,58 @@ def ensure_vcpkg(third_party_root: Path, *, system_name: str, dry_run: bool) -> 
 
     toolchain_file = vcpkg_root / "scripts" / "buildsystems" / "vcpkg.cmake"
     return vcpkg_executable, toolchain_file
+
+
+def ensure_asio(third_party_root: Path, *, dry_run: bool) -> None:
+    """Ensure standalone asio headers are available under 3rdParty/asio/include/.
+
+    On Linux/macOS the native package manager (libasio-dev / brew install asio)
+    installs asio into the system include path, which CMake finds automatically.
+    This function is a cross-platform fallback: if asio.hpp is not present in
+    the expected system paths it downloads the official headers-only release
+    from GitHub and unpacks them into 3rdParty/asio/include/ so that CMake's
+    ``find_path`` fallback can locate them without requiring a system package.
+    """
+    # System paths checked by CMake (see root CMakeLists.txt).
+    system_candidates = [
+        Path("/usr/include/asio.hpp"),
+        Path("/usr/local/include/asio.hpp"),
+    ]
+    if any(p.exists() for p in system_candidates):
+        return  # system package already provides asio
+
+    target_include = third_party_root / "asio" / "include"
+    asio_header = target_include / "asio.hpp"
+    if asio_header.exists():
+        print(f"[asio] already present at {target_include}")
+        return
+
+    zip_cache = third_party_root / f"{ASIO_VERSION_TAG}.zip"
+    if dry_run:
+        print(f"[run] download {ASIO_DOWNLOAD_URL} -> {zip_cache}")
+        print(f"[run] extract asio headers to {target_include}")
+        return
+
+    print(f"[asio] downloading {ASIO_DOWNLOAD_URL} ...")
+    target_include.mkdir(parents=True, exist_ok=True)
+    urllib.request.urlretrieve(ASIO_DOWNLOAD_URL, zip_cache)  # noqa: S310
+
+    with zipfile.ZipFile(zip_cache, "r") as zf:
+        # The archive layout is: asio-asio-1-28-1/asio/include/asio.hpp (etc.)
+        prefix = f"asio-{ASIO_VERSION_TAG}/asio/include/"
+        for member in zf.namelist():
+            if not member.startswith(prefix) or member == prefix:
+                continue
+            rel = member[len(prefix):]
+            dest = target_include / rel
+            if member.endswith("/"):
+                dest.mkdir(parents=True, exist_ok=True)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes(zf.read(member))
+
+    zip_cache.unlink(missing_ok=True)
+    print(f"[asio] headers installed at {target_include}")
 
 
 def install_third_party(
@@ -369,6 +428,8 @@ def main() -> int:
                 triplet=triplet,
                 dry_run=args.dry_run,
             )
+
+    ensure_asio(third_party_root, dry_run=args.dry_run)
 
     configure_ninja_build(
         repo_root=repo_root,

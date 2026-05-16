@@ -9,7 +9,7 @@ namespace proto;
 
 /// C → S  (msg_type 0x50)
 table TakeoverRequest {
-    posterunek_id: string (required);
+    dispatch_area_id: string (required);
     station_sid: string (required);
 
     /// True means release ownership instead of acquire.
@@ -22,7 +22,7 @@ table TakeoverRequest {
 /// S → C  (msg_type 0x51)
 table TakeoverResponse {
     granted: bool;
-    posterunek_id: string (required);
+    dispatch_area_id: string (required);
     station_sid: string (required);
 
     /// Present only when granted=false.

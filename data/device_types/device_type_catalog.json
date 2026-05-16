@@ -1,32 +1,45 @@
 {
-  "$comment": "Canonical device type catalog for JSON-first authoring.",
+  "$comment": "Canonical device type catalog. Every file in data/device_types/ (except this catalog and signal_templates.json) must have a corresponding entry here. Type IDs must match typeID fields inside the referenced files.",
   "schema_version": 1,
   "catalog_kind": "device_types",
   "device_types": [
-    {
-      "device_type": "SIGNAL",
-      "type_id": "DVT-GLB-SEM-0000001",
-      "source_file": "data/device_types/semafor.json"
-    },
-    {
-      "device_type": "SIGNAL",
-      "type_id": "DVT-GLB-SEM-2K-0000003",
-      "source_file": "data/device_types/semafor_2komorowy.json"
-    },
-    {
-      "device_type": "SWITCH_MACHINE",
-      "type_id": "DVT-GLB-ZWR-EEA4-0000002",
-      "source_file": "data/device_types/naped_eea4.json"
-    },
-    {
-      "device_type": "DERAILER",
-      "type_id": "DVT-GLB-WK-0000004",
-      "source_file": "data/device_types/wykolejnica.json"
-    },
-    {
-      "device_type": "BLOCK_SECTION",
-      "type_id": "DVT-GLB-BL-SHL12-0000005",
-      "source_file": "data/device_types/blok_liniowy_shl12.json"
-    }
+
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-0000001",          "source_file": "data/device_types/signal_templates.json",                            "display_name": "Semafor pięciokomorowy (pełna aspektowość)"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-2K-0000003",       "source_file": "data/device_types/semafor_2komorowy.json",                           "display_name": "Semafor dwukomorowy"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-3K-0000001",       "source_file": "data/device_types/semafor_3komorowy.json",                           "display_name": "Semafor trójkomorowy"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-3K-G-0000002",     "source_file": "data/device_types/semafor_3komorowy_pas_zielony.json",               "display_name": "Semafor trójkomorowy z zielonym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-3K-O-0000003",     "source_file": "data/device_types/semafor_3komorowy_pas_pomaranczowy.json",          "display_name": "Semafor trójkomorowy z pomarańczowym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-3K-GO-0000004",    "source_file": "data/device_types/semafor_3komorowy_pas_zielony_pomaranczowy.json",  "display_name": "Semafor trójkomorowy z zielonym i pomarańczowym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-4K-0000005",       "source_file": "data/device_types/semafor_4komorowy.json",                           "display_name": "Semafor czterokomorowy"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-4K-G-0000006",     "source_file": "data/device_types/semafor_4komorowy_pas_zielony.json",               "display_name": "Semafor czterokomorowy z zielonym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-4K-O-0000007",     "source_file": "data/device_types/semafor_4komorowy_pas_pomaranczowy.json",          "display_name": "Semafor czterokomorowy z pomarańczowym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-4K-GO-0000008",    "source_file": "data/device_types/semafor_4komorowy_pas_zielony_pomaranczowy.json",  "display_name": "Semafor czterokomorowy z zielonym i pomarańczowym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-5K-G-0000010",     "source_file": "data/device_types/semafor_5komorowy_zielony.json",                   "display_name": "Semafor pięciokomorowy z zielonym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-5K-O-0000011",     "source_file": "data/device_types/semafor_5komorowy_pomaranczowy.json",              "display_name": "Semafor pięciokomorowy z pomarańczowym pasem"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-5K-GO-0000012",    "source_file": "data/device_types/semafor_5komorowy_zielony_pomaranczowy.json",      "display_name": "Semafor pięciokomorowy z zielonym i pomarańczowym pasem"},
+
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-2K-0000003",     "source_file": "data/device_types/semafor_m_2komorowy.json",                         "display_name": "Semafor dwukomorowy z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-3K-0000001",     "source_file": "data/device_types/semafor_m_3komorowy.json",                         "display_name": "Semafor trójkomorowy z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-3K-G-0000002",   "source_file": "data/device_types/semafor_m_3komorowy_pas_zielony.json",             "display_name": "Semafor trójkomorowy z zielonym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-3K-O-0000003",   "source_file": "data/device_types/semafor_m_3komorowy_pas_pomaranczowy.json",        "display_name": "Semafor trójkomorowy z pomarańczowym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-3K-GO-0000004",  "source_file": "data/device_types/semafor_m_3komorowy_pas_zielony_pomaranczowy.json","display_name": "Semafor trójkomorowy z zielonym i pomarańczowym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-4K-0000005",     "source_file": "data/device_types/semafor_m_4komorowy.json",                         "display_name": "Semafor czterokomorowy z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-4K-G-0000006",   "source_file": "data/device_types/semafor_m_4komorowy_pas_zielony.json",             "display_name": "Semafor czterokomorowy z zielonym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-4K-O-0000007",   "source_file": "data/device_types/semafor_m_4komorowy_pas_pomaranczowy.json",        "display_name": "Semafor czterokomorowy z pomarańczowym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-4K-GO-0000008",  "source_file": "data/device_types/semafor_m_4komorowy_pas_zielony_pomaranczowy.json","display_name": "Semafor czterokomorowy z zielonym i pomarańczowym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-5K-G-0000010",   "source_file": "data/device_types/semafor_m_5komorowy_zielony.json",                 "display_name": "Semafor pięciokomorowy z zielonym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-5K-O-0000011",   "source_file": "data/device_types/semafor_m_5komorowy_pomaranczowy.json",            "display_name": "Semafor pięciokomorowy z pomarańczowym pasem z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-5K-GO-0000012",  "source_file": "data/device_types/semafor_m_5komorowy_zielony_pomaranczowy.json",    "display_name": "Semafor pięciokomorowy z zielonym i pomarańczowym pasem z sygnałem manewrowym"},
+
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-ZAP-0000001",      "source_file": "data/device_types/semafor_zaporowy.json",                            "display_name": "Semafor zaporowy"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SEM-M-ZAP-0000001",    "source_file": "data/device_types/semafor_m_zaporowy.json",                          "display_name": "Semafor zaporowy z sygnałem manewrowym"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-TM-0000001",            "source_file": "data/device_types/tarcza_manewrowa_tm.json",                         "display_name": "Tarcza manewrowa Tm"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-TO-0000001",            "source_file": "data/device_types/tarcza_ostrzegawcza.json",                         "display_name": "Tarcza ostrzegawcza świetlna"},
+    {"device_type": "SIGNAL",        "type_id": "DVT-GLB-SP-0000001",            "source_file": "data/device_types/sygnalizator_powtarzajacy.json",                   "display_name": "Sygnalizator powtarzający"},
+
+    {"device_type": "SWITCH_MACHINE","type_id": "DVT-GLB-ZWR-EEA4-0000002",     "source_file": "data/device_types/naped_eea4.json",                                  "display_name": "Napęd zwrotnicowy EEA-4"},
+    {"device_type": "DERAILER",      "type_id": "DVT-GLB-WK-0000004",            "source_file": "data/device_types/wykolejnica.json",                                 "display_name": "Wykolejnica torowa"},
+    {"device_type": "BLOCK_SECTION", "type_id": "DVT-GLB-BL-SHL12-0000005",     "source_file": "data/device_types/blok_liniowy_shl12.json",                          "display_name": "Blok liniowy SHL-12"}
   ]
 }
+

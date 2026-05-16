@@ -7,6 +7,9 @@ add_library(engine STATIC
     src/engine_state.cpp
     src/engine_snapshot.cpp
     src/control_system_registry.cpp
+    src/topology_loader.cpp
+    src/engine_loop.cpp
+    src/snapshot_service.cpp
 )
 
 target_include_directories(engine PUBLIC

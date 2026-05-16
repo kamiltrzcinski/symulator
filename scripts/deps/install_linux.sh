@@ -34,6 +34,7 @@ install_cmd=(
     libxkbcommon-dev
     libxkbcommon-x11-dev
     libegl1-mesa-dev
+    libasio-dev
 )
 
 if [[ "${print_only}" == true ]]; then

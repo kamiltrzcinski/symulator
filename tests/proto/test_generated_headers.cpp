@@ -18,7 +18,7 @@ TEST(ProtoSchemas, CommandPayloadRoundTrip)
     const auto gid = builder.CreateString("SW-1");
     proto::SetSwitchPositionBuilder cmd(builder);
     cmd.add_g_id(gid);
-    cmd.add_position(proto::SwitchPosition_NORMAL);
+    cmd.add_position(proto::SwitchPosition_STRAIGHT);
 
     const auto payload = cmd.Finish();
     builder.Finish(payload);
@@ -27,7 +27,7 @@ TEST(ProtoSchemas, CommandPayloadRoundTrip)
     ASSERT_NE(parsed, nullptr);
     ASSERT_NE(parsed->g_id(), nullptr);
     EXPECT_EQ(parsed->g_id()->str(), "SW-1");
-    EXPECT_EQ(parsed->position(), proto::SwitchPosition_NORMAL);
+    EXPECT_EQ(parsed->position(), proto::SwitchPosition_STRAIGHT);
 }
 
 TEST(ProtoSchemas, LifecycleOwnershipChatVoiceAndSnapshotPayloadsBuild)
@@ -50,10 +50,10 @@ TEST(ProtoSchemas, LifecycleOwnershipChatVoiceAndSnapshotPayloadsBuild)
 
     builder.Clear();
     {
-        const auto posterunek = builder.CreateString("GGO_A");
+        const auto dispatch_area = builder.CreateString("GGO_A");
         const auto station = builder.CreateString("GGO");
         proto::TakeoverRequestBuilder takeover(builder);
-        takeover.add_posterunek_id(posterunek);
+        takeover.add_dispatch_area_id(dispatch_area);
         takeover.add_station_sid(station);
 
         const auto payload = takeover.Finish();
@@ -62,8 +62,8 @@ TEST(ProtoSchemas, LifecycleOwnershipChatVoiceAndSnapshotPayloadsBuild)
         const auto* parsed =
             flatbuffers::GetRoot<proto::TakeoverRequest>(builder.GetBufferPointer());
         ASSERT_NE(parsed, nullptr);
-        ASSERT_NE(parsed->posterunek_id(), nullptr);
-        EXPECT_EQ(parsed->posterunek_id()->str(), "GGO_A");
+        ASSERT_NE(parsed->dispatch_area_id(), nullptr);
+        EXPECT_EQ(parsed->dispatch_area_id()->str(), "GGO_A");
     }
 
     builder.Clear();
@@ -120,6 +120,6 @@ TEST(ProtoSchemas, CriticalEnumDefaultsAreStable)
     EXPECT_EQ(static_cast<std::uint8_t>(proto::NakReason_UNSPECIFIED), 0);
     EXPECT_EQ(static_cast<std::uint8_t>(proto::ChatTarget_BROADCAST), 0);
     EXPECT_EQ(static_cast<std::uint8_t>(proto::SessionNoticeType_INFO), 0);
-    EXPECT_EQ(static_cast<std::uint8_t>(proto::SwitchPosition_NORMAL), 0);
-    EXPECT_EQ(static_cast<std::uint8_t>(proto::AlarmType_TRACK_OCCUPIED_UNEXPECTEDLY), 0);
+    EXPECT_EQ(static_cast<std::uint8_t>(proto::SwitchPosition_STRAIGHT), 0);
+    EXPECT_EQ(static_cast<std::uint8_t>(proto::Aspect_S1_STOP), 0);
 }

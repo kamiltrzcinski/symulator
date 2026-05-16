@@ -54,6 +54,7 @@ PRINT_ONLY_COMMANDS = {
             "libxkbcommon-dev",
             "libxkbcommon-x11-dev",
             "libegl1-mesa-dev",
+            "libasio-dev",
         ],
     ],
     "Darwin": [
@@ -70,6 +71,7 @@ PRINT_ONLY_COMMANDS = {
             "autoconf",
             "automake",
             "libtool",
+            "asio",
         ],
     ],
     "Windows": [

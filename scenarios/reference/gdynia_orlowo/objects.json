@@ -6,7 +6,7 @@
             "gID":                  "SEM-TRJ-GOr-Wp1",
             "pID":                  "Wp1",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "ENTRY",
             "governs_track_section": "OT-TRJ-GOr-tor1a",
             "initial_aspect":       "STOP"
@@ -15,7 +15,7 @@
             "gID":                  "SEM-TRJ-GOr-Wp2",
             "pID":                  "Wp2",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "ENTRY",
             "governs_track_section": "OT-TRJ-GOr-tor2a",
             "initial_aspect":       "STOP"
@@ -24,7 +24,7 @@
             "gID":                  "SEM-TRJ-GOr-Ww1",
             "pID":                  "Ww1",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GOr-tor1a",
             "initial_aspect":       "STOP"
@@ -33,7 +33,7 @@
             "gID":                  "SEM-TRJ-GOr-Ww2",
             "pID":                  "Ww2",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GOr-tor2a",
             "initial_aspect":       "STOP"
@@ -42,7 +42,7 @@
             "gID":                  "SEM-TRJ-GOr-Sp1",
             "pID":                  "Sp1",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GOr-tor1b",
             "initial_aspect":       "STOP"
@@ -51,7 +51,7 @@
             "gID":                  "SEM-TRJ-GOr-Sp2",
             "pID":                  "Sp2",
             "sID":                  "GOr",
-            "typeID":               "DVT-GLB-SEM-KSZTALTOWY-0000001",
+            "typeID":               "DVT-GLB-SEM-0000001",
             "type":                 "DEPARTURE",
             "governs_track_section": "OT-TRJ-GOr-tor2b",
             "initial_aspect":       "STOP"
@@ -60,7 +60,7 @@
 
     "posterunki": [
         {
-            "posterunek_id": "GOr_nastawnia",
+            "dispatch_area_id": "GOr_nastawnia",
             "display_name": "Gdynia Orłowo — Nastawnia",
             "station_sid": "GOr",
             "governs_switches": ["ZWR-TRJ-GOr-zwr1", "ZWR-TRJ-GOr-zwr2"],

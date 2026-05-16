@@ -109,8 +109,8 @@ table AlarmCleared {
 }
 
 // ── event_type 0x0C ──────────────────────────────────────────────────────────
-table PosterunekOwnershipChanged {
-    posterunek_id:     string (required);
+table DispatchAreaOwnershipChanged {
+    dispatch_area_id:  string (required);
     station_sid:       string (required);
     new_owner_client_id: string;   // null = released (no owner)
 }
@@ -138,4 +138,11 @@ enum TrainDecomposeReason : byte {
 table TrainDecomposed {
     train_g_id: string (required);
     reason:     TrainDecomposeReason;
+}
+
+// ── event_type 0x10 ────────────────────────────────────────────────────────────
+table BlockDirectionStateChanged {
+    g_id:          string (required);
+    new_direction: BlockDirectionState;
+    cause:         ChangeCause;
 }

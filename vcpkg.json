@@ -3,6 +3,7 @@
     "name": "symulator",
     "$comment-version": "Version is defined in CHANGELOG.md and read by CMakeLists.txt. Do not add a version field here — it is only needed for publishing to a vcpkg registry, which this project does not do.",
     "dependencies": [
+        "asio",
         "flatbuffers",
         "nlohmann-json",
         "gtest",

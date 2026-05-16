@@ -7,7 +7,7 @@
 
 // ── Operator command payloads ────────────────────────────────────────────────
 // Each struct carries the minimal information needed to describe the desired
-// state change.  Ownership (player_id / posterunek_id) and sequencing
+// state change.  Ownership (player_id / dispatch_area_id) and sequencing
 // (seq_id, priority, timestamp_us) are stored separately in CommandMeta and
 // never duplicated inside individual command structs.
 //
@@ -110,7 +110,7 @@ struct CommandMeta
     std::uint32_t seq_id = 0;
     CommandPriority priority = CommandPriority::NORMAL;
     PlayerID player_id;
-    DispatchAreaID posterunek_id;
+    DispatchAreaID dispatch_area_id;
     std::uint64_t timestamp_us = 0;
 };
 

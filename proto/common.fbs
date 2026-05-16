@@ -6,23 +6,32 @@
 
 namespace proto;
 
-/// Signal aspects as displayed on EbiScreen / technical diagram
+/// Signal aspects as displayed on EbiScreen / technical diagram.
+/// Values must match engine::core::SignalAspect (engine/include/engine/core/types.hpp).
 enum Aspect : byte {
-    STOP    = 0,  // Stój / S1 ≡ STOP
-    S1      = 1,  // Semafor: S1 (one white)
-    S2      = 2,  // Semafor: S2 (two whites, slow)
-    SH1     = 3,  // Manoeuvre allowed (shunt)
-    OFF     = 4,  // Signal extinguished / not in use
-    S3      = 5,  // Three whites (local use)
-    MS1     = 6,  // Malfunction / substitute S1
-    MS2     = 7,  // Malfunction / substitute S2
+    S1_STOP                    =  0,   // S1  — Stój
+    S2_PROCEED                 =  1,   // S2  — Jazda
+    S3_PROCEED_40              =  2,   // S3  — Jazda z prędkością 40 km/h
+    S4_PROCEED_40_EXPECT_STOP  =  3,   // S4  — Jazda 40, oczekuj Stój
+    S5_EXPECT_STOP             =  4,   // S5  — Oczekuj Stój (ostrzegawczy)
+    S6_PROCEED_100             =  5,   // S6  — Jazda 100 km/h
+    S7_PROCEED_100_EXPECT_STOP =  6,   // S7  — Jazda 100, oczekuj Stój
+    S8_PROCEED_100_EXPECT_40   =  7,   // S8  — Jazda 100, oczekuj 40
+    S9_PROCEED_100_EXPECT_60   =  8,   // S9  — Jazda 100, oczekuj 60
+    S10_PROCEED_40             =  9,   // S10 — Jazda 40 km/h
+    S11_PROCEED_40_EXPECT_40   = 10,   // S11 — Jazda 40, oczekuj 40
+    S12_PROCEED_60             = 11,   // S12 — Jazda 60 km/h
+    S13_PROCEED_60_EXPECT_60   = 12,   // S13 — Jazda 60, oczekuj 60
+    MS1_STOP                   = 13,   // Ms1 — Tarcza: stój (shunting stop)
+    MS2_SHUNTING_ALLOWED       = 14,   // Ms2 — Tarcza: jazda manewrowa
 }
 
-/// Switch (zwrotnica) position
+/// Switch (zwrotnica) position.
+/// Values must match engine::core::SwitchPosition (engine/include/engine/core/types.hpp).
 enum SwitchPosition : byte {
-    NORMAL  = 0,
-    REVERSE = 1,
-    MOVING  = 2,  // transition state
+    STRAIGHT  = 0,  // pozycja normalna (prosto)
+    DIVERGENT = 1,  // pozycja odwrócona (na boczny tor)
+    MOVING    = 2,  // stan przejściowy — nastawnica pracuje
 }
 
 /// Derailer (wykolejnica) position
@@ -35,6 +44,18 @@ enum DerailerPosition : byte {
 enum BlockSectionState : byte {
     OPEN   = 0,  // free to enter
     CLOSED = 1,  // blocked
+}
+
+/// SHL-12 block direction state.
+/// Values must match engine::core::BlockDirectionState (engine/include/engine/core/types.hpp).
+enum BlockDirectionState : byte {
+    NEUTRAL          = 0,  // Brak ustalonego kierunku
+    OUTBOUND_PENDING = 1,  // BLW wysłany; oczekiwanie na BLP sąsiada
+    OUTBOUND         = 2,  // Kierunek ustalony — ta stacja wyprawia pociągi
+    INBOUND_PENDING  = 3,  // BLW sąsiada odebrany; oczekiwanie na naszą odpowiedź BLP
+    INBOUND          = 4,  // Sąsiad wyprawia pociągi w naszym kierunku
+    EMERGENCY        = 5,  // Tryb awaryjny (BLAI)
+    RESET_PENDING    = 6,  // Kasowanie licznika osi w toku
 }
 
 /// Generic cause for a state change

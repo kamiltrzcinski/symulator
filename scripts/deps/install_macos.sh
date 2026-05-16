@@ -23,6 +23,7 @@ install_cmd=(
     autoconf
     automake
     libtool
+    asio
 )
 
 if [[ "${print_only}" == true ]]; then

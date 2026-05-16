@@ -72,7 +72,10 @@ set(SYMULATOR_PROTO_SCHEMAS
     "${SYMULATOR_PROTO_DIR}/voice.fbs"
 )
 
-set(SYMULATOR_PROTO_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/proto")
+# Generated FlatBuffers headers live in the source tree so they are committed,
+# reviewed in PRs, and available without running flatc on first checkout.
+# Re-run scripts/autogens/generate_proto_headers.sh after editing any .fbs file.
+set(SYMULATOR_PROTO_GENERATED_DIR "${CMAKE_SOURCE_DIR}/autogens/proto")
 set(SYMULATOR_PROTO_GENERATED_HEADERS
     "${SYMULATOR_PROTO_GENERATED_DIR}/common_generated.h"
     "${SYMULATOR_PROTO_GENERATED_DIR}/session_generated.h"
@@ -129,6 +132,21 @@ add_dependencies(symulator_proto generate_proto_headers)
 
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
+
+# asio: try vcpkg first, fall back to system libasio-dev or 3rdParty/asio
+find_package(asio CONFIG QUIET)
+if(NOT asio_FOUND)
+    find_path(ASIO_INCLUDE_DIR NAMES asio.hpp REQUIRED
+        PATHS
+            /usr/include
+            /usr/local/include
+            "${CMAKE_SOURCE_DIR}/3rdParty/asio/include")
+    add_library(asio::asio INTERFACE IMPORTED GLOBAL)
+    set_target_properties(asio::asio PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ASIO_INCLUDE_DIR}"
+        INTERFACE_COMPILE_DEFINITIONS "ASIO_STANDALONE")
+    message(STATUS "Found system standalone asio: ${ASIO_INCLUDE_DIR}")
+endif()
 
 # Qt is only required for client-side components; skip on a headless server build.
 option(BUILD_CLIENT    "Build operator client"  ON)

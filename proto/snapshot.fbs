@@ -39,8 +39,9 @@ table DerailerState {
 }
 
 table BlockSectionSnapshotState {
-    g_id:  string (required);
-    state: BlockSectionState;
+    g_id:            string (required);
+    state:           BlockSectionState;
+    block_direction: BlockDirectionState;
 }
 
 table RouteState {
@@ -57,8 +58,8 @@ table AlarmState {
     message:     string;
 }
 
-table PosterunekOwnership {
-    posterunek_id:   string (required);
+table DispatchAreaOwnership {
+    dispatch_area_id: string (required);
     station_sid:     string (required);
     owner_client_id: string;   // null = unassigned
 }
@@ -95,7 +96,7 @@ table Snapshot {
     block_sections:         [BlockSectionSnapshotState];
     active_routes:          [RouteState];
     active_alarms:          [AlarmState];
-    posterunek_assignments: [PosterunekOwnership];
+    dispatch_area_assignments: [DispatchAreaOwnership];
     trains:                 [TrainState];
 }
 

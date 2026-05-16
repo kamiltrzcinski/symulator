@@ -11,6 +11,30 @@ Entry format:
 
 ---
 
+## [0.3.19] — 2026-05-17
+
+### Added
+- `server/src/transport_gateway.cpp` / `server/include/server/transport_gateway.hpp` — Phase 5: TCP server with per-client async session state machine (HANDSHAKE → ACTIVE); handles snapshot chunking, command ingestion, heartbeat, and broadcast
+- `server/src/dispatch_bus.cpp` / `server/include/server/dispatch_bus.hpp` — Phase 6: bridges `EngineLoop::StateChangesCallback` to wire DOMAIN_EVENT frames broadcast to all ACTIVE clients
+- `tests/server/test_dispatch_bus.cpp` — unit tests for DispatchBus event serialisation (switches, signals, derailers, block sections, routes, alarms, block direction)
+
+### Changed
+- `proto/session.fbs` — renamed `PosterunekInfo` → `DispatchAreaInfo`, field `posterunek_id` → `dispatch_area_id`, vector `assigned_posterunki` → `assigned_dispatch_areas`; same rename in `SessionNotice`
+- `proto/ownership.fbs` — field `posterunek_id` → `dispatch_area_id` in `TakeoverRequest` / `TakeoverResponse`
+- `proto/events.fbs` — `PosterunekOwnershipChanged` → `DispatchAreaOwnershipChanged`; field `posterunek_id` → `dispatch_area_id`
+- `proto/snapshot.fbs` — `PosterunekOwnership` → `DispatchAreaOwnership`; fields and vector renamed accordingly
+- `engine/include/engine/core/command.hpp` — `CommandMeta::posterunek_id` → `CommandMeta::dispatch_area_id`
+- `server/include/server/ownership_guard.hpp` / `server/src/ownership_guard.cpp` — all parameter names `posterunek` → `dispatch_area`
+- `scenarios/reference/gdynia_orlowo/objects.json` — key `posterunek_id` → `dispatch_area_id`
+- `server/CMakeLists.txt` — added `transport_gateway.cpp`, `dispatch_bus.cpp`; links `asio::asio`
+- `CMakeLists.txt` (root) — asio `find_path` now also searches `3rdParty/asio/include/` for cross-platform fallback
+- `scripts/configure_ninja.py` — added `ensure_asio()`: auto-downloads standalone asio 1.28.1 headers to `3rdParty/asio/include/` when not found in system paths
+- `scripts/deps/install_linux.sh` — added `libasio-dev`
+- `scripts/deps/install_macos.sh` — added `asio` to brew install
+- `scripts/install_system_deps.py` — added `libasio-dev` (Linux) and `asio` (macOS) to print-only dependency lists
+
+---
+
 ## [0.3.18] — 2026-05-16
 
 ### Added

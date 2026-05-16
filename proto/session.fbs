@@ -13,11 +13,11 @@ include "common.fbs";
 
 namespace proto;
 
-/// Scope of objects (switches, signals) that belong to one posterunek (sub-post).
-table PosterunekInfo {
-    posterunek_id: string (required);   // e.g. "GGO_nastawnia_A"
-    station_sid:   string (required);   // e.g. "GGO"
-    display_name:  string;
+/// Scope of objects (switches, signals) that belong to one dispatch area (sub-post).
+table DispatchAreaInfo {
+    dispatch_area_id: string (required);   // e.g. "GGO_nastawnia_A"
+    station_sid:      string (required);   // e.g. "GGO"
+    display_name:     string;
 }
 
 /// C → S  (msg_type 0x01)
@@ -43,8 +43,8 @@ table HandshakeAck {
     /// Tick rate of the simulation engine in Hz (default: 20).
     server_tick_hz: uint32 = 20;
 
-    /// List of posterunki this client is authorised to command.
-    assigned_posterunki: [PosterunekInfo];
+    /// List of dispatch areas this client is authorised to command.
+    assigned_dispatch_areas: [DispatchAreaInfo];
 
     /// Current wall-clock time at session start, microseconds since Unix epoch.
     server_time_us: uint64;
@@ -94,7 +94,7 @@ table SessionNotice {
 
     /// Optional context IDs.
     station_sid: string;
-    posterunek_id: string;
+    dispatch_area_id: string;
 }
 
 root_type HandshakeAck;
