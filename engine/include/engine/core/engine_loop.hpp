@@ -1,8 +1,10 @@
 // engine/include/engine/core/engine_loop.hpp
-// 20 Hz ENGINE loop — command drain → interlocking → StateApplier → snapshot publish.
+// 20 Hz ENGINE loop — command drain → interlocking → StateApplier →
+//                     TrainFleet tick → snapshot publish.
 //
 // Usage:
 //   EngineLoop loop(state, control_system, command_queue, atomic_snapshot);
+//   loop.add_train(train_state, from_gid);   // before start()
 //   loop.start();
 //   // ... run scenario ...
 //   loop.stop();  // blocks until the ENGINE thread has exited
@@ -14,6 +16,7 @@
 #include "engine/core/engine_snapshot.hpp"
 #include "engine/core/engine_state.hpp"
 #include "engine/core/priority_command_queue.hpp"
+#include "engine/core/train_fleet.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -36,6 +39,10 @@ public:
     /// The callback receives the complete list for the tick in call order.
     using StateChangesCallback = std::function<void(const std::vector<DeviceStateChange>&)>;
 
+    /// Called on the ENGINE thread once per tick with all PipEvents produced by
+    /// TrainFleet (section crossings, occupancy changes).  nullptr = disabled.
+    using PipCallback = TrainFleet::PipCallback;
+
     /// @param state       Mutable world state (must outlive this object).
     /// @param control     Control-system implementation for this scenario.
     /// @param queue       Thread-safe command queue fed by CommandIngress.
@@ -43,15 +50,23 @@ public:
     /// @param nak_cb      Optional callback invoked on rejected commands.
     /// @param changes_cb  Optional callback invoked once per tick with all
     ///                    state changes produced during that tick.
+    /// @param pip_cb      Optional callback for PipEvents from TrainFleet.
     EngineLoop(EngineState& state, IControlSystem& control,
                PriorityCommandQueue<EnvelopedCommand>& queue, AtomicSnapshot& snapshot,
-               NakCallback nak_cb = nullptr, StateChangesCallback changes_cb = nullptr);
+               NakCallback nak_cb = nullptr, StateChangesCallback changes_cb = nullptr,
+               PipCallback pip_cb = nullptr);
 
     ~EngineLoop();
 
     // Non-copyable, non-movable (owns a thread).
     EngineLoop(const EngineLoop&) = delete;
     EngineLoop& operator=(const EngineLoop&) = delete;
+
+    /// Add a train to the fleet.  Must be called before start().
+    /// @param initial  Initial TrainSimState (use make_train_sim_state()).
+    /// @param from_gid GID of the section/node behind the train's current
+    ///                 section — determines which direction is "ahead".
+    void add_train(sim::TrainSimState initial, GID from_gid);
 
     /// Spawn the ENGINE thread and begin ticking.  No-op if already running.
     void start();
@@ -78,6 +93,9 @@ private:
     AtomicSnapshot& snapshot_;
     NakCallback nak_cb_;
     StateChangesCallback changes_cb_;
+    PipCallback pip_cb_;
+
+    TrainFleet train_fleet_;
 
     std::atomic<bool> running_{false};
     std::condition_variable_any cv_;

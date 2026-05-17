@@ -11,6 +11,19 @@ Entry format:
 
 ---
 
+## [0.4.0] — 2026-05-17
+
+### Added
+- `engine/include/engine/core/train_fleet.hpp` / `engine/src/train_fleet.cpp` — `TrainFleet`: container of active `TrainSim` instances; `add_train(TrainSimState, GID from_gid)` called before `EngineLoop::start()`; `tick_all(EngineState&, tick_num, PipCallback)` called on ENGINE thread: builds `DriverInput` from topology + signal state, calls `TrainSim::tick()`, applies `apply_track_section_occupancy` on crossing, emits `PipEvent`s
+- `EngineLoop::PipCallback` type alias; `add_train()` public method; `pip_cb` constructor parameter; `train_fleet_` member — ticked in `do_tick()` after `IControlSystem::on_tick()`, before snapshot publish
+- `SessionServer` wires a `pip_cb` that logs all `PipEvent`s to `std::cerr` (`[PIP] section=... station=... occ=... train=...`)
+
+### Changed
+- `engine/src/engine_loop.cpp` — `do_tick()` step order: cmd drain → `on_tick` → **TrainFleet tick** → `set_current_tick` → snapshot publish → `changes_cb`
+- `engine/CMakeLists.txt` — added `src/train_fleet.cpp` to the `engine` static library
+
+---
+
 ## [0.3.20] — 2026-05-17
 
 ### Added

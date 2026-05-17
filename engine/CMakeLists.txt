@@ -4,6 +4,7 @@ add_library(engine STATIC
     src/placeholder.cpp
     src/fleet_registry.cpp
     src/train_sim.cpp
+    src/train_fleet.cpp
     src/engine_state.cpp
     src/engine_snapshot.cpp
     src/control_system_registry.cpp

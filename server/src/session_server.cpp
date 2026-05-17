@@ -124,6 +124,7 @@ void SessionServer::start()
     // 5. Wire ENGINE callbacks.
     //    nak_cb   — called on ENGINE thread when a command fails interlocking.
     //    changes_cb — called on ENGINE thread once per tick with all state changes.
+    //    pip_cb   — called on ENGINE thread with PipEvents from TrainFleet.
     auto nak_cb = [this](const engine::core::EnvelopedCommand& cmd,
                          const engine::core::InterlockingViolation& violation)
     {
@@ -131,9 +132,24 @@ void SessionServer::start()
         gateway_->broadcast(make_nak_frame(cmd.meta.seq_id, violation));
     };
 
+    auto pip_cb = [](const std::vector<engine::core::PipEvent>& events)
+    {
+        for (const auto& ev : events)
+        {
+            std::cerr << "[PIP] section=" << ev.section_gid.value
+                      << " station=" << ev.station_sid.value << " occ="
+                      << (ev.occupancy == engine::core::TrackOccupancy::OCCUPIED ? "OCC" : "FREE");
+            if (ev.slot)
+                std::cerr << " train=" << ev.slot->number;
+            if (ev.lcs_boundary_crossing)
+                std::cerr << " [boundary]";
+            std::cerr << "\n";
+        }
+    };
+
     engine_loop_ = std::make_unique<engine::core::EngineLoop>(
         state_, *control_, cmd_queue_, snapshot_, std::move(nak_cb),
-        dispatch_bus_->make_engine_callback());
+        dispatch_bus_->make_engine_callback(), std::move(pip_cb));
 
     // 6. Start threads — IO first so the port is open before ENGINE begins ticking.
     gateway_->start(config_.port);

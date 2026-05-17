@@ -11,14 +11,20 @@ namespace engine::core
 
 EngineLoop::EngineLoop(EngineState& state, IControlSystem& control,
                        PriorityCommandQueue<EnvelopedCommand>& queue, AtomicSnapshot& snapshot,
-                       NakCallback nak_cb, StateChangesCallback changes_cb)
+                       NakCallback nak_cb, StateChangesCallback changes_cb, PipCallback pip_cb)
     : state_(state),
       control_(control),
       queue_(queue),
       snapshot_(snapshot),
       nak_cb_(std::move(nak_cb)),
-      changes_cb_(std::move(changes_cb))
+      changes_cb_(std::move(changes_cb)),
+      pip_cb_(std::move(pip_cb))
 {
+}
+
+void EngineLoop::add_train(sim::TrainSimState initial, GID from_gid)
+{
+    train_fleet_.add_train(std::move(initial), std::move(from_gid));
 }
 
 EngineLoop::~EngineLoop()
@@ -105,10 +111,14 @@ void EngineLoop::do_tick()
         tick_all_changes.insert(tick_all_changes.end(), tick_changes.begin(), tick_changes.end());
     }
 
-    // 3. Advance the logical tick counter.
+    // 3. Tick all active trains (physics + occupancy + PipEvents).
+    if (!train_fleet_.empty())
+        train_fleet_.tick_all(state_, next_tick_num, pip_cb_);
+
+    // 4. Advance the logical tick counter.
     state_.set_current_tick(next_tick_num);
 
-    // 4. Deep-copy the world state into a new immutable snapshot and publish it.
+    // 5. Deep-copy the world state into a new immutable snapshot and publish it.
     auto snap = std::make_shared<EngineSnapshot>();
     snap->session = state_.session_id();
     snap->tick = state_.current_tick();
@@ -122,7 +132,7 @@ void EngineLoop::do_tick()
     snap->alarms = state_.alarms();
     snapshot_.publish(std::move(snap));
 
-    // 5. Notify subscribers of all state changes from this tick.
+    // 6. Notify subscribers of all state changes from this tick.
     if (changes_cb_ && !tick_all_changes.empty())
         changes_cb_(tick_all_changes);
 }
