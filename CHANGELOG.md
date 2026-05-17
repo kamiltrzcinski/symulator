@@ -11,6 +11,17 @@ Entry format:
 
 ---
 
+## [0.3.20] — 2026-05-17
+
+### Added
+- `server/include/server/session_server.hpp` / `server/src/session_server.cpp` — `SessionServer`: composition root; owns all subsystems; `from_args(argc, argv)` parses CLI; `run()` blocks on SIGINT/SIGTERM, then stops; `start()` / `stop()` private
+- `server/src/main.cpp` — single-responsibility entry point: `SessionServer::from_args(argc, argv).run(); return 0;`
+
+### Changed
+- `server/CMakeLists.txt` — `symulator-server` compiles `session_server.cpp`; links `srk_ebilock` + `srk_ml8` for static-init `ControlSystemRegistry` self-registration
+
+---
+
 ## [0.3.19] — 2026-05-17
 
 ### Added
