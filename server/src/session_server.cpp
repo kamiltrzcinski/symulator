@@ -10,9 +10,6 @@
 #include <flatbuffers/flatbuffers.h>
 #include "commands_generated.h"
 
-// POSIX signal mask — block SIGINT/SIGTERM before threads are spawned so
-// they are delivered only to run() via sigwait().
-#include <pthread.h>
 #include <signal.h>
 
 #include <filesystem>
@@ -68,23 +65,21 @@ SessionServer SessionServer::from_args(int argc, char* argv[])
 
 void SessionServer::run()
 {
-    // Block SIGINT/SIGTERM before spawning any threads so no worker thread
-    // receives the signal unexpectedly.  sigwait() below is the single
-    // delivery point.
-    sigset_t sigset;
-    sigemptyset(&sigset);
-    sigaddset(&sigset, SIGINT);
-    sigaddset(&sigset, SIGTERM);
-    pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
-
     start();
 
-    int sig = 0;
-    sigwait(&sigset, &sig);
-    std::cout << "\n[server] Signal " << sig << " received, shutting down…\n";
+    // Cross-platform signal handling using asio::signal_set
+    asio::io_context sig_io;
+    asio::signal_set signals(sig_io, SIGINT, SIGTERM);
+    signals.async_wait([&](const std::error_code&, int sig)
+    {
+        std::cout << "\n[server] Signal " << sig << " received, shutting down…\n";
+        sig_io.stop();
+    });
+    sig_io.run();
 
     stop();
 }
+
 
 // ── Constructor / destructor ──────────────────────────────────────────────────
 
