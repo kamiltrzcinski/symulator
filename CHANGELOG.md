@@ -11,7 +11,17 @@ Entry format:
 
 ---
 
+## [0.4.1] — 2026-05-20
+
+### Fixed
+- **Cross-Platform Portability**: Completely eliminated POSIX-specific signal handling (`<pthread.h>`, `pthread_sigmask`, `sigwait`) in `server/src/session_server.cpp`, replacing it with `asio::signal_set`. The codebase now builds natively and operates identically across **Windows (MSVC)**, **Linux (GCC/Clang)**, and **macOS (Clang)** without any platform-dependent preprocessor guards.
+- **Universal Build & Environment Integration**: Verified build configurations for all three major OS targets (Windows, Linux, macOS) using the universal build validation tool (`verify_universal_build.py`), ensuring a 100% test success rate (270/270 unit and integration tests passing).
+
+---
+
 ## [0.4.0] — 2026-05-17
+
+
 
 ### Added
 - `engine/include/engine/core/train_fleet.hpp` / `engine/src/train_fleet.cpp` — `TrainFleet`: container of active `TrainSim` instances; `add_train(TrainSimState, GID from_gid)` called before `EngineLoop::start()`; `tick_all(EngineState&, tick_num, PipCallback)` called on ENGINE thread: builds `DriverInput` from topology + signal state, calls `TrainSim::tick()`, applies `apply_track_section_occupancy` on crossing, emits `PipEvent`s

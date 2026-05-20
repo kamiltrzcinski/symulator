@@ -45,3 +45,7 @@ docs/devlog.md
 
 # PKP proprietary documents — must not be published
 docs/instructions/
+
+# Compilation database
+compile_commands.json
+
