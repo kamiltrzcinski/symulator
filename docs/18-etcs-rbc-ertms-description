@@ -2,13 +2,13 @@
 
 ## Overview
 
-The ETCS/RBC Supervisory System is a centralized supervisory layer intended for operational control and monitoring of Radio Block Centre (`RBC`) areas operating within ERTMS/ETCS infrastructure.
+The ETCS/RBC Supervisory System is a centralized supervisory layer intended for operational control and monitoring of Radio Block Centre (RBC) areas operating within ERTMS/ETCS infrastructure.
 
 The system is responsible for:
 
 - supervision of RBC operational areas,
 - ETCS session management,
-- supervision of Movement Authority (`MA`) generation,
+- supervision of Movement Authority (MA) generation,
 - monitoring communication with onboard ETCS equipment,
 - supervision of interlocking interfaces,
 - handling alarms and operational events,
@@ -37,16 +37,16 @@ Objects within the ETCS/RBC supervisory layer follow standardized operational na
 
 | Object | Naming Convention |
 |---|---|
-| RBC | `rbc_X` |
-| RBC Area | `area_X` |
-| ETCS Session | `ses_X` |
-| Movement Authority | `ma_X` |
-| Balise Group | `bg_X` |
-| LEU | `leu_X` |
-| Communication Channel | `com_X` |
-| Operator Workstation | `ops_X` |
-| System Alarm | `alm_X` |
-| Text Message | `msg_X` |
+| RBC | rbc_X |
+| RBC Area | area_X |
+| ETCS Session | ses_X |
+| Movement Authority | ma_X |
+| Balise Group | bg_X |
+| LEU | leu_X |
+| Communication Channel | com_X |
+| Operator Workstation | ops_X |
+| System Alarm | alm_X |
+| Text Message | msg_X |
 
 ---
 
@@ -56,10 +56,10 @@ Each object is assigned a UID consisting of:
 
 | Field | Description |
 |---|---|
-| `gID` | global identifier |
-| `pID` | operational identifier |
-| `sID` | RBC area identifier |
-| `type` | object type |
+| gID | global identifier |
+| pID | operational identifier |
+| sID | RBC area identifier |
+| type | object type |
 
 ---
 
@@ -67,42 +67,32 @@ Each object is assigned a UID consisting of:
 
 RBC instances:
 
-```text
-rbc_<ID>
-```
+text rbc_<ID> 
 
 ETCS sessions:
 
-```text
-ses_<ID>
-```
+text ses_<ID> 
 
 Movement Authorities:
 
-```text
-ma_<ID>
-```
+text ma_<ID> 
 
 Text messages:
 
-```text
-msg_<ID>
-```
+text msg_<ID> 
 
 Alarms:
 
-```text
-alm_<ID>
-```
+text alm_<ID> 
 
 Other objects:
 
 | Object | Format |
 |---|---|
-| Balise Group | `bg_<ID>` |
-| LEU | `leu_<ID>` |
-| Communication Channel | `com_<ID>` |
-| Operator Workstation | `ops_<ID>` |
+| Balise Group | bg_<ID> |
+| LEU | leu_<ID> |
+| Communication Channel | com_<ID> |
+| Operator Workstation | ops_<ID> |
 
 ---
 
@@ -110,44 +100,24 @@ Other objects:
 
 Format:
 
-```text
-TYPE-AREA-pID-UUID
-```
+text TYPE-AREA-pID-UUID 
 
 Example:
 
-```text
-RBC-WARSAW-rbc_central-0000001
-```
+text RBC-WARSAW-rbc_central-0000001 
 
 | Field | Description |
 |---|---|
-| `TYPE` | object type |
-| `AREA` | supervision area |
-| `pID` | operational identifier |
-| `UUID` | globally unique identifier |
+| TYPE | object type |
+| AREA | supervision area |
+| pID | operational identifier |
+| UUID | globally unique identifier |
 
 ---
 
 # ID Generation Function
 
-```cpp
-string generateGID(string type, string area, string pID)
-{
-    string idNumber =
-        padLeft(to_string(globalCounter), 7, '0');
-
-    string gID =
-        type + "-" +
-        area + "-" +
-        pID + "-" +
-        idNumber;
-
-    globalCounter++;
-
-    return gID;
-}
-```
+cpp string generateGID(string type, string area, string pID) {     string idNumber =         padLeft(to_string(globalCounter), 7, '0');      string gID =         type + "-" +         area + "-" +         pID + "-" +         idNumber;      globalCounter++;      return gID; } 
 
 ---
 
@@ -172,17 +142,7 @@ The operational area may contain:
 - GSM-R communication endpoints,
 - diagnostic interfaces.
 
-```text
-+----------------------+
-|      RBC Area        |
-+----------------------+
-        |
-        +-- Interlocking
-        +-- GSM-R
-        +-- ETCS Sessions
-        +-- MA Generator
-        +-- Diagnostics
-```
+text +----------------------+ |      RBC Area        | +----------------------+         |         +-- Interlocking         +-- GSM-R         +-- ETCS Sessions         +-- MA Generator         +-- Diagnostics 
 
 ---
 
@@ -194,14 +154,14 @@ An ETCS session represents an active communication relation between onboard ETCS
 
 | Field | Type | Description |
 |---|---|---|
-| `sessionID` | string | session identifier |
-| `trainID` | string | train number |
-| `rbcID` | string | assigned RBC |
-| `status` | enum | session state |
-| `position` | object | last reported position |
-| `lastContact` | timestamp | timestamp of last valid communication |
-| `etcsLevel` | enum | active ETCS level |
-| `mode` | enum | train operating mode |
+| sessionID | string | session identifier |
+| trainID | string | train number |
+| rbcID | string | assigned RBC |
+| status | enum | session state |
+| position | object | last reported position |
+| lastContact | timestamp | timestamp of last valid communication |
+| etcsLevel | enum | active ETCS level |
+| mode | enum | train operating mode |
 
 ---
 
@@ -209,30 +169,21 @@ An ETCS session represents an active communication relation between onboard ETCS
 
 | State | Meaning |
 |---|---|
-| `IDLE` | inactive session |
-| `ESTABLISHING` | connection establishment |
-| `ACTIVE` | active session |
-| `SUSPENDED` | temporary communication loss |
-| `TERMINATED` | terminated session |
+| IDLE | inactive session |
+| ESTABLISHING | connection establishment |
+| ACTIVE | active session |
+| SUSPENDED | temporary communication loss |
+| TERMINATED | terminated session |
 
 ---
 
 # Movement Authority Model
 
-Movement Authority (`MA`) defines the movement limit authorized by the RBC for a supervised train.
+Movement Authority (MA) defines the movement limit authorized by the RBC for a supervised train.
 
 ## MA Structure
 
-```json
-{
-    "maID": "MA-WAR-000045",
-    "trainID": "IC3812",
-    "startLocation": "BG-1002",
-    "endLocation": "BG-1044",
-    "maxSpeedKmh": 160,
-    "validUntil": "2026-05-21T15:22:00Z"
-}
-```
+json {     "maID": "MA-WAR-000045",     "trainID": "IC3812",     "startLocation": "BG-1002",     "endLocation": "BG-1044",     "maxSpeedKmh": 160,     "validUntil": "2026-05-21T15:22:00Z" } 
 
 ---
 
@@ -242,25 +193,25 @@ The supervisory system allows issuing operational commands to RBC.
 
 | Command | Description |
 |---|---|
-| `REF` | refresh RBC data |
-| `PGA` | operator authorization takeover |
-| `EGA` | emergency authorization takeover |
-| `CS` | RBC consistency check |
-| `DIS` | restart RBC communication |
-| `PAR` | switch RBC to passive mode |
+| REF | refresh RBC data |
+| PGA | operator authorization takeover |
+| EGA | emergency authorization takeover |
+| CS | RBC consistency check |
+| DIS | restart RBC communication |
+| PAR | switch RBC to passive mode |
 
 ---
 
 # Command Confirmation
 
-After issuing a command, an entry appears in the command list in `Sent` state.
+After issuing a command, an entry appears in the command list in Sent state.
 
 ## Command Confirmation
 
 In case of successful execution:
 
 1. RBC confirms the command.
-2. Command state changes to `Confirmed`.
+2. Command state changes to Confirmed.
 3. After the configured timeout the entry is removed from the list.
 
 ## Command Rejection
@@ -268,7 +219,7 @@ In case of successful execution:
 In case of failure:
 
 1. RBC rejects the command.
-2. Command state changes to `Error`.
+2. Command state changes to Error.
 3. The operator should verify RBC status and interlocking communication.
 
 ---
@@ -283,7 +234,7 @@ After selecting the positioning function:
 - signals allowing positioning are highlighted,
 - the operator selects the signal corresponding to the approximate train position.
 
-After selecting the object, the operator issues the `Set Position` command.
+After selecting the object, the operator issues the Set Position command.
 
 The command is transmitted to RBC as a two-stage operation.
 
@@ -335,7 +286,7 @@ The command may only be issued for an active ETCS session.
 
 # Stop Cancellation
 
-The `Cancel Stop` command cancels a previously issued stop request.
+The Cancel Stop command cancels a previously issued stop request.
 
 Cancellation is possible only when:
 
@@ -361,7 +312,7 @@ Message content:
 |---|---|
 | Letters | A-Z |
 | Digits | 0-9 |
-| Special Characters | `. , : ; ? ! - /` |
+| Special Characters | . , : ; ? ! - / |
 
 After successful transmission, the message appears in the train message list.
 
@@ -371,10 +322,10 @@ After successful transmission, the message appears in the train message list.
 
 | Status | Meaning |
 |---|---|
-| `SENT` | message sent |
-| `DELIVERED` | message delivered |
-| `FAILED` | transmission failure |
-| `TIMEOUT` | confirmation timeout |
+| SENT | message sent |
+| DELIVERED | message delivered |
+| FAILED | transmission failure |
+| TIMEOUT | confirmation timeout |
 
 ---
 
