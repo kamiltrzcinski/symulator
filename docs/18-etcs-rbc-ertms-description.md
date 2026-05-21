@@ -1,38 +1,94 @@
+
 # ETCS/RBC Supervisory System Specification
 
 **Document:** 18  
 **Status:** Implemented  
-**Relates to:** [03-initial-architecture.md](03-initial-architecture.md), [09-communication-contract.md](09-communication-contract.md), [14-interlocking-model.md](14-interlocking-model.md), [17-control-system-interface.md](17-control-system-interface.md)
-
 ---
 
 ## Overview
 
 The **ETCS/RBC Supervisory System** is a centralized supervisory layer intended for operational control and monitoring of Radio Block Centre (`RBC`) areas operating within ERTMS/ETCS infrastructure.
 
+The system provides operator-facing supervision of RBC-controlled train movements, ETCS sessions, train position reports, Movement Authorities, alarms, diagnostic information, and safety-related commands.
+
 ### Key Responsibilities
 
 The system is responsible for the following core operations:
-* **Area Supervision:** Monitoring and control of RBC operational areas.
-* **Session Management:** Overseeing active ETCS sessions with onboard equipment.
-* **Movement Authorities:** Supervising Movement Authority (`MA`) generation and transmission.
-* **Interlocking Integration:** Managing interfaces with interlocking (SRK) systems.
-* **Train Positioning:** Tracking and supervising real-time train positions.
-* **Safety & Operations:** Handling alarms, executing operational RBC commands, sending text messages to trains, and managing operator authorization.
-* **Diagnostics:** Presenting DSAT (detector of railway vehicle defects) alarms and system diagnostic events.
+
+- **Area Supervision:** monitoring and control of RBC operational areas.
+- **Session Management:** overseeing active ETCS sessions with onboard equipment.
+- **Movement Authorities:** supervising Movement Authority (`MA`) generation, transmission, shortening, cancellation, and end-of-authority information.
+- **Interlocking Integration:** managing interfaces with interlocking (`SRK`) systems.
+- **Train Positioning:** tracking and supervising real-time and manually assigned train positions.
+- **Safety & Operations:** handling alarms, executing operational RBC commands, sending text messages to trains, and managing operator authorization.
+- **Diagnostics:** presenting DSAT alarms, RBC diagnostic events, communication states, and system status information.
+- **Visualization:** presenting train labels, ETCS mode symbols, RBC connection states, LCS linkage, TSR states, and operational train lists on the HMI.
 
 ### Cooperating Systems
 
 The supervisory layer actively cooperates with:
-* **RBC systems** (Radio Block Centres)
-* **Interlocking systems** (SRK)
-* **GSM-R infrastructure** (communication)
-* **TMS systems** (Traffic Management Systems)
-* **Operator workstations** (HMI/MMI)
-* **Diagnostic systems**
+
+- **RBC systems** — Radio Block Centres,
+- **Interlocking systems** — SRK,
+- **GSM-R infrastructure** — radio communication with onboard ETCS,
+- **TMS systems** — Traffic Management Systems,
+- **Operator workstations** — HMI/MMI,
+- **Diagnostic systems** — including DSAT and RBC technical diagnostics.
 
 > [!IMPORTANT]
-> Control of operational objects requires first obtaining control authority over the selected RBC area.
+> Control of operational objects requires first obtaining control authority over the selected RBC area.  
+> Without active authorization, safety-related commands remain unavailable or are rejected by the system.
+
+---
+
+## Graphical Interface Model
+
+The ETCS/RBC supervisory interface consists of a set of operator windows and panels used for train supervision, RBC diagnostics, command handling, and alarm/event presentation.
+
+### Main Interface Elements
+
+The HMI contains the following main elements:
+
+- station and line visualization view,
+- RBC / LCS connection status indicators,
+- train visualization and train labels,
+- active train list,
+- train management window,
+- TSR visualization and management area,
+- alarm window,
+- event window,
+- DSAT alarm window,
+- RBC authorization panel,
+- RBC command panel.
+
+### Station View
+
+The station view presents the railway layout and objects supervised by the RBC and interlocking systems.
+
+The view may include:
+
+- track sections,
+- switches,
+- signals,
+- train symbols,
+- train labels,
+- TSR indicators,
+- RBC connection indicators,
+- LCS linking indicators,
+- diagnostic status symbols.
+
+The station view is used both for passive observation and for selecting objects during operator procedures such as train positioning, TSR handling, or command execution.
+
+### RBC / LCS Linking
+
+The interface indicates whether the station view is connected to a defined RBC and whether the RBC is linked with the proper LCS.
+
+| State | Meaning |
+|---|---|
+| `LINKED` | RBC and LCS are connected and data exchange is active. |
+| `UNLINKED` | RBC or LCS is not connected to the current visualization context. |
+| `DEGRADED` | Communication exists, but not all data are consistent or available. |
+| `UNKNOWN` | State cannot be determined from current data. |
 
 ---
 
@@ -40,12 +96,12 @@ The supervisory layer actively cooperates with:
 
 To ensure consistency and safety, objects within the ETCS/RBC supervisory layer follow standardized operational naming conventions and unique identifier structures.
 
-### 1. Object Naming Conventions
+### Object Naming Conventions
 
-Operational identifiers (`pID`) follow standard naming prefixes depending on the object type:
+Operational identifiers (`pID`) follow standard naming prefixes depending on the object type.
 
 | Object | Naming Prefix | Example |
-| :--- | :--- | :--- |
+|---|---|---|
 | **RBC Instance** | `rbc_<ID>` | `rbc_central` |
 | **RBC Area** | `area_<ID>` | `area_X` |
 | **ETCS Session** | `ses_<ID>` | `ses_089` |
@@ -56,46 +112,39 @@ Operational identifiers (`pID`) follow standard naming prefixes depending on the
 | **Operator Workstation** | `ops_<ID>` | `ops_workstation_1` |
 | **System Alarm** | `alm_<ID>` | `alm_temp_high` |
 | **Text Message** | `msg_<ID>` | `msg_text_01` |
+| **TSR Object** | `tsr_<ID>` | `tsr_001` |
+| **Train Label** | `label_<ID>` | `label_123456` |
 
 ---
 
-### 2. UID Structure
+## UID Structure
 
-Each system object is assigned a structured Unique Identifier (UID) that consists of four main parts:
+Each system object is assigned a structured Unique Identifier (`UID`) that consists of four main parts:
 
 ```text
 gID = [TYPE]-[AREA]-[pID]-[UUID]
 ```
 
-* **`gID` (Global Identifier):** The fully qualified unique string representing the object across the entire system.
-* **`pID` (Operational Identifier):** The type-prefixed identifier as defined in the Object Naming Conventions table.
-* **`sID` (RBC Area Identifier):** The identifier representing the containing RBC area.
-* **`type` (Object Type):** The classification of the object (e.g., `RBC`, `SESSION`, `MA`).
-
-#### UID Field breakdown
-
 | Field | Description | Example |
-| :--- | :--- | :--- |
-| **`TYPE`** | Object class / type | `RBC` |
-| **`AREA`** | Supervision area name | `WARSAW` |
-| **`pID`** | Operational identifier | `rbc_central` |
-| **`UUID`** | Globally unique sequential ID (padded counter) | `0000001` |
+|---|---|---|
+| `TYPE` | object class / type | `RBC` |
+| `AREA` | supervision area name | `WARSAW` |
+| `pID` | operational identifier | `rbc_central` |
+| `UUID` | globally unique sequential ID | `0000001` |
 
-**Full `gID` Example:**  
-`RBC-WARSAW-rbc_central-0000001`
+Full `gID` example:
 
----
+```text
+RBC-WARSAW-rbc_central-0000001
+```
 
-### 3. ID Generation
-
-The system uses a standardized sequential generator function to construct `gID` strings dynamically:
+### ID Generation
 
 ```cpp
 #include <string>
 
 std::string generateGID(const std::string& type, const std::string& area, const std::string& pID)
 {
-    // padLeft format pads globalCounter to a 7-digit width
     std::string idNumber = padLeft(std::to_string(globalCounter), 7, '0');
 
     std::string gID = type + "-" +
@@ -114,12 +163,12 @@ std::string generateGID(const std::string& type, const std::string& area, const 
 
 ### RBC Operational Area
 
-An RBC area represents a logical supervision domain. It is responsible for the overall orchestration of track sections, safety boundaries, and train communication:
+An RBC area represents a logical supervision domain. It is responsible for the overall orchestration of track sections, safety boundaries, train communication, and movement authority generation.
 
 ```mermaid
 graph TD
     Area["RBC Area (Supervision Domain)"]
-    
+
     Area --> |Manages| Interlocking["Interlocking Systems (SRK)"]
     Area --> |Orchestrates| GSMR["GSM-R Communication Channels"]
     Area --> |Tracks| Sessions["Active ETCS Sessions"]
@@ -127,69 +176,155 @@ graph TD
     Area --> |Aggregates| Diag["Diagnostics & DSAT Alarms"]
 ```
 
-#### Area Scope & Contents
-* Controlled track sections and interlocking devices.
-* Active ETCS sessions.
-* Physical trackside hardware (Balise groups, LEUs).
-* GSM-R communication endpoints.
-* Diagnostic and maintenance interfaces.
+### Area Scope & Contents
+
+The operational area may contain:
+
+- controlled track sections,
+- interlocking devices,
+- active ETCS sessions,
+- train labels and position references,
+- balise groups,
+- LEU devices,
+- GSM-R communication endpoints,
+- diagnostic interfaces,
+- DSAT interfaces,
+- TSR objects,
+- RBC and LCS linking data.
 
 ---
 
 ## ETCS Session Model
 
-An **ETCS Session** represents an active communication relationship between the onboard ETCS computer (EVC) and the trackside Radio Block Centre (RBC).
+An **ETCS Session** represents an active communication relationship between the onboard ETCS computer (`EVC`) and the trackside Radio Block Centre (`RBC`).
 
-### 1. Session Structure
-
-Each session maintains the following operational state:
+### Session Structure
 
 | Field | Type | Description |
-| :--- | :--- | :--- |
+|---|---|---|
 | `sessionID` | `string` | Unique session identifier. |
-| `trainID` | `string` | Operational train number (e.g., `IC3812`). |
-| `rbcID` | `string` | The assigned RBC handling the session. |
-| `status` | `enum` | Active state of the connection (see table below). |
-| `position` | `object` | Last reported physical position (referenced to Balise Group). |
-| `lastContact` | `timestamp`| Time of the last received valid packet. |
-| `etcsLevel` | `enum` | Currently active ETCS Level (e.g., Level 2, Level 3). |
-| `mode` | `enum` | Train operating mode (e.g., FS, SR, OS, SH). |
+| `trainID` | `string` | Operational train number. |
+| `nidEngine` | `string` | ETCS onboard engine identifier. |
+| `rbcID` | `string` | Assigned RBC handling the session. |
+| `status` | `enum` | Active state of the connection. |
+| `position` | `object` | Last reported physical position, usually referenced to a balise group. |
+| `lastContact` | `timestamp` | Time of the last received valid packet. |
+| `etcsLevel` | `enum` | Currently active ETCS level. |
+| `mode` | `enum` | Train operating mode, such as FS, SR, OS, SH, NL. |
+| `maEnd` | `object` | End of current Movement Authority. |
+| `speedKmh` | `number` | Current train speed. |
+| `precedingSignal` | `string` | Signal preceding or related to current train position. |
+| `authorizationState` | `enum` | State of operator authorization for commands on this train. |
 
----
-
-### 2. Session State Machine
+### Session State Machine
 
 ```mermaid
 stateDiagram-v2
     [*] --> IDLE : Connection Request
     IDLE --> ESTABLISHING : Handshake initiated
-    ESTABLISHING --> ACTIVE : Handshake success (RBC & EVC sync)
-    ACTIVE --> SUSPENDED : Temporary GSM-R loss (> 5s)
+    ESTABLISHING --> ACTIVE : Handshake success
+    ACTIVE --> SUSPENDED : Temporary GSM-R loss
     SUSPENDED --> ACTIVE : GSM-R connection restored
-    SUSPENDED --> TERMINATED : Timeout exceeded (> 30s)
+    SUSPENDED --> TERMINATED : Timeout exceeded
     ACTIVE --> TERMINATED : Train deregistered / end of trip
     TERMINATED --> [*] : Session cleaned up
 ```
 
-#### State Definitions
+### State Definitions
 
 | State | Meaning | Description |
-| :--- | :--- | :--- |
-| **`IDLE`** | Inactive session | The session is registered in the database but no active connection exists. |
-| **`ESTABLISHING`**| Connection establishment | Connection handshake is ongoing. |
-| **`ACTIVE`** | Active session | Bi-directional communication is fully active; train is supervised. |
-| **`SUSPENDED`** | Temporary communication loss | GSM-R link is down, waiting for recovery. |
-| **`TERMINATED`** | Terminated session | Session is closed and resources are scheduled for cleanup. |
+|---|---|---|
+| `IDLE` | Inactive session | The session is registered but no active connection exists. |
+| `ESTABLISHING` | Connection establishment | Connection handshake is ongoing. |
+| `ACTIVE` | Active session | Bi-directional communication is active; train is supervised. |
+| `SUSPENDED` | Temporary communication loss | GSM-R link is down, waiting for recovery. |
+| `TERMINATED` | Terminated session | Session is closed and resources are scheduled for cleanup. |
+
+---
+
+## Train List Model
+
+The HMI provides a train list containing all trains currently known to the RBC supervisory system.
+
+### Train List Fields
+
+| Field | Description |
+|---|---|
+| `trainNumber` | Operational train number entered or received from external systems. |
+| `nidEngine` | ETCS onboard identifier. |
+| `etcsMode` | Current ETCS operating mode. |
+| `speedKmh` | Current train speed. |
+| `precedingSignal` | Signal associated with the train position. |
+| `maEnd` | Current end of Movement Authority. |
+| `positionStatus` | Current train position status. |
+| `requestStatus` | Current command/request status for the train. |
+
+### Train Details
+
+After selecting a train, the operator may view detailed data grouped into tabs or panels.
+
+Typical groups include:
+
+- dynamic train data,
+- static train data,
+- ETCS mode and level data,
+- current authorization state,
+- current Movement Authority,
+- preceding signal,
+- communication state,
+- received and sent text messages,
+- active requests and commands,
+- diagnostic events.
+
+---
+
+## Train Visualization
+
+### Train Symbol
+
+Trains are visualized on the station view using a graphical train symbol with direction, color, and additional state markings.
+
+The train symbol may indicate:
+
+- train direction,
+- train position,
+- active ETCS supervision,
+- communication state,
+- relation to RBC supervision,
+- invalid or uncertain position,
+- current operational state.
+
+### Train Label
+
+Each train may be represented by a label attached to the train symbol.
+
+The label may contain:
+
+- train number,
+- `NID_ENGINE`,
+- speed,
+- ETCS mode,
+- route or signal relation,
+- current RBC state,
+- operational warning marker.
+
+### Train Position State
+
+| State | Meaning |
+|---|---|
+| `VALID` | Train position is confirmed and reliable. |
+| `APPROXIMATE` | Train position is known approximately. |
+| `UNKNOWN` | Train position is unknown or unavailable. |
+| `INVALID` | Train position data are inconsistent or rejected. |
+| `LOST` | Train has lost reliable relation with RBC supervision. |
 
 ---
 
 ## Movement Authority (MA) Model
 
-The **Movement Authority (MA)** defines the distance and speed limits authorized by the RBC for a supervised train.
+The **Movement Authority (`MA`)** defines the distance and speed limits authorized by the RBC for a supervised train.
 
 ### MA Data Structure
-
-An MA payload is represented as a structured JSON object:
 
 ```json
 {
@@ -202,159 +337,347 @@ An MA payload is represented as a structured JSON object:
 }
 ```
 
+### MA Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> GENERATED : Interlocking route and RBC conditions valid
+    GENERATED --> TRANSMITTED : Sent to onboard ETCS
+    TRANSMITTED --> ACKNOWLEDGED : Train confirms reception
+    ACKNOWLEDGED --> ACTIVE : MA accepted and supervised
+    ACTIVE --> SHORTENED : Operational or safety restriction
+    ACTIVE --> CANCELLED : Operator or system cancellation
+    ACTIVE --> EXPIRED : Validity timeout reached
+    SHORTENED --> ACTIVE : Updated MA accepted
+    CANCELLED --> [*]
+    EXPIRED --> [*]
+```
+
+### MA Operational Notes
+
+Movement Authority generation depends on:
+
+- interlocking route status,
+- signal and route locking state,
+- track occupancy state,
+- RBC and EVC communication state,
+- train position validity,
+- temporary speed restrictions,
+- emergency stop state,
+- operator authorization when manual intervention is required.
+
 ---
 
 ## RBC Operational Commands
 
 Operators issue commands to control the state and behavior of the RBC supervisory layer.
 
-### 1. Available Commands
+### Available RBC Commands
 
 | Command | Name | Description |
-| :---: | :--- | :--- |
-| **`REF`** | Refresh | Refresh RBC data from the interlocking systems. |
-| **`PGA`** | Takeover Authority | Take over standard operator authorization for the selected area. |
-| **`EGA`** | Emergency Takeover | Emergency override to seize control authority. |
-| **`CS`** | Consistency Check | Perform a cross-system consistency check (RBC vs. Interlocking). |
-| **`DIS`** | Disconnect/Restart | Disconnect and restart communication channels for the selected RBC. |
-| **`PAR`** | Passive Mode | Force the RBC instance into passive/standby mode. |
+|---|---|---|
+| `REF` | Refresh | Refresh RBC data from the interlocking systems. |
+| `PGA` | Takeover Authority | Take over standard operator authorization for the selected area. |
+| `EGA` | Emergency Takeover | Emergency override to seize control authority. |
+| `CS` | Consistency Check | Perform a cross-system consistency check between RBC and interlocking. |
+| `DIS` | Disconnect / Restart | Disconnect and restart communication channels for the selected RBC. |
+| `PAR` | Passive Mode | Force the RBC instance into passive or standby mode. |
 
----
-
-### 2. Command Execution Lifecycle
+### Command Execution Lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> Sent : Operator issues command
-    Sent --> Confirmed : RBC confirms execution (Success)
-    Sent --> Error : RBC rejects command (Failure)
+    Sent --> Confirmed : RBC confirms execution
+    Sent --> Error : RBC rejects command
     Confirmed --> [*] : Entry auto-removed after timeout
     Error --> [*] : Operator acknowledges warning
 ```
 
-#### Command Confirmation (Success)
-1. RBC processes the command and returns a success payload.
-2. The command state on the HMI changes to **`Confirmed`**.
-3. After a configured timeout, the command entry is automatically cleaned up and removed from the active log.
+### Command Confirmation
 
-#### Command Rejection (Failure)
-1. RBC rejects the command or the communication times out.
-2. The command state changes to **`Error`**.
-3. A visual alert is raised. The operator must verify RBC status and interlocking connectivity before attempting further operations.
+In case of successful execution:
+
+1. RBC processes the command and returns a success payload.
+2. The command state on the HMI changes to `Confirmed`.
+3. After a configured timeout, the command entry is automatically removed from the active list.
+
+### Command Rejection
+
+In case of failure:
+
+1. RBC rejects the command or communication times out.
+2. The command state changes to `Error`.
+3. A visual alert is raised.
+4. The operator must verify RBC status and interlocking connectivity before attempting further operations.
+
+---
+
+## Operator Authorization Model
+
+To prevent unauthorized or conflicting commands, critical actions require the operator to hold **Control Authority** over the specific RBC operational area.
+
+### Authorization States
+
+| State | Meaning |
+|---|---|
+| `NONE` | Operator has no authority for the selected RBC area. |
+| `AVAILABLE` | Authority may be requested. |
+| `GRANTED` | Operator currently holds authority. |
+| `HELD_BY_OTHER` | Another operator workstation holds authority. |
+| `EMERGENCY_GRANTED` | Authority was obtained using emergency takeover. |
+| `RELEASE_PENDING` | Release of authority is in progress. |
+
+### Actions Requiring Active Authority
+
+The following operations require active authority:
+
+- Movement Authority cancellation,
+- Emergency Train Stop,
+- Stop Cancellation,
+- Train Deregistration,
+- Manual Train Positioning,
+- Maintenance/Test Mode Activation,
+- RBC Area Takeover,
+- RBC command execution,
+- TSR-related operational actions where they affect RBC-supervised movement.
+
+### Authorization Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> NONE
+    NONE --> AVAILABLE : RBC area selectable
+    AVAILABLE --> GRANTED : PGA accepted
+    AVAILABLE --> EMERGENCY_GRANTED : EGA accepted
+    GRANTED --> RELEASE_PENDING : Release requested
+    EMERGENCY_GRANTED --> RELEASE_PENDING : Release requested
+    RELEASE_PENDING --> NONE : Release confirmed
+    GRANTED --> HELD_BY_OTHER : Authority transferred
+```
 
 ---
 
 ## Train Operations
 
-### 1. Train Positioning
+### Train Positioning
 
 The positioning function allows the operator to set or override the approximate location of a train within an RBC operational area.
 
 #### Positioning Steps
+
 1. The operator selects the **Positioning** tool.
 2. The HMI dims the overall station view.
-3. The signals and balise groups that permit positioning are highlighted.
+3. Signals or allowed positioning objects are highlighted.
 4. The operator selects the physical trackside object corresponding to the approximate train position.
 5. The operator issues the **Set Position** command.
-6. The command is transmitted to the RBC as a **two-stage transaction** to prevent accidental inputs.
+6. The command is transmitted to the RBC as a two-stage transaction to prevent accidental inputs.
 
 #### Positioning Checklist
+
 > [!IMPORTANT]
 > Positioning can only be executed if all of the following conditions are met:
+>
 > - [ ] The operator holds active control authority for the area.
 > - [ ] An active ETCS session exists with the target train.
 > - [ ] Reliable communication with the RBC is established.
-> - [ ] The selected trackside signal belongs directly to the supervised area.
+> - [ ] The selected trackside signal or positioning object belongs directly to the supervised area.
 
----
-
-### 2. Train Deregistration
+### Train Deregistration
 
 The **Deregistration** command forcibly removes a train from the active trackside RBC system.
 
 > [!WARNING]
-> This is a safety-critical operation. Forcing deregistration will instantly terminate the ETCS session, clear RBC tracking data, and block any further Movement Authority (MA) generation.
+> This is a safety-critical operation. Forcing deregistration terminates the ETCS session, clears RBC tracking data, and blocks further Movement Authority generation for the affected train until a new valid session is established.
 
-#### Typical Use Cases
-* Permanent GSM-R communication loss.
-* Critical onboard ETCS equipment failure.
-* Abnormal ETCS session loss without proper handshake termination.
-* Manual recovery from system desynchronization.
+Typical use cases:
 
----
+- permanent GSM-R communication loss,
+- critical onboard ETCS equipment failure,
+- abnormal ETCS session loss without proper handshake termination,
+- manual recovery from system desynchronization.
 
-### 3. Emergency Train Stop
+### Emergency Train Stop
 
 The system supports a safety-critical **Train Stop** command.
 
-#### Execution Process
+Execution process:
+
 1. The operator issues the emergency stop.
-2. The RBC transmits an immediate **emergency stop profile / stop request** to the train.
-3. The current Movement Authority (MA) is instantly shortened to the train's current position.
+2. The RBC transmits an emergency stop profile or stop request to the train.
+3. The current Movement Authority may be shortened to the train's current position.
 4. The train enters supervised emergency braking mode.
 
 > [!IMPORTANT]
 > The Emergency Stop command can only be executed for trains with an active, established ETCS session.
 
-#### Stop Cancellation
-A previously issued stop request can be cancelled using the **Cancel Stop** command. This is only possible if:
-* The RBC still maintains active supervision over the train.
-* The ETCS session is healthy and active.
-* No emergency limits or final safety-trip states have been reached.
+### Stop Cancellation
+
+A previously issued stop request can be cancelled using the **Cancel Stop** command.
+
+Cancellation is only possible if:
+
+- the RBC still maintains active supervision over the train,
+- the ETCS session is healthy and active,
+- no emergency limits or final safety-trip states have been reached.
 
 ---
 
 ## Text Messages (TMS)
 
-Operators can send alphanumeric text messages to be displayed on the train's Driver-Machine Interface (DMI).
+Operators can send alphanumeric text messages to be displayed on the train Driver-Machine Interface (`DMI`).
 
-### 1. Formatting Constraints
-* **Length:** Up to 255 characters.
-* **Encoding:** Standard ETCS text format.
-* **Restrictions:** National diacritical characters (e.g. Polish letters like `ą, ć, ę, ł, ń, ó, ś, ź, ż`) are strictly forbidden.
+### Formatting Constraints
 
-### 2. Allowed Character Set
+| Parameter | Value |
+|---|---|
+| `length` | Up to 255 characters |
+| `encoding` | Standard ETCS text format |
+| `diacritics` | National diacritical characters are not allowed |
+
+Forbidden characters include Polish letters such as:
+
+```text
+ą ć ę ł ń ó ś ź ż
+```
+
+### Allowed Character Set
 
 | Category | Range |
-| :--- | :--- |
-| **Letters** | `A-Z`, `a-z` |
-| **Digits** | `0-9` |
-| **Special Characters**| `. , : ; ? ! - /` (including space) |
+|---|---|
+| Letters | `A-Z`, `a-z` |
+| Digits | `0-9` |
+| Special characters | `. , : ; ? ! - /` including space |
+
+### Message Status Log
+
+Messages dispatched to trains go through the following statuses.
+
+| Status | Meaning | Description |
+|---|---|---|
+| `SENT` | Message Sent | The message has been sent to the GSM-R gateway. |
+| `DELIVERED` | Message Delivered | The train EVC confirmed receipt and displayed the message. |
+| `FAILED` | Transmission Failure | The GSM-R gateway rejected the packet or transmission failed. |
+| `TIMEOUT` | Confirmation Timeout | No receipt confirmation was received within the maximum timeout window. |
 
 ---
 
-### 3. Message Status Log
+## TSR Visualization and Supervision
 
-Messages dispatched to trains go through the following statuses:
+The supervisory system may present Temporary Speed Restriction (`TSR`) information when the RBC area includes TSR handling.
 
-| Status | Meaning | Description |
-| :---: | :--- | :--- |
-| **`SENT`** | Message Sent | The message has been sent to the GSM-R gateway. |
-| **`DELIVERED`** | Message Delivered | The train EVC confirmed receipt and displayed the message. |
-| **`FAILED`** | Transmission Failure | The GSM-R gateway rejected the packet or transmission failed. |
-| **`TIMEOUT`** | Confirmation Timeout | No receipt confirmation was received within the maximum timeout window. |
+### TSR Data Presented on HMI
+
+The TSR visualization may contain:
+
+- TSR identifier,
+- TSR state,
+- affected track section or route,
+- validity time,
+- maximum permitted speed,
+- RBC relation,
+- confirmation state,
+- source of restriction.
+
+### TSR States
+
+| State | Meaning |
+|---|---|
+| `ACTIVE` | TSR is active and must be respected by RBC-supervised movements. |
+| `PENDING` | TSR is defined but not yet active or not yet confirmed. |
+| `CANCELLED` | TSR has been cancelled. |
+| `EXPIRED` | TSR validity period has ended. |
+| `UNKNOWN` | TSR state cannot be determined from available data. |
+
+### TSR Relation to RBC
+
+When TSR data affect an RBC-supervised route, the system shall provide this information to the RBC logic so that Movement Authority generation and speed profiles reflect the restriction.
 
 ---
 
 ## Alarms & Diagnostics
 
 The supervisory system aggregates diagnostic logs and alarm alerts from multiple distributed components:
-* Central RBC systems
-* Interlocking (SRK) systems
-* GSM-R infrastructure
-* DSAT (Defektoskopia Sygnalizacji i Aparatury Torowej) trackside sensors
-* Onboard ETCS equipment (via active sessions)
+
+- central RBC systems,
+- interlocking systems,
+- GSM-R infrastructure,
+- DSAT trackside sensors,
+- onboard ETCS equipment via active sessions,
+- operator workstation modules,
+- LCS and RBC communication modules.
 
 ### Severity Model
 
-Alarms are classified into four severity levels:
+Alarms are classified into four severity levels.
 
 | Severity | Color | Meaning |
-| :---: | :---: | :--- |
-| **`INFO`** | Blue | System information and non-critical status updates. |
-| **`WARNING`** | Yellow | Operational warnings (e.g., communication degradation, non-critical faults). |
-| **`CRITICAL`** | Orange | Safety-related conditions (e.g., interlocking route conflicts, sensor faults). |
-| **`EMERGENCY`**| Red | Immediate operator intervention required (e.g., unauthorized train movement). |
+|---|---|---|
+| `INFO` | Blue | System information and non-critical status updates. |
+| `WARNING` | Yellow | Operational warnings, such as communication degradation or non-critical faults. |
+| `CRITICAL` | Orange | Safety-related conditions, such as route conflicts or sensor faults. |
+| `EMERGENCY` | Red | Immediate operator intervention required. |
+
+### Alarm List
+
+The alarm list presents currently active alarms. The operator may filter, acknowledge, and inspect alarm details.
+
+Typical alarm fields include:
+
+| Field | Description |
+|---|---|
+| `time` | Alarm occurrence time. |
+| `source` | System or subsystem that generated the alarm. |
+| `category` | Alarm category. |
+| `severity` | Alarm severity level. |
+| `objectID` | Related object identifier. |
+| `description` | Human-readable alarm description. |
+| `operator` | Operator who acknowledged or handled the alarm. |
+| `status` | Active, acknowledged, cleared, or archived state. |
+
+### Event List
+
+The event list contains operational and diagnostic events registered by the supervisory system.
+
+Events may include:
+
+- command transmission,
+- command confirmation,
+- command rejection,
+- authorization changes,
+- train session changes,
+- RBC communication state changes,
+- TSR state changes,
+- DSAT diagnostic messages,
+- alarm creation and alarm clearing.
+
+---
+
+## DSAT Integration
+
+The supervisory system may display DSAT diagnostic states and alarms associated with trackside detection systems.
+
+### DSAT Presentation
+
+DSAT states may be presented using dedicated symbols or diagnostic panels.
+
+The system may display:
+
+- DSAT device identifier,
+- connection state,
+- alarm state,
+- diagnostic status,
+- related track section,
+- active or historical alarm messages.
+
+### DSAT States
+
+| State | Meaning |
+|---|---|
+| `NORMAL` | DSAT system is connected and no alarm is active. |
+| `ALARM` | DSAT detected a condition requiring operator attention. |
+| `FAILURE` | DSAT device or communication is faulty. |
+| `UNKNOWN` | DSAT state is unavailable. |
 
 ---
 
@@ -363,32 +686,97 @@ Alarms are classified into four severity levels:
 The system runs a low-latency heartbeat check to continuously monitor all interfaces.
 
 ### Supervision Scope
-* GSM-R link status.
-* RBC heartbeat signals.
-* Interlocking system links.
-* ETCS session keep-alive timers.
-* Raw transmission packet error rates.
+
+The following interfaces are supervised:
+
+- GSM-R link status,
+- RBC heartbeat signals,
+- interlocking system links,
+- ETCS session keep-alive timers,
+- raw transmission packet error rates,
+- LCS connection state,
+- DSAT communication state,
+- operator workstation connection state.
 
 ### Interface Timeouts
 
-If an interface fails to respond within the designated window, the system automatically triggers a connection-loss alert:
+If an interface fails to respond within the designated window, the system automatically triggers a connection-loss alert.
 
 | Interface Event | Timeout | Action Taken |
-| :--- | :---: | :--- |
-| **Interlocking Link Loss** | `3 s` | Raise CRITICAL alarm, lock route adjustments. |
-| **RBC Heartbeat Loss** | `5 s` | Raise EMERGENCY alarm, transition active sessions to SUSPENDED. |
-| **ETCS Session Timeout** | `30 s` | Terminate session, retract active Movement Authorities. |
+|---|---:|---|
+| Interlocking Link Loss | `3 s` | Raise CRITICAL alarm and lock route adjustments. |
+| RBC Heartbeat Loss | `5 s` | Raise EMERGENCY alarm and transition active sessions to SUSPENDED. |
+| ETCS Session Timeout | `30 s` | Terminate session and retract or invalidate active Movement Authorities. |
 
 ---
 
-## Operator Authorization Model
+## RBC State Model
 
-To prevent unauthorized or conflicting commands, critical actions require the operator to hold **Control Authority** over the specific RBC operational area.
+The RBC instance may operate in different states depending on communication, authorization, and operational availability.
 
-### Actions Requiring Active Authority
-* **Movement Authority (MA) Cancellation**
-* **Emergency Train Stop** and **Stop Cancellation**
-* **Train Deregistration**
-* **Manual Train Positioning**
-* **Maintenance/Test Mode Activation**
-* **RBC Area Takeover** (`PGA` and `EGA` commands)
+| State | Meaning |
+|---|---|
+| `ONLINE` | RBC is available and operational. |
+| `OFFLINE` | RBC is not available. |
+| `PASSIVE` | RBC is connected but does not actively supervise movements. |
+| `STANDBY` | RBC is ready but not currently primary. |
+| `DEGRADED` | RBC is operational with limitations. |
+| `MAINTENANCE` | RBC is reserved for technical or maintenance operations. |
+| `UNKNOWN` | RBC state cannot be determined. |
+
+### RBC State Transitions
+
+```mermaid
+stateDiagram-v2
+    [*] --> UNKNOWN
+    UNKNOWN --> ONLINE : Communication established
+    ONLINE --> DEGRADED : Partial subsystem failure
+    ONLINE --> PASSIVE : PAR command accepted
+    ONLINE --> OFFLINE : Communication lost
+    PASSIVE --> ONLINE : Active mode restored
+    DEGRADED --> ONLINE : Fault cleared
+    OFFLINE --> ONLINE : Reconnection successful
+```
+
+---
+
+## Safety Constraints
+
+The supervisory system must prevent unsafe or conflicting commands.
+
+### Command Safety Rules
+
+A command must be rejected when:
+
+- the target object is not found,
+- the operator does not hold proper authorization,
+- the train session is not active,
+- the RBC is offline or not linked to the supervised area,
+- the selected object does not belong to the supervised area,
+- the interlocking state is inconsistent,
+- communication with the RBC is lost,
+- the command is not supported by the current RBC state,
+- the command is incompatible with the current train mode,
+- an emergency state prevents command execution.
+
+### Rejection Model
+
+Rejected commands shall generate:
+
+- a command error state,
+- a diagnostic event,
+- an optional alarm if safety impact exists,
+- a human-readable rejection reason.
+
+---
+
+## Open Questions
+
+| ID | Question | Priority |
+|---|---|---|
+| Q-ETCS-1 | Integrate ETCS supervisory events into ENGINE tick loop. | High |
+| Q-ETCS-2 | Implement automatic MA shortening during degraded communication conditions. | Medium |
+| Q-ETCS-3 | Define multi-RBC session handover synchronization. | Medium |
+| Q-ETCS-4 | Extend DSAT alarm propagation to distributed diagnostics nodes. | Low |
+| Q-ETCS-5 | Define exact HMI symbol set for RBC, train labels, TSR states, and DSAT states. | Medium |
+| Q-ETCS-6 | Define final RBC command rejection reason-code mapping for communication contract. | High |
