@@ -15,7 +15,6 @@ Entry format:
 
 ### Added
 - **Documentation**: Added the comprehensive ETCS/RBC Supervisory System Specification (`docs/18-etcs-rbc-ertms-description.md`), fully formatted for GitHub rendering with detailed specifications of the RBC topology, ETCS session models, Movement Authority schemas, operational commands, train positioning/stop/deregistration protocols, and communication timeouts.
-- **Scenarios**: Added an inventory-only Gdynia Orlowo and Sopot reference (`scenarios/reference/gdynia_orlowo_sopot_inventory`) with explicitly listed signals, shunting signals, switches, and track sections using `GOr_*` / `Sp_*` object IDs.
 
 ### Changed
 - **Documentation**: Renamed the raw extensionless file `docs/18-etcs-rbc-ertms-description` to `.md` to ensure native GitHub Markdown rendering, and updated `docs/README.md` to index the new document.
