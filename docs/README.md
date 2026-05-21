@@ -22,6 +22,7 @@ This folder contains the agreed scope and implementation plan.
 - `15-dispatch-forms.md` - S-form exchange model (S2/S24/S25/S26 and related forms).
 - `16-implementation-skeleton.md` - implemented domain layer overview; remaining ENGINE integration and broadcast pipeline wiring.
 - `17-control-system-interface.md` - IControlSystem / IStateView / DeviceStateChange contract; ControlSystemRegistry; AtomicSnapshot; EbiLock X4 and ML8 SHL-12 implementations.
+- `18-etcs-rbc-ertms-description.md` - ETCS/RBC supervisory system specification (area, session, commands, text messages, communication supervision).
 - `devlog.md` - chronological implementation log and session decisions.
 ## Update rules
 
