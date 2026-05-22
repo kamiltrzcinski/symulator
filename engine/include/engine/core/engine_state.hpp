@@ -74,6 +74,8 @@ public:
     void apply_block_section_axle_count(const GID& gid, int axle_count);
     void apply_operator_command_state(const GID& gid, OperatorTargetKind target_kind,
                                       OperatorCommandCode code, bool active);
+    void apply_ml8_command_state(const GID& gid, OperatorTargetKind target_kind,
+                                 Ml8CommandCode code, bool active);
     void apply_axle_counter_reset(const GID& gid, OperatorTargetKind target_kind);
     void add_route(RouteState route);
     void remove_route(const GID& route_id);

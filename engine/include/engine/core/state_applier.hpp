@@ -81,6 +81,11 @@ struct StateApplier
         state.apply_operator_command_state(c.gid, c.target_kind, c.code, c.active);
     }
 
+    void operator()(const Ml8CommandStateChange& c)
+    {
+        state.apply_ml8_command_state(c.gid, c.target_kind, c.code, c.active);
+    }
+
     void operator()(const RouteAdded& c) { state.add_route(c.route); }
 
     void operator()(const RouteRemoved& c) { state.remove_route(c.route_id); }

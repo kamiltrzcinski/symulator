@@ -103,6 +103,10 @@ enum class OperatorTargetKind : std::uint8_t
     BLOCK_SECTION,
     AXLE_COUNTER_SYSTEM,
     STATION,
+    ROUTE,
+    LEVEL_CROSSING,
+    INTERLOCKING_COMPUTER,
+    POWER_SUPPLY,
 };
 
 enum class OperatorCommandCode : std::uint8_t
@@ -151,6 +155,36 @@ enum class OperatorCommandCode : std::uint8_t
     DKO,
     DKPI,
     DKP,
+    BPZ,
+    DPWI,
+    DPW,
+    BTW,
+    BTO,
+    BPO,
+    BKO,
+    PDZ,
+    PDO,
+    PZT,
+    PAZ,
+    PZO,
+    PDII,
+    PDI,
+    MRS,
+    ODS,
+    ZAL,
+    POC,
+    PZA,
+    PZAI,
+    PZW,
+    SSO,
+    SSS,
+    UPAI,
+    UPA,
+    UPAO,
+    UPN,
+    UPO,
+    ZSO,
+    ZSS,
 };
 
 struct OperatorCommandCmd
@@ -160,13 +194,95 @@ struct OperatorCommandCmd
     OperatorCommandCode code;
 };
 
+enum class Ml8CommandCode : std::uint8_t
+{
+    AK,
+    AZK,
+    BLZ,
+    BLZC,
+    DOP,
+    DOPS,
+    DPZ,
+    HMI,
+    KRA,
+    KSR,
+    LKA,
+    LOFF,
+    MAN,
+    NPU,
+    NPW,
+    NPZ,
+    OGI,
+    OP,
+    OPO,
+    OSTOP,
+    OTB,
+    OTE,
+    OTEYYY,
+    OTP,
+    OTPON,
+    OT,
+    OTZ,
+    OUZ,
+    OUZ_DR,
+    OUZ_DZ,
+    OUZ_JN,
+    OUZ_PJ,
+    OUZ_X,
+    OUZ_ZN,
+    OWBL,
+    OZCZ,
+    P,
+    POC,
+    POT,
+    PZK,
+    PPN,
+    PPZ,
+    PZ,
+    PZB,
+    PZS,
+    SPEC,
+    STJ,
+    STOJ,
+    STOP,
+    SZ,
+    NSZ,
+    WBL,
+    WPN,
+    WPZ,
+    WZ,
+    ZCZ,
+    ZDM,
+    ZDP,
+    ZEROLO,
+    ZI,
+    ZO,
+    ZPO,
+    ZW,
+    ZWBL,
+    Z,
+    Z_DR,
+    Z_DZ,
+    Z_JN,
+    Z_PJ,
+    Z_X,
+    Z_ZN,
+};
+
+struct Ml8CommandCmd
+{
+    GID target_gid;
+    OperatorTargetKind target_kind;
+    Ml8CommandCode code;
+};
+
 // ── Variant ──────────────────────────────────────────────────────────────────
 
 using Command =
     std::variant<SetSwitchPositionCmd, SetSignalAspectCmd, SetDerailerPositionCmd,
                  SetBlockSectionCmd, RequestRouteCmd, CancelRouteCmd, AcknowledgeAlarmCmd,
                  SetBlockDirectionCmd, InitAxleCounterResetCmd, ResetAxleCounterCmd,
-                 OperatorCommandCmd>;
+                 OperatorCommandCmd, Ml8CommandCmd>;
 
 // ── Envelope ─────────────────────────────────────────────────────────────────
 // Wraps a Command with the sequencing/identity metadata added by CommandIngress

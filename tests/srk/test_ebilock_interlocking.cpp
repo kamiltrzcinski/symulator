@@ -536,6 +536,40 @@ TEST(EbiLockOperatorCommands, BLWUsesGenericOperatorCommand)
     EXPECT_EQ(bdc->new_direction, BlockDirectionState::OUTBOUND_PENDING);
 }
 
+TEST(EbiLockOperatorCommands, BPZUsesGenericOperatorCommand)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+
+    Command cmd =
+        OperatorCommandCmd{BL1, OperatorTargetKind::BLOCK_SECTION, OperatorCommandCode::BPZ};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    ASSERT_GE(changes.size(), 2u);
+    auto* bdc = std::get_if<BlockDirectionChange>(&changes[1]);
+    ASSERT_NE(bdc, nullptr);
+    EXPECT_EQ(bdc->new_direction, BlockDirectionState::OUTBOUND_PENDING);
+}
+
+TEST(EbiLockOperatorCommands, LevelCrossingCommandAcceptedAsOperatorState)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state();
+
+    Command cmd = OperatorCommandCmd{GID{"MMZ_2148"}, OperatorTargetKind::LEVEL_CROSSING,
+                                     OperatorCommandCode::PDZ};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    ASSERT_EQ(changes.size(), 1u);
+    auto* op = std::get_if<OperatorCommandStateChange>(&changes[0]);
+    ASSERT_NE(op, nullptr);
+    EXPECT_EQ(op->gid.value, "MMZ_2148");
+    EXPECT_EQ(op->target_kind, OperatorTargetKind::LEVEL_CROSSING);
+    EXPECT_EQ(op->code, OperatorCommandCode::PDZ);
+}
+
 TEST(ControlSystemRegistry, EbiLockRegistered)
 {
     EXPECT_TRUE(engine::core::ControlSystemRegistry::instance().has(

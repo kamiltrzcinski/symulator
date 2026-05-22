@@ -95,6 +95,14 @@ struct OperatorCommandStateChange
     bool active = true;
 };
 
+struct Ml8CommandStateChange
+{
+    GID gid;
+    OperatorTargetKind target_kind;
+    Ml8CommandCode code;
+    bool active = true;
+};
+
 struct RouteAdded
 {
     RouteState route;
@@ -119,8 +127,8 @@ struct AlarmCleared
 using DeviceStateChange =
     std::variant<SignalAspectChange, SwitchPositionChange, SwitchLocked, SwitchUnlocked,
                  DerailerStateChange, BlockSectionStateChange, BlockDirectionChange,
-                 AxleCounterResetChange, OperatorCommandStateChange, RouteAdded, RouteRemoved,
-                 AlarmRaised, AlarmCleared>;
+                 AxleCounterResetChange, OperatorCommandStateChange, Ml8CommandStateChange,
+                 RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared>;
 
 // ── InterlockingViolation ────────────────────────────────────────────────────
 // Returned by check_command when the command is rejected.

@@ -6,6 +6,8 @@
 #include <engine/core/engine_state.hpp>
 #include <srk/ml8/ml8_system.hpp>
 
+#include <algorithm>
+
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
 namespace
@@ -14,6 +16,7 @@ namespace
 using namespace engine::core;
 
 static const GID BL1 = GID{"BL-SHL12-001"};
+static const GID SIG1 = GID{"SIG-ML8-A"};
 
 EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState::NEUTRAL,
                                   BlockSectionState state = BlockSectionState::CLOSED,
@@ -32,6 +35,23 @@ EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState:
     bs.state = state;
     bs.axle_count = axle_count;
     st.insert_block_section(bs);
+
+    return st;
+}
+
+EngineState make_state_with_signal()
+{
+    EngineState st;
+    st.set_session_id("TEST");
+    st.set_current_tick(1);
+
+    Signal sig;
+    sig.gid = SIG1;
+    sig.pid = "A";
+    sig.sid = SID{"TST"};
+    sig.type = Signal::Type::ENTRY;
+    sig.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sig);
 
     return st;
 }
@@ -349,6 +369,48 @@ TEST(Ml8Shl12_SLK, RejectsFromNonResetPending)
 }
 
 // ── Registry ──────────────────────────────────────────────────────────────────
+
+TEST(Ml8OperatorCommands, SupportsSeparateMl8CommandType)
+{
+    srk::ml8::Ml8System sys;
+    const auto types = sys.supported_command_types();
+    EXPECT_NE(std::find(types.begin(), types.end(), "Ml8CommandCmd"), types.end());
+}
+
+TEST(Ml8OperatorCommands, STOJStopsSignal)
+{
+    srk::ml8::Ml8System sys{0};
+    auto st = make_state_with_signal();
+    st.apply_signal_aspect(SIG1, SignalAspect::S2_PROCEED);
+
+    Command cmd = Ml8CommandCmd{SIG1, OperatorTargetKind::SIGNAL, Ml8CommandCode::STOJ};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    bool stopped = false;
+    for (const auto& change : changes)
+    {
+        if (const auto* sig = std::get_if<SignalAspectChange>(&change))
+            stopped = sig->gid == SIG1 && sig->new_aspect == SignalAspect::S1_STOP;
+    }
+    EXPECT_TRUE(stopped);
+}
+
+TEST(Ml8OperatorCommands, WBLRequestsBlockDirection)
+{
+    srk::ml8::Ml8System sys;
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+
+    Command cmd = Ml8CommandCmd{BL1, OperatorTargetKind::BLOCK_SECTION, Ml8CommandCode::WBL};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    ASSERT_GE(changes.size(), 2u);
+    auto* dir = std::get_if<BlockDirectionChange>(&changes[1]);
+    ASSERT_NE(dir, nullptr);
+    EXPECT_EQ(dir->new_direction, BlockDirectionState::OUTBOUND_PENDING);
+    EXPECT_TRUE(dir->requires_neighbor_confirmation);
+}
 
 TEST(ControlSystemRegistry, Ml8Registered)
 {

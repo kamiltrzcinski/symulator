@@ -24,6 +24,7 @@ constexpr uint8_t kSetBlockDirection = 0x08;
 constexpr uint8_t kInitAxleCounterReset = 0x09;
 constexpr uint8_t kResetAxleCounter = 0x0A;
 constexpr uint8_t kOperatorCommand = 0x20;
+constexpr uint8_t kMl8Command = 0x21;
 }  // namespace cmd
 
 // ── Proto → Engine enum conversions ──────────────────────────────────────────
@@ -75,6 +76,11 @@ static engine::core::OperatorTargetKind from_proto(proto::OperatorTargetKind kin
 static engine::core::OperatorCommandCode from_proto(proto::OperatorCommandCode code)
 {
     return static_cast<engine::core::OperatorCommandCode>(code);
+}
+
+static engine::core::Ml8CommandCode from_proto(proto::Ml8CommandCode code)
+{
+    return static_cast<engine::core::Ml8CommandCode>(code);
 }
 
 // ── parse_command ─────────────────────────────────────────────────────────────
@@ -202,6 +208,17 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             return OperatorCommandCmd{GID{msg->target_g_id()->str()},
                                       from_proto(msg->target_kind()),
                                       from_proto(msg->command_code())};
+        }
+
+        case cmd::kMl8Command:
+        {
+            if (!verifier.VerifyBuffer<proto::Ml8Command>())
+                return std::nullopt;
+            const auto* msg = flatbuffers::GetRoot<proto::Ml8Command>(fb_data);
+            if (!msg->target_g_id())
+                return std::nullopt;
+            return Ml8CommandCmd{GID{msg->target_g_id()->str()}, from_proto(msg->target_kind()),
+                                 from_proto(msg->command_code())};
         }
 
         default:

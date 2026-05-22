@@ -103,6 +103,42 @@ TEST(CommandIngress, OperatorCommand)
     EXPECT_EQ(cmd.code, OperatorCommandCode::BLW);
 }
 
+TEST(CommandIngress, OperatorCommand_LevelCrossing)
+{
+    flatbuffers::FlatBufferBuilder fbb;
+    auto gid = fbb.CreateString("MMZ_2148");
+    fbb.Finish(proto::CreateOperatorCommand(fbb, gid, proto::OperatorTargetKind_LEVEL_CROSSING,
+                                            proto::OperatorCommandCode_PDZ));
+
+    const auto payload = make_payload(0x20, fbb);
+    const auto result =
+        CommandIngress::parse_payload(payload.data(), static_cast<uint32_t>(payload.size()));
+    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(std::holds_alternative<OperatorCommandCmd>(*result));
+    const auto& cmd = std::get<OperatorCommandCmd>(*result);
+    EXPECT_EQ(cmd.target_gid.value, "MMZ_2148");
+    EXPECT_EQ(cmd.target_kind, OperatorTargetKind::LEVEL_CROSSING);
+    EXPECT_EQ(cmd.code, OperatorCommandCode::PDZ);
+}
+
+TEST(CommandIngress, Ml8Command)
+{
+    flatbuffers::FlatBufferBuilder fbb;
+    auto gid = fbb.CreateString("ML8_SIG_A");
+    fbb.Finish(proto::CreateMl8Command(fbb, gid, proto::OperatorTargetKind_SIGNAL,
+                                       proto::Ml8CommandCode_STOJ));
+
+    const auto payload = make_payload(0x21, fbb);
+    const auto result =
+        CommandIngress::parse_payload(payload.data(), static_cast<uint32_t>(payload.size()));
+    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(std::holds_alternative<Ml8CommandCmd>(*result));
+    const auto& cmd = std::get<Ml8CommandCmd>(*result);
+    EXPECT_EQ(cmd.target_gid.value, "ML8_SIG_A");
+    EXPECT_EQ(cmd.target_kind, OperatorTargetKind::SIGNAL);
+    EXPECT_EQ(cmd.code, Ml8CommandCode::STOJ);
+}
+
 TEST(CommandIngress, UnknownCmdType)
 {
     const std::vector<uint8_t> payload = {0xFF, 0x01, 0x02};

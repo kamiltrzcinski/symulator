@@ -357,6 +357,10 @@ static bool target_exists(const IStateView& state, const OperatorCommandCmd& cmd
             return state.find_block_section(cmd.target_gid) != nullptr;
         case OperatorTargetKind::AXLE_COUNTER_SYSTEM:
         case OperatorTargetKind::STATION:
+        case OperatorTargetKind::ROUTE:
+        case OperatorTargetKind::LEVEL_CROSSING:
+        case OperatorTargetKind::INTERLOCKING_COMPUTER:
+        case OperatorTargetKind::POWER_SUPPLY:
             return !cmd.target_gid.value.empty();
     }
     return false;
@@ -423,6 +427,10 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
         case OperatorCommandCode::ITO:
         case OperatorCommandCode::OST:
         case OperatorCommandCode::OZK:
+        case OperatorCommandCode::BTO:
+        case OperatorCommandCode::PDO:
+        case OperatorCommandCode::UPAO:
+        case OperatorCommandCode::ZSO:
             changes.push_back(
                 OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, false});
             break;
@@ -472,10 +480,19 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
             changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
             break;
         case OperatorCommandCode::BLW:
+        case OperatorCommandCode::BPZ:
             changes.push_back(BlockDirectionChange{cmd.target_gid,
                                                    BlockDirectionState::OUTBOUND_PENDING, true});
             break;
+        case OperatorCommandCode::BPO:
+        case OperatorCommandCode::BKO:
+        case OperatorCommandCode::BTW:
+        case OperatorCommandCode::POC:
+        case OperatorCommandCode::PZW:
+            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+            break;
         case OperatorCommandCode::BLP:
+        case OperatorCommandCode::POZ:
             if (const BlockSection* bs = state.find_block_section(cmd.target_gid))
             {
                 const auto direction = bs->direction == BlockDirectionState::INBOUND_PENDING
@@ -489,11 +506,13 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
         case OperatorCommandCode::BLZ:
         case OperatorCommandCode::BLA:
         case OperatorCommandCode::OPS:
+        case OperatorCommandCode::DPW:
             changes.push_back(
                 BlockDirectionChange{cmd.target_gid, BlockDirectionState::NEUTRAL, false});
             changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
             break;
         case OperatorCommandCode::BLAI:
+        case OperatorCommandCode::DPWI:
             changes.push_back(
                 BlockDirectionChange{cmd.target_gid, BlockDirectionState::EMERGENCY, false});
             break;

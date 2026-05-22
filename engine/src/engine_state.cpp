@@ -269,6 +269,10 @@ static void apply_operator_state(OperatorCommandRuntimeState& state, OperatorCom
         case OperatorCommandCode::DPOI:
         case OperatorCommandCode::DKOI:
         case OperatorCommandCode::DKPI:
+        case OperatorCommandCode::DPWI:
+        case OperatorCommandCode::PDII:
+        case OperatorCommandCode::PZAI:
+        case OperatorCommandCode::UPAI:
             state.special_initialized = active;
             break;
         case OperatorCommandCode::ZRK:
@@ -278,12 +282,19 @@ static void apply_operator_state(OperatorCommandRuntimeState& state, OperatorCom
         case OperatorCommandCode::DPO:
         case OperatorCommandCode::DKO:
         case OperatorCommandCode::DKP:
+        case OperatorCommandCode::DPW:
+        case OperatorCommandCode::PDI:
+        case OperatorCommandCode::PZA:
         case OperatorCommandCode::PZM:
             state.special_initialized = false;
             state.special_active = active;
             break;
         case OperatorCommandCode::OPS:
         case OperatorCommandCode::OZK:
+        case OperatorCommandCode::BTO:
+        case OperatorCommandCode::PDO:
+        case OperatorCommandCode::UPAO:
+        case OperatorCommandCode::ZSO:
             state.special_initialized = false;
             state.special_active = false;
             state.axle_reset_initialized = false;
@@ -295,6 +306,27 @@ static void apply_operator_state(OperatorCommandRuntimeState& state, OperatorCom
         case OperatorCommandCode::SLK:
             state.axle_reset_initialized = false;
             state.special_initialized = false;
+            break;
+        case OperatorCommandCode::BPO:
+        case OperatorCommandCode::BKO:
+        case OperatorCommandCode::BPZ:
+        case OperatorCommandCode::BTW:
+        case OperatorCommandCode::PDZ:
+        case OperatorCommandCode::PZT:
+        case OperatorCommandCode::PAZ:
+        case OperatorCommandCode::PZO:
+        case OperatorCommandCode::MRS:
+        case OperatorCommandCode::ODS:
+        case OperatorCommandCode::ZAL:
+        case OperatorCommandCode::POC:
+        case OperatorCommandCode::PZW:
+        case OperatorCommandCode::SSO:
+        case OperatorCommandCode::SSS:
+        case OperatorCommandCode::UPA:
+        case OperatorCommandCode::UPN:
+        case OperatorCommandCode::UPO:
+        case OperatorCommandCode::ZSS:
+            state.special_active = active;
             break;
         default:
             state.special_active = active;
@@ -309,6 +341,199 @@ void EngineState::apply_operator_command_state(const GID& gid, OperatorTargetKin
     {
         if (auto it = map.find(gid); it != map.end())
             apply_operator_state(it->second.operator_state, code, active);
+    };
+
+    switch (target_kind)
+    {
+        case OperatorTargetKind::SIGNAL:
+            apply_to_gid(signals_);
+            break;
+        case OperatorTargetKind::SWITCH:
+            apply_to_gid(switches_);
+            if (switches_.find(gid) == switches_.end())
+                apply_to_gid(derailers_);
+            break;
+        case OperatorTargetKind::DERAILER:
+            apply_to_gid(derailers_);
+            break;
+        case OperatorTargetKind::TRACK_SECTION:
+            apply_to_gid(track_sections_);
+            break;
+        case OperatorTargetKind::BLOCK_SECTION:
+            apply_to_gid(block_sections_);
+            break;
+        case OperatorTargetKind::ROUTE:
+        case OperatorTargetKind::LEVEL_CROSSING:
+        case OperatorTargetKind::INTERLOCKING_COMPUTER:
+        case OperatorTargetKind::POWER_SUPPLY:
+        case OperatorTargetKind::AXLE_COUNTER_SYSTEM:
+        case OperatorTargetKind::STATION:
+            break;
+        default:
+            break;
+    }
+}
+
+static std::string ml8_command_code_name(Ml8CommandCode code)
+{
+    switch (code)
+    {
+        case Ml8CommandCode::AK:
+            return "AK";
+        case Ml8CommandCode::AZK:
+            return "AZK";
+        case Ml8CommandCode::BLZ:
+            return "BLZ";
+        case Ml8CommandCode::BLZC:
+            return "BLZC";
+        case Ml8CommandCode::DOP:
+            return "DOP";
+        case Ml8CommandCode::DOPS:
+            return "DOPS";
+        case Ml8CommandCode::DPZ:
+            return "DPZ";
+        case Ml8CommandCode::HMI:
+            return "HMI";
+        case Ml8CommandCode::KRA:
+            return "KRA";
+        case Ml8CommandCode::KSR:
+            return "KSR";
+        case Ml8CommandCode::LKA:
+            return "LKA";
+        case Ml8CommandCode::LOFF:
+            return "LOFF";
+        case Ml8CommandCode::MAN:
+            return "MAN";
+        case Ml8CommandCode::NPU:
+            return "NPU";
+        case Ml8CommandCode::NPW:
+            return "NPW";
+        case Ml8CommandCode::NPZ:
+            return "NPZ";
+        case Ml8CommandCode::OGI:
+            return "OGI";
+        case Ml8CommandCode::OP:
+            return "OP";
+        case Ml8CommandCode::OPO:
+            return "OPO";
+        case Ml8CommandCode::OSTOP:
+            return "OSTOP";
+        case Ml8CommandCode::OTB:
+            return "OTB";
+        case Ml8CommandCode::OTE:
+            return "OTE";
+        case Ml8CommandCode::OTEYYY:
+            return "OTEYYY";
+        case Ml8CommandCode::OTP:
+            return "OTP";
+        case Ml8CommandCode::OTPON:
+            return "OTPON";
+        case Ml8CommandCode::OT:
+            return "OT";
+        case Ml8CommandCode::OTZ:
+            return "OTZ";
+        case Ml8CommandCode::OUZ:
+            return "OUZ";
+        case Ml8CommandCode::OUZ_DR:
+            return "OUZ_DR";
+        case Ml8CommandCode::OUZ_DZ:
+            return "OUZ_DZ";
+        case Ml8CommandCode::OUZ_JN:
+            return "OUZ_JN";
+        case Ml8CommandCode::OUZ_PJ:
+            return "OUZ_PJ";
+        case Ml8CommandCode::OUZ_X:
+            return "OUZ_X";
+        case Ml8CommandCode::OUZ_ZN:
+            return "OUZ_ZN";
+        case Ml8CommandCode::OWBL:
+            return "OWBL";
+        case Ml8CommandCode::OZCZ:
+            return "OZCZ";
+        case Ml8CommandCode::P:
+            return "P";
+        case Ml8CommandCode::POC:
+            return "POC";
+        case Ml8CommandCode::POT:
+            return "POT";
+        case Ml8CommandCode::PZK:
+            return "PZK";
+        case Ml8CommandCode::PPN:
+            return "PPN";
+        case Ml8CommandCode::PPZ:
+            return "PPZ";
+        case Ml8CommandCode::PZ:
+            return "PZ";
+        case Ml8CommandCode::PZB:
+            return "PZB";
+        case Ml8CommandCode::PZS:
+            return "PZS";
+        case Ml8CommandCode::SPEC:
+            return "SPEC";
+        case Ml8CommandCode::STJ:
+            return "STJ";
+        case Ml8CommandCode::STOJ:
+            return "STOJ";
+        case Ml8CommandCode::STOP:
+            return "STOP";
+        case Ml8CommandCode::SZ:
+            return "SZ";
+        case Ml8CommandCode::NSZ:
+            return "NSZ";
+        case Ml8CommandCode::WBL:
+            return "WBL";
+        case Ml8CommandCode::WPN:
+            return "WPN";
+        case Ml8CommandCode::WPZ:
+            return "WPZ";
+        case Ml8CommandCode::WZ:
+            return "WZ";
+        case Ml8CommandCode::ZCZ:
+            return "ZCZ";
+        case Ml8CommandCode::ZDM:
+            return "ZDM";
+        case Ml8CommandCode::ZDP:
+            return "ZDP";
+        case Ml8CommandCode::ZEROLO:
+            return "ZEROLO";
+        case Ml8CommandCode::ZI:
+            return "ZI";
+        case Ml8CommandCode::ZO:
+            return "ZO";
+        case Ml8CommandCode::ZPO:
+            return "ZPO";
+        case Ml8CommandCode::ZW:
+            return "ZW";
+        case Ml8CommandCode::ZWBL:
+            return "ZWBL";
+        case Ml8CommandCode::Z:
+            return "Z";
+        case Ml8CommandCode::Z_DR:
+            return "Z_DR";
+        case Ml8CommandCode::Z_DZ:
+            return "Z_DZ";
+        case Ml8CommandCode::Z_JN:
+            return "Z_JN";
+        case Ml8CommandCode::Z_PJ:
+            return "Z_PJ";
+        case Ml8CommandCode::Z_X:
+            return "Z_X";
+        case Ml8CommandCode::Z_ZN:
+            return "Z_ZN";
+    }
+    return {};
+}
+
+void EngineState::apply_ml8_command_state(const GID& gid, OperatorTargetKind target_kind,
+                                          Ml8CommandCode code, bool active)
+{
+    auto apply_to_gid = [&](auto& map)
+    {
+        if (auto it = map.find(gid); it != map.end())
+        {
+            it->second.operator_state.ml8_command_active = active;
+            it->second.operator_state.last_ml8_command_code = ml8_command_code_name(code);
+        }
     };
 
     switch (target_kind)

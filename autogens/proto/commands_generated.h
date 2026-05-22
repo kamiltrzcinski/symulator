@@ -61,6 +61,10 @@ struct OperatorCommand;
 struct OperatorCommandBuilder;
 struct OperatorCommandT;
 
+struct Ml8Command;
+struct Ml8CommandBuilder;
+struct Ml8CommandT;
+
 struct CommandAck;
 struct CommandAckBuilder;
 struct CommandAckT;
@@ -124,11 +128,15 @@ enum OperatorTargetKind : int8_t {
   OperatorTargetKind_BLOCK_SECTION = 4,
   OperatorTargetKind_AXLE_COUNTER_SYSTEM = 5,
   OperatorTargetKind_STATION = 6,
+  OperatorTargetKind_ROUTE = 7,
+  OperatorTargetKind_LEVEL_CROSSING = 8,
+  OperatorTargetKind_INTERLOCKING_COMPUTER = 9,
+  OperatorTargetKind_POWER_SUPPLY = 10,
   OperatorTargetKind_MIN = OperatorTargetKind_SIGNAL,
-  OperatorTargetKind_MAX = OperatorTargetKind_STATION
+  OperatorTargetKind_MAX = OperatorTargetKind_POWER_SUPPLY
 };
 
-inline const OperatorTargetKind (&EnumValuesOperatorTargetKind())[7] {
+inline const OperatorTargetKind (&EnumValuesOperatorTargetKind())[11] {
   static const OperatorTargetKind values[] = {
     OperatorTargetKind_SIGNAL,
     OperatorTargetKind_SWITCH,
@@ -136,13 +144,17 @@ inline const OperatorTargetKind (&EnumValuesOperatorTargetKind())[7] {
     OperatorTargetKind_TRACK_SECTION,
     OperatorTargetKind_BLOCK_SECTION,
     OperatorTargetKind_AXLE_COUNTER_SYSTEM,
-    OperatorTargetKind_STATION
+    OperatorTargetKind_STATION,
+    OperatorTargetKind_ROUTE,
+    OperatorTargetKind_LEVEL_CROSSING,
+    OperatorTargetKind_INTERLOCKING_COMPUTER,
+    OperatorTargetKind_POWER_SUPPLY
   };
   return values;
 }
 
 inline const char * const *EnumNamesOperatorTargetKind() {
-  static const char * const names[8] = {
+  static const char * const names[12] = {
     "SIGNAL",
     "SWITCH",
     "DERAILER",
@@ -150,13 +162,17 @@ inline const char * const *EnumNamesOperatorTargetKind() {
     "BLOCK_SECTION",
     "AXLE_COUNTER_SYSTEM",
     "STATION",
+    "ROUTE",
+    "LEVEL_CROSSING",
+    "INTERLOCKING_COMPUTER",
+    "POWER_SUPPLY",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameOperatorTargetKind(OperatorTargetKind e) {
-  if (::flatbuffers::IsOutRange(e, OperatorTargetKind_SIGNAL, OperatorTargetKind_STATION)) return "";
+  if (::flatbuffers::IsOutRange(e, OperatorTargetKind_SIGNAL, OperatorTargetKind_POWER_SUPPLY)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesOperatorTargetKind()[index];
 }
@@ -206,11 +222,41 @@ enum OperatorCommandCode : int8_t {
   OperatorCommandCode_DKO = 41,
   OperatorCommandCode_DKPI = 42,
   OperatorCommandCode_DKP = 43,
+  OperatorCommandCode_BPZ = 44,
+  OperatorCommandCode_DPWI = 45,
+  OperatorCommandCode_DPW = 46,
+  OperatorCommandCode_BTW = 47,
+  OperatorCommandCode_BTO = 48,
+  OperatorCommandCode_BPO = 49,
+  OperatorCommandCode_BKO = 50,
+  OperatorCommandCode_PDZ = 51,
+  OperatorCommandCode_PDO = 52,
+  OperatorCommandCode_PZT = 53,
+  OperatorCommandCode_PAZ = 54,
+  OperatorCommandCode_PZO = 55,
+  OperatorCommandCode_PDII = 56,
+  OperatorCommandCode_PDI = 57,
+  OperatorCommandCode_MRS = 58,
+  OperatorCommandCode_ODS = 59,
+  OperatorCommandCode_ZAL = 60,
+  OperatorCommandCode_POC = 61,
+  OperatorCommandCode_PZA = 62,
+  OperatorCommandCode_PZAI = 63,
+  OperatorCommandCode_PZW = 64,
+  OperatorCommandCode_SSO = 65,
+  OperatorCommandCode_SSS = 66,
+  OperatorCommandCode_UPAI = 67,
+  OperatorCommandCode_UPA = 68,
+  OperatorCommandCode_UPAO = 69,
+  OperatorCommandCode_UPN = 70,
+  OperatorCommandCode_UPO = 71,
+  OperatorCommandCode_ZSO = 72,
+  OperatorCommandCode_ZSS = 73,
   OperatorCommandCode_MIN = OperatorCommandCode_SES,
-  OperatorCommandCode_MAX = OperatorCommandCode_DKP
+  OperatorCommandCode_MAX = OperatorCommandCode_ZSS
 };
 
-inline const OperatorCommandCode (&EnumValuesOperatorCommandCode())[44] {
+inline const OperatorCommandCode (&EnumValuesOperatorCommandCode())[74] {
   static const OperatorCommandCode values[] = {
     OperatorCommandCode_SES,
     OperatorCommandCode_SEO,
@@ -255,13 +301,43 @@ inline const OperatorCommandCode (&EnumValuesOperatorCommandCode())[44] {
     OperatorCommandCode_DKOI,
     OperatorCommandCode_DKO,
     OperatorCommandCode_DKPI,
-    OperatorCommandCode_DKP
+    OperatorCommandCode_DKP,
+    OperatorCommandCode_BPZ,
+    OperatorCommandCode_DPWI,
+    OperatorCommandCode_DPW,
+    OperatorCommandCode_BTW,
+    OperatorCommandCode_BTO,
+    OperatorCommandCode_BPO,
+    OperatorCommandCode_BKO,
+    OperatorCommandCode_PDZ,
+    OperatorCommandCode_PDO,
+    OperatorCommandCode_PZT,
+    OperatorCommandCode_PAZ,
+    OperatorCommandCode_PZO,
+    OperatorCommandCode_PDII,
+    OperatorCommandCode_PDI,
+    OperatorCommandCode_MRS,
+    OperatorCommandCode_ODS,
+    OperatorCommandCode_ZAL,
+    OperatorCommandCode_POC,
+    OperatorCommandCode_PZA,
+    OperatorCommandCode_PZAI,
+    OperatorCommandCode_PZW,
+    OperatorCommandCode_SSO,
+    OperatorCommandCode_SSS,
+    OperatorCommandCode_UPAI,
+    OperatorCommandCode_UPA,
+    OperatorCommandCode_UPAO,
+    OperatorCommandCode_UPN,
+    OperatorCommandCode_UPO,
+    OperatorCommandCode_ZSO,
+    OperatorCommandCode_ZSS
   };
   return values;
 }
 
 inline const char * const *EnumNamesOperatorCommandCode() {
-  static const char * const names[45] = {
+  static const char * const names[75] = {
     "SES",
     "SEO",
     "SZI",
@@ -306,15 +382,282 @@ inline const char * const *EnumNamesOperatorCommandCode() {
     "DKO",
     "DKPI",
     "DKP",
+    "BPZ",
+    "DPWI",
+    "DPW",
+    "BTW",
+    "BTO",
+    "BPO",
+    "BKO",
+    "PDZ",
+    "PDO",
+    "PZT",
+    "PAZ",
+    "PZO",
+    "PDII",
+    "PDI",
+    "MRS",
+    "ODS",
+    "ZAL",
+    "POC",
+    "PZA",
+    "PZAI",
+    "PZW",
+    "SSO",
+    "SSS",
+    "UPAI",
+    "UPA",
+    "UPAO",
+    "UPN",
+    "UPO",
+    "ZSO",
+    "ZSS",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameOperatorCommandCode(OperatorCommandCode e) {
-  if (::flatbuffers::IsOutRange(e, OperatorCommandCode_SES, OperatorCommandCode_DKP)) return "";
+  if (::flatbuffers::IsOutRange(e, OperatorCommandCode_SES, OperatorCommandCode_ZSS)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesOperatorCommandCode()[index];
+}
+
+enum Ml8CommandCode : int8_t {
+  Ml8CommandCode_AK = 0,
+  Ml8CommandCode_AZK = 1,
+  Ml8CommandCode_BLZ = 2,
+  Ml8CommandCode_BLZC = 3,
+  Ml8CommandCode_DOP = 4,
+  Ml8CommandCode_DOPS = 5,
+  Ml8CommandCode_DPZ = 6,
+  Ml8CommandCode_HMI = 7,
+  Ml8CommandCode_KRA = 8,
+  Ml8CommandCode_KSR = 9,
+  Ml8CommandCode_LKA = 10,
+  Ml8CommandCode_LOFF = 11,
+  Ml8CommandCode_MAN = 12,
+  Ml8CommandCode_NPU = 13,
+  Ml8CommandCode_NPW = 14,
+  Ml8CommandCode_NPZ = 15,
+  Ml8CommandCode_OGI = 16,
+  Ml8CommandCode_OP = 17,
+  Ml8CommandCode_OPO = 18,
+  Ml8CommandCode_OSTOP = 19,
+  Ml8CommandCode_OTB = 20,
+  Ml8CommandCode_OTE = 21,
+  Ml8CommandCode_OTEYYY = 22,
+  Ml8CommandCode_OTP = 23,
+  Ml8CommandCode_OTPON = 24,
+  Ml8CommandCode_OT = 25,
+  Ml8CommandCode_OTZ = 26,
+  Ml8CommandCode_OUZ = 27,
+  Ml8CommandCode_OUZ_DR = 28,
+  Ml8CommandCode_OUZ_DZ = 29,
+  Ml8CommandCode_OUZ_JN = 30,
+  Ml8CommandCode_OUZ_PJ = 31,
+  Ml8CommandCode_OUZ_X = 32,
+  Ml8CommandCode_OUZ_ZN = 33,
+  Ml8CommandCode_OWBL = 34,
+  Ml8CommandCode_OZCZ = 35,
+  Ml8CommandCode_P = 36,
+  Ml8CommandCode_POC = 37,
+  Ml8CommandCode_POT = 38,
+  Ml8CommandCode_PZK = 39,
+  Ml8CommandCode_PPN = 40,
+  Ml8CommandCode_PPZ = 41,
+  Ml8CommandCode_PZ = 42,
+  Ml8CommandCode_PZB = 43,
+  Ml8CommandCode_PZS = 44,
+  Ml8CommandCode_SPEC = 45,
+  Ml8CommandCode_STJ = 46,
+  Ml8CommandCode_STOJ = 47,
+  Ml8CommandCode_STOP = 48,
+  Ml8CommandCode_SZ = 49,
+  Ml8CommandCode_NSZ = 50,
+  Ml8CommandCode_WBL = 51,
+  Ml8CommandCode_WPN = 52,
+  Ml8CommandCode_WPZ = 53,
+  Ml8CommandCode_WZ = 54,
+  Ml8CommandCode_ZCZ = 55,
+  Ml8CommandCode_ZDM = 56,
+  Ml8CommandCode_ZDP = 57,
+  Ml8CommandCode_ZEROLO = 58,
+  Ml8CommandCode_ZI = 59,
+  Ml8CommandCode_ZO = 60,
+  Ml8CommandCode_ZPO = 61,
+  Ml8CommandCode_ZW = 62,
+  Ml8CommandCode_ZWBL = 63,
+  Ml8CommandCode_Z = 64,
+  Ml8CommandCode_Z_DR = 65,
+  Ml8CommandCode_Z_DZ = 66,
+  Ml8CommandCode_Z_JN = 67,
+  Ml8CommandCode_Z_PJ = 68,
+  Ml8CommandCode_Z_X = 69,
+  Ml8CommandCode_Z_ZN = 70,
+  Ml8CommandCode_MIN = Ml8CommandCode_AK,
+  Ml8CommandCode_MAX = Ml8CommandCode_Z_ZN
+};
+
+inline const Ml8CommandCode (&EnumValuesMl8CommandCode())[71] {
+  static const Ml8CommandCode values[] = {
+    Ml8CommandCode_AK,
+    Ml8CommandCode_AZK,
+    Ml8CommandCode_BLZ,
+    Ml8CommandCode_BLZC,
+    Ml8CommandCode_DOP,
+    Ml8CommandCode_DOPS,
+    Ml8CommandCode_DPZ,
+    Ml8CommandCode_HMI,
+    Ml8CommandCode_KRA,
+    Ml8CommandCode_KSR,
+    Ml8CommandCode_LKA,
+    Ml8CommandCode_LOFF,
+    Ml8CommandCode_MAN,
+    Ml8CommandCode_NPU,
+    Ml8CommandCode_NPW,
+    Ml8CommandCode_NPZ,
+    Ml8CommandCode_OGI,
+    Ml8CommandCode_OP,
+    Ml8CommandCode_OPO,
+    Ml8CommandCode_OSTOP,
+    Ml8CommandCode_OTB,
+    Ml8CommandCode_OTE,
+    Ml8CommandCode_OTEYYY,
+    Ml8CommandCode_OTP,
+    Ml8CommandCode_OTPON,
+    Ml8CommandCode_OT,
+    Ml8CommandCode_OTZ,
+    Ml8CommandCode_OUZ,
+    Ml8CommandCode_OUZ_DR,
+    Ml8CommandCode_OUZ_DZ,
+    Ml8CommandCode_OUZ_JN,
+    Ml8CommandCode_OUZ_PJ,
+    Ml8CommandCode_OUZ_X,
+    Ml8CommandCode_OUZ_ZN,
+    Ml8CommandCode_OWBL,
+    Ml8CommandCode_OZCZ,
+    Ml8CommandCode_P,
+    Ml8CommandCode_POC,
+    Ml8CommandCode_POT,
+    Ml8CommandCode_PZK,
+    Ml8CommandCode_PPN,
+    Ml8CommandCode_PPZ,
+    Ml8CommandCode_PZ,
+    Ml8CommandCode_PZB,
+    Ml8CommandCode_PZS,
+    Ml8CommandCode_SPEC,
+    Ml8CommandCode_STJ,
+    Ml8CommandCode_STOJ,
+    Ml8CommandCode_STOP,
+    Ml8CommandCode_SZ,
+    Ml8CommandCode_NSZ,
+    Ml8CommandCode_WBL,
+    Ml8CommandCode_WPN,
+    Ml8CommandCode_WPZ,
+    Ml8CommandCode_WZ,
+    Ml8CommandCode_ZCZ,
+    Ml8CommandCode_ZDM,
+    Ml8CommandCode_ZDP,
+    Ml8CommandCode_ZEROLO,
+    Ml8CommandCode_ZI,
+    Ml8CommandCode_ZO,
+    Ml8CommandCode_ZPO,
+    Ml8CommandCode_ZW,
+    Ml8CommandCode_ZWBL,
+    Ml8CommandCode_Z,
+    Ml8CommandCode_Z_DR,
+    Ml8CommandCode_Z_DZ,
+    Ml8CommandCode_Z_JN,
+    Ml8CommandCode_Z_PJ,
+    Ml8CommandCode_Z_X,
+    Ml8CommandCode_Z_ZN
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesMl8CommandCode() {
+  static const char * const names[72] = {
+    "AK",
+    "AZK",
+    "BLZ",
+    "BLZC",
+    "DOP",
+    "DOPS",
+    "DPZ",
+    "HMI",
+    "KRA",
+    "KSR",
+    "LKA",
+    "LOFF",
+    "MAN",
+    "NPU",
+    "NPW",
+    "NPZ",
+    "OGI",
+    "OP",
+    "OPO",
+    "OSTOP",
+    "OTB",
+    "OTE",
+    "OTEYYY",
+    "OTP",
+    "OTPON",
+    "OT",
+    "OTZ",
+    "OUZ",
+    "OUZ_DR",
+    "OUZ_DZ",
+    "OUZ_JN",
+    "OUZ_PJ",
+    "OUZ_X",
+    "OUZ_ZN",
+    "OWBL",
+    "OZCZ",
+    "P",
+    "POC",
+    "POT",
+    "PZK",
+    "PPN",
+    "PPZ",
+    "PZ",
+    "PZB",
+    "PZS",
+    "SPEC",
+    "STJ",
+    "STOJ",
+    "STOP",
+    "SZ",
+    "NSZ",
+    "WBL",
+    "WPN",
+    "WPZ",
+    "WZ",
+    "ZCZ",
+    "ZDM",
+    "ZDP",
+    "ZEROLO",
+    "ZI",
+    "ZO",
+    "ZPO",
+    "ZW",
+    "ZWBL",
+    "Z",
+    "Z_DR",
+    "Z_DZ",
+    "Z_JN",
+    "Z_PJ",
+    "Z_X",
+    "Z_ZN",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameMl8CommandCode(Ml8CommandCode e) {
+  if (::flatbuffers::IsOutRange(e, Ml8CommandCode_AK, Ml8CommandCode_Z_ZN)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesMl8CommandCode()[index];
 }
 
 enum NakReason : int8_t {
@@ -1193,6 +1536,96 @@ inline ::flatbuffers::Offset<OperatorCommand> CreateOperatorCommandDirect(
 
 ::flatbuffers::Offset<OperatorCommand> CreateOperatorCommand(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct Ml8CommandT : public ::flatbuffers::NativeTable {
+  typedef Ml8Command TableType;
+  std::string target_g_id{};
+  proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
+  proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK;
+};
+
+struct Ml8Command FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef Ml8CommandT NativeTableType;
+  typedef Ml8CommandBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TARGET_G_ID = 4,
+    VT_TARGET_KIND = 6,
+    VT_COMMAND_CODE = 8
+  };
+  const ::flatbuffers::String *target_g_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TARGET_G_ID);
+  }
+  proto::OperatorTargetKind target_kind() const {
+    return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
+  }
+  proto::Ml8CommandCode command_code() const {
+    return static_cast<proto::Ml8CommandCode>(GetField<int8_t>(VT_COMMAND_CODE, 0));
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_TARGET_G_ID) &&
+           verifier.VerifyString(target_g_id()) &&
+           VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
+           VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
+           verifier.EndTable();
+  }
+  Ml8CommandT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(Ml8CommandT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<Ml8Command> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct Ml8CommandBuilder {
+  typedef Ml8Command Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_target_g_id(::flatbuffers::Offset<::flatbuffers::String> target_g_id) {
+    fbb_.AddOffset(Ml8Command::VT_TARGET_G_ID, target_g_id);
+  }
+  void add_target_kind(proto::OperatorTargetKind target_kind) {
+    fbb_.AddElement<int8_t>(Ml8Command::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
+  }
+  void add_command_code(proto::Ml8CommandCode command_code) {
+    fbb_.AddElement<int8_t>(Ml8Command::VT_COMMAND_CODE, static_cast<int8_t>(command_code), 0);
+  }
+  explicit Ml8CommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Ml8Command> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Ml8Command>(end);
+    fbb_.Required(o, Ml8Command::VT_TARGET_G_ID);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Ml8Command> CreateMl8Command(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> target_g_id = 0,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK) {
+  Ml8CommandBuilder builder_(_fbb);
+  builder_.add_target_g_id(target_g_id);
+  builder_.add_command_code(command_code);
+  builder_.add_target_kind(target_kind);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Ml8Command> CreateMl8CommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *target_g_id = nullptr,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK) {
+  auto target_g_id__ = target_g_id ? _fbb.CreateString(target_g_id) : 0;
+  return proto::CreateMl8Command(
+      _fbb,
+      target_g_id__,
+      target_kind,
+      command_code);
+}
+
+::flatbuffers::Offset<Ml8Command> CreateMl8Command(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct CommandAckT : public ::flatbuffers::NativeTable {
   typedef CommandAck TableType;
   uint32_t req_seq_id = 0;
@@ -1650,6 +2083,38 @@ inline ::flatbuffers::Offset<OperatorCommand> OperatorCommand::Pack(::flatbuffer
   auto _target_kind = _o->target_kind;
   auto _command_code = _o->command_code;
   return proto::CreateOperatorCommand(
+      _fbb,
+      _target_g_id,
+      _target_kind,
+      _command_code);
+}
+
+inline Ml8CommandT *Ml8Command::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<Ml8CommandT>(new Ml8CommandT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void Ml8Command::UnPackTo(Ml8CommandT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = target_g_id(); if (_e) _o->target_g_id = _e->str(); }
+  { auto _e = target_kind(); _o->target_kind = _e; }
+  { auto _e = command_code(); _o->command_code = _e; }
+}
+
+inline ::flatbuffers::Offset<Ml8Command> CreateMl8Command(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Ml8Command::Pack(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<Ml8Command> Ml8Command::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const Ml8CommandT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _target_g_id = _fbb.CreateString(_o->target_g_id);
+  auto _target_kind = _o->target_kind;
+  auto _command_code = _o->command_code;
+  return proto::CreateMl8Command(
       _fbb,
       _target_g_id,
       _target_kind,

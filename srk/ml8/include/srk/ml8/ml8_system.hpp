@@ -75,6 +75,12 @@ private:
 
     std::vector<engine::core::DeviceStateChange> execute_slk(
         const engine::core::IStateView& state, const engine::core::ResetAxleCounterCmd& cmd);
+
+    std::optional<engine::core::InterlockingViolation> check_ml8_command(
+        const engine::core::IStateView& state, const engine::core::Ml8CommandCmd& cmd) const;
+
+    std::vector<engine::core::DeviceStateChange> execute_ml8_command(
+        const engine::core::IStateView& state, const engine::core::Ml8CommandCmd& cmd);
 };
 
 }  // namespace srk::ml8

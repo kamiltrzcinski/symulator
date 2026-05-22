@@ -32,6 +32,8 @@ struct OperatorCommandRuntimeState
     bool special_initialized = false;
     bool special_active = false;
     bool axle_reset_initialized = false;
+    bool ml8_command_active = false;
+    std::string last_ml8_command_code;
 };
 
 // ── Connection port on the end of a track section ────────────────────────────

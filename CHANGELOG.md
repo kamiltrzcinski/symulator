@@ -2,6 +2,16 @@
 
 All notable changes are documented here.
 
+## [0.4.4] - 2026-05-22
+
+### Added
+- **ML8**: Added a dedicated `Ml8Command` protocol path (`cmd_type 0x21`), ML8 command enum, SRK execution path, state application, and parser coverage for the ML8 operator-command catalog.
+- **Documentation**: Added the English ML8 system description and command catalog in `docs/19-ml8-description.md`.
+- **Command Catalogs**: Added the English `data/command_types/ml8_command_types.json` catalog for ML8-only operator commands.
+
+### Changed
+- **Language**: Converted the newly added ML8 command descriptions and documentation to English.
+
 ## [0.4.3] — 2026-05-22
 
 ### Added

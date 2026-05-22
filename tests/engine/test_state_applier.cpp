@@ -186,6 +186,22 @@ TEST(StateApplier, OperatorCommandStateChange_setsSignalStopFlag)
     EXPECT_FALSE(st.find_signal(GID{"SEM-A"})->operator_state.stopped);
 }
 
+TEST(StateApplier, Ml8CommandStateChange_recordsLastMl8Command)
+{
+    EngineState st;
+    Signal sig;
+    sig.gid = GID{"SEM-ML8"};
+    st.insert_signal(sig);
+
+    apply(st, Ml8CommandStateChange{GID{"SEM-ML8"}, OperatorTargetKind::SIGNAL,
+                                    Ml8CommandCode::STOJ, true});
+
+    const auto* stored = st.find_signal(GID{"SEM-ML8"});
+    ASSERT_NE(stored, nullptr);
+    EXPECT_TRUE(stored->operator_state.ml8_command_active);
+    EXPECT_EQ(stored->operator_state.last_ml8_command_code, "STOJ");
+}
+
 TEST(StateApplier, AxleCounterResetChange_resetsBlockAxleCount)
 {
     auto st = make_state();

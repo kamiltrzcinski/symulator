@@ -210,7 +210,11 @@
               "TRACK_SECTION",
               "BLOCK_SECTION",
               "AXLE_COUNTER_SYSTEM",
-              "STATION"
+              "STATION",
+              "ROUTE",
+              "LEVEL_CROSSING",
+              "INTERLOCKING_COMPUTER",
+              "POWER_SUPPLY"
             ]
           },
           "command_code": {
@@ -259,7 +263,37 @@
               "DKOI",
               "DKO",
               "DKPI",
-              "DKP"
+              "DKP",
+              "BPZ",
+              "DPWI",
+              "DPW",
+              "BTW",
+              "BTO",
+              "BPO",
+              "BKO",
+              "PDZ",
+              "PDO",
+              "PZT",
+              "PAZ",
+              "PZO",
+              "PDII",
+              "PDI",
+              "MRS",
+              "ODS",
+              "ZAL",
+              "POC",
+              "PZA",
+              "PZAI",
+              "PZW",
+              "SSO",
+              "SSS",
+              "UPAI",
+              "UPA",
+              "UPAO",
+              "UPN",
+              "UPO",
+              "ZSO",
+              "ZSS"
             ]
           }
         }

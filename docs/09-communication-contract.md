@@ -137,10 +137,12 @@ The `COMMAND` payload begins with a 1-byte `cmd_type` field followed by the Flat
 | 0x08     | SetBlockDirection     | `block_section_gID`, `operation` (BLW \| BLP \| BLO \| BLZ \| BLAI \| BLA \| OPS) — ML8/SHL-12 only |
 | 0x09     | InitAxleCounterReset  | `block_section_gID` — SLI procedure, ML8 only          |
 | 0x0A     | ResetAxleCounter      | `block_section_gID` — SLK procedure, ML8 only          |
+| 0x20     | OperatorCommand       | `target_g_id`, `target_kind`, `command_code` - EbiLock/EbiScreen X4 operator catalog |
+| 0x21     | Ml8Command            | `target_g_id`, `target_kind`, `command_code` - ESTW ML8 operator catalog |
 
 `RequestRoute` is the primary high-level command. The engine resolves required switch positions and signal aspects internally. Low-level commands (`SetSwitchPosition`, `SetSignalAspect`) remain available for manual override.
 
-Commands 0x08–0x0A are only accepted when the scenario's `control_system` is `"estw_ml8"`.  An EbiLock X4 session will reject them with NAK 0x07 (`UNSUPPORTED`).  See [doc 17](17-control-system-interface.md) for the SHL-12 state machine.
+Commands 0x08–0x0A and 0x21 are only accepted when the scenario's `control_system` is `"estw_ml8"`.  An EbiLock X4 session will reject them with NAK 0x07 (`UNSUPPORTED`).  See [doc 17](17-control-system-interface.md) for the SHL-12 state machine and [doc 19](19-ml8-description.md) for the ML8 operator catalog.
 
 ### Command acknowledgement
 
