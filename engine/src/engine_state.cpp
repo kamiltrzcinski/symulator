@@ -207,6 +207,152 @@ void EngineState::apply_block_section_axle_count(const GID& gid, int axle_count)
         it->second.axle_count = axle_count;
 }
 
+static void apply_operator_state(OperatorCommandRuntimeState& state, OperatorCommandCode code,
+                                 bool active)
+{
+    switch (code)
+    {
+        case OperatorCommandCode::SES:
+            state.stopped = active;
+            break;
+        case OperatorCommandCode::SEO:
+            state.stopped = false;
+            break;
+        case OperatorCommandCode::SZI:
+            state.substitute_initialized = active;
+            state.special_initialized = active;
+            break;
+        case OperatorCommandCode::SZW:
+        case OperatorCommandCode::SZN:
+            state.substitute_initialized = false;
+            state.substitute_active = active;
+            state.special_active = active;
+            break;
+        case OperatorCommandCode::SZO:
+            state.substitute_initialized = false;
+            state.substitute_active = false;
+            state.special_initialized = false;
+            state.special_active = false;
+            break;
+        case OperatorCommandCode::SAM:
+            state.automatic_route_enabled = active;
+            break;
+        case OperatorCommandCode::SAW:
+            state.automatic_route_enabled = false;
+            break;
+        case OperatorCommandCode::ZWS:
+            state.clamped = active;
+            break;
+        case OperatorCommandCode::ZWO:
+            state.clamped = false;
+            break;
+        case OperatorCommandCode::ITS:
+        case OperatorCommandCode::BLS:
+            state.traffic_closed = active;
+            break;
+        case OperatorCommandCode::ITO:
+        case OperatorCommandCode::OST:
+            state.traffic_closed = false;
+            break;
+        case OperatorCommandCode::ZWB:
+            state.detection_bypassed = active;
+            break;
+        case OperatorCommandCode::ZBP:
+        case OperatorCommandCode::ZBM:
+            state.detection_bypassed = false;
+            break;
+        case OperatorCommandCode::ZRI:
+        case OperatorCommandCode::BLAI:
+        case OperatorCommandCode::ZKB:
+        case OperatorCommandCode::ZESI:
+        case OperatorCommandCode::PZZI:
+        case OperatorCommandCode::DPOI:
+        case OperatorCommandCode::DKOI:
+        case OperatorCommandCode::DKPI:
+            state.special_initialized = active;
+            break;
+        case OperatorCommandCode::ZRK:
+        case OperatorCommandCode::BLA:
+        case OperatorCommandCode::ZES:
+        case OperatorCommandCode::PZZ:
+        case OperatorCommandCode::DPO:
+        case OperatorCommandCode::DKO:
+        case OperatorCommandCode::DKP:
+        case OperatorCommandCode::PZM:
+            state.special_initialized = false;
+            state.special_active = active;
+            break;
+        case OperatorCommandCode::OPS:
+        case OperatorCommandCode::OZK:
+            state.special_initialized = false;
+            state.special_active = false;
+            state.axle_reset_initialized = false;
+            break;
+        case OperatorCommandCode::SLI:
+            state.axle_reset_initialized = active;
+            state.special_initialized = active;
+            break;
+        case OperatorCommandCode::SLK:
+            state.axle_reset_initialized = false;
+            state.special_initialized = false;
+            break;
+        default:
+            state.special_active = active;
+            break;
+    }
+}
+
+void EngineState::apply_operator_command_state(const GID& gid, OperatorTargetKind target_kind,
+                                               OperatorCommandCode code, bool active)
+{
+    auto apply_to_gid = [&](auto& map)
+    {
+        if (auto it = map.find(gid); it != map.end())
+            apply_operator_state(it->second.operator_state, code, active);
+    };
+
+    switch (target_kind)
+    {
+        case OperatorTargetKind::SIGNAL:
+            apply_to_gid(signals_);
+            break;
+        case OperatorTargetKind::SWITCH:
+            apply_to_gid(switches_);
+            if (switches_.find(gid) == switches_.end())
+                apply_to_gid(derailers_);
+            break;
+        case OperatorTargetKind::DERAILER:
+            apply_to_gid(derailers_);
+            break;
+        case OperatorTargetKind::TRACK_SECTION:
+            apply_to_gid(track_sections_);
+            break;
+        case OperatorTargetKind::BLOCK_SECTION:
+            apply_to_gid(block_sections_);
+            break;
+        default:
+            break;
+    }
+}
+
+void EngineState::apply_axle_counter_reset(const GID& gid, OperatorTargetKind target_kind)
+{
+    switch (target_kind)
+    {
+        case OperatorTargetKind::SWITCH:
+            apply_switch_occupancy(gid, TrackOccupancy::FREE, 0);
+            break;
+        case OperatorTargetKind::TRACK_SECTION:
+            apply_track_section_occupancy(gid, TrackOccupancy::FREE, 0);
+            break;
+        case OperatorTargetKind::BLOCK_SECTION:
+            apply_block_section_axle_count(gid, 0);
+            break;
+        default:
+            break;
+    }
+}
+
 void EngineState::add_route(RouteState route)
 {
     routes_.emplace(route.route_id, std::move(route));

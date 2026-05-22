@@ -94,12 +94,79 @@ struct ResetAxleCounterCmd  // SLK
     GID block_section_gid;
 };
 
+enum class OperatorTargetKind : std::uint8_t
+{
+    SIGNAL,
+    SWITCH,
+    DERAILER,
+    TRACK_SECTION,
+    BLOCK_SECTION,
+    AXLE_COUNTER_SYSTEM,
+    STATION,
+};
+
+enum class OperatorCommandCode : std::uint8_t
+{
+    SES,
+    SEO,
+    SZI,
+    SZW,
+    SZN,
+    SZO,
+    SAM,
+    SAW,
+    ZWP,
+    ZWM,
+    ZWS,
+    ZWO,
+    ITS,
+    ITO,
+    ZWB,
+    ZBP,
+    ZBM,
+    ZRI,
+    ZRK,
+    OPS,
+    SLI,
+    SLK,
+    BLW,
+    BLP,
+    BLO,
+    BLZ,
+    BLAI,
+    BLA,
+    BLS,
+    OST,
+    ZKB,
+    PZM,
+    OZK,
+    ZESI,
+    ZES,
+    PZZI,
+    PZZ,
+    POZ,
+    DPOI,
+    DPO,
+    DKOI,
+    DKO,
+    DKPI,
+    DKP,
+};
+
+struct OperatorCommandCmd
+{
+    GID target_gid;
+    OperatorTargetKind target_kind;
+    OperatorCommandCode code;
+};
+
 // ── Variant ──────────────────────────────────────────────────────────────────
 
 using Command =
     std::variant<SetSwitchPositionCmd, SetSignalAspectCmd, SetDerailerPositionCmd,
                  SetBlockSectionCmd, RequestRouteCmd, CancelRouteCmd, AcknowledgeAlarmCmd,
-                 SetBlockDirectionCmd, InitAxleCounterResetCmd, ResetAxleCounterCmd>;
+                 SetBlockDirectionCmd, InitAxleCounterResetCmd, ResetAxleCounterCmd,
+                 OperatorCommandCmd>;
 
 // ── Envelope ─────────────────────────────────────────────────────────────────
 // Wraps a Command with the sequencing/identity metadata added by CommandIngress

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "command.hpp"
 #include "state_view.hpp"
 
 #include <memory>
@@ -71,6 +72,9 @@ public:
     void apply_block_section_state(const GID& gid, BlockSectionState state);
     void apply_block_section_direction(const GID& gid, BlockDirectionState dir);
     void apply_block_section_axle_count(const GID& gid, int axle_count);
+    void apply_operator_command_state(const GID& gid, OperatorTargetKind target_kind,
+                                      OperatorCommandCode code, bool active);
+    void apply_axle_counter_reset(const GID& gid, OperatorTargetKind target_kind);
     void add_route(RouteState route);
     void remove_route(const GID& route_id);
     void add_alarm(AlarmState alarm);

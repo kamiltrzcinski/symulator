@@ -57,6 +57,10 @@ struct ResetAxleCounter;
 struct ResetAxleCounterBuilder;
 struct ResetAxleCounterT;
 
+struct OperatorCommand;
+struct OperatorCommandBuilder;
+struct OperatorCommandT;
+
 struct CommandAck;
 struct CommandAckBuilder;
 struct CommandAckT;
@@ -110,6 +114,207 @@ inline const char *EnumNameShl12Op(Shl12Op e) {
   if (::flatbuffers::IsOutRange(e, Shl12Op_BLW, Shl12Op_OPS)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesShl12Op()[index];
+}
+
+enum OperatorTargetKind : int8_t {
+  OperatorTargetKind_SIGNAL = 0,
+  OperatorTargetKind_SWITCH = 1,
+  OperatorTargetKind_DERAILER = 2,
+  OperatorTargetKind_TRACK_SECTION = 3,
+  OperatorTargetKind_BLOCK_SECTION = 4,
+  OperatorTargetKind_AXLE_COUNTER_SYSTEM = 5,
+  OperatorTargetKind_STATION = 6,
+  OperatorTargetKind_MIN = OperatorTargetKind_SIGNAL,
+  OperatorTargetKind_MAX = OperatorTargetKind_STATION
+};
+
+inline const OperatorTargetKind (&EnumValuesOperatorTargetKind())[7] {
+  static const OperatorTargetKind values[] = {
+    OperatorTargetKind_SIGNAL,
+    OperatorTargetKind_SWITCH,
+    OperatorTargetKind_DERAILER,
+    OperatorTargetKind_TRACK_SECTION,
+    OperatorTargetKind_BLOCK_SECTION,
+    OperatorTargetKind_AXLE_COUNTER_SYSTEM,
+    OperatorTargetKind_STATION
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesOperatorTargetKind() {
+  static const char * const names[8] = {
+    "SIGNAL",
+    "SWITCH",
+    "DERAILER",
+    "TRACK_SECTION",
+    "BLOCK_SECTION",
+    "AXLE_COUNTER_SYSTEM",
+    "STATION",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameOperatorTargetKind(OperatorTargetKind e) {
+  if (::flatbuffers::IsOutRange(e, OperatorTargetKind_SIGNAL, OperatorTargetKind_STATION)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesOperatorTargetKind()[index];
+}
+
+enum OperatorCommandCode : int8_t {
+  OperatorCommandCode_SES = 0,
+  OperatorCommandCode_SEO = 1,
+  OperatorCommandCode_SZI = 2,
+  OperatorCommandCode_SZW = 3,
+  OperatorCommandCode_SZN = 4,
+  OperatorCommandCode_SZO = 5,
+  OperatorCommandCode_SAM = 6,
+  OperatorCommandCode_SAW = 7,
+  OperatorCommandCode_ZWP = 8,
+  OperatorCommandCode_ZWM = 9,
+  OperatorCommandCode_ZWS = 10,
+  OperatorCommandCode_ZWO = 11,
+  OperatorCommandCode_ITS = 12,
+  OperatorCommandCode_ITO = 13,
+  OperatorCommandCode_ZWB = 14,
+  OperatorCommandCode_ZBP = 15,
+  OperatorCommandCode_ZBM = 16,
+  OperatorCommandCode_ZRI = 17,
+  OperatorCommandCode_ZRK = 18,
+  OperatorCommandCode_OPS = 19,
+  OperatorCommandCode_SLI = 20,
+  OperatorCommandCode_SLK = 21,
+  OperatorCommandCode_BLW = 22,
+  OperatorCommandCode_BLP = 23,
+  OperatorCommandCode_BLO = 24,
+  OperatorCommandCode_BLZ = 25,
+  OperatorCommandCode_BLAI = 26,
+  OperatorCommandCode_BLA = 27,
+  OperatorCommandCode_BLS = 28,
+  OperatorCommandCode_OST = 29,
+  OperatorCommandCode_ZKB = 30,
+  OperatorCommandCode_PZM = 31,
+  OperatorCommandCode_OZK = 32,
+  OperatorCommandCode_ZESI = 33,
+  OperatorCommandCode_ZES = 34,
+  OperatorCommandCode_PZZI = 35,
+  OperatorCommandCode_PZZ = 36,
+  OperatorCommandCode_POZ = 37,
+  OperatorCommandCode_DPOI = 38,
+  OperatorCommandCode_DPO = 39,
+  OperatorCommandCode_DKOI = 40,
+  OperatorCommandCode_DKO = 41,
+  OperatorCommandCode_DKPI = 42,
+  OperatorCommandCode_DKP = 43,
+  OperatorCommandCode_MIN = OperatorCommandCode_SES,
+  OperatorCommandCode_MAX = OperatorCommandCode_DKP
+};
+
+inline const OperatorCommandCode (&EnumValuesOperatorCommandCode())[44] {
+  static const OperatorCommandCode values[] = {
+    OperatorCommandCode_SES,
+    OperatorCommandCode_SEO,
+    OperatorCommandCode_SZI,
+    OperatorCommandCode_SZW,
+    OperatorCommandCode_SZN,
+    OperatorCommandCode_SZO,
+    OperatorCommandCode_SAM,
+    OperatorCommandCode_SAW,
+    OperatorCommandCode_ZWP,
+    OperatorCommandCode_ZWM,
+    OperatorCommandCode_ZWS,
+    OperatorCommandCode_ZWO,
+    OperatorCommandCode_ITS,
+    OperatorCommandCode_ITO,
+    OperatorCommandCode_ZWB,
+    OperatorCommandCode_ZBP,
+    OperatorCommandCode_ZBM,
+    OperatorCommandCode_ZRI,
+    OperatorCommandCode_ZRK,
+    OperatorCommandCode_OPS,
+    OperatorCommandCode_SLI,
+    OperatorCommandCode_SLK,
+    OperatorCommandCode_BLW,
+    OperatorCommandCode_BLP,
+    OperatorCommandCode_BLO,
+    OperatorCommandCode_BLZ,
+    OperatorCommandCode_BLAI,
+    OperatorCommandCode_BLA,
+    OperatorCommandCode_BLS,
+    OperatorCommandCode_OST,
+    OperatorCommandCode_ZKB,
+    OperatorCommandCode_PZM,
+    OperatorCommandCode_OZK,
+    OperatorCommandCode_ZESI,
+    OperatorCommandCode_ZES,
+    OperatorCommandCode_PZZI,
+    OperatorCommandCode_PZZ,
+    OperatorCommandCode_POZ,
+    OperatorCommandCode_DPOI,
+    OperatorCommandCode_DPO,
+    OperatorCommandCode_DKOI,
+    OperatorCommandCode_DKO,
+    OperatorCommandCode_DKPI,
+    OperatorCommandCode_DKP
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesOperatorCommandCode() {
+  static const char * const names[45] = {
+    "SES",
+    "SEO",
+    "SZI",
+    "SZW",
+    "SZN",
+    "SZO",
+    "SAM",
+    "SAW",
+    "ZWP",
+    "ZWM",
+    "ZWS",
+    "ZWO",
+    "ITS",
+    "ITO",
+    "ZWB",
+    "ZBP",
+    "ZBM",
+    "ZRI",
+    "ZRK",
+    "OPS",
+    "SLI",
+    "SLK",
+    "BLW",
+    "BLP",
+    "BLO",
+    "BLZ",
+    "BLAI",
+    "BLA",
+    "BLS",
+    "OST",
+    "ZKB",
+    "PZM",
+    "OZK",
+    "ZESI",
+    "ZES",
+    "PZZI",
+    "PZZ",
+    "POZ",
+    "DPOI",
+    "DPO",
+    "DKOI",
+    "DKO",
+    "DKPI",
+    "DKP",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameOperatorCommandCode(OperatorCommandCode e) {
+  if (::flatbuffers::IsOutRange(e, OperatorCommandCode_SES, OperatorCommandCode_DKP)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesOperatorCommandCode()[index];
 }
 
 enum NakReason : int8_t {
@@ -898,6 +1103,96 @@ inline ::flatbuffers::Offset<ResetAxleCounter> CreateResetAxleCounterDirect(
 
 ::flatbuffers::Offset<ResetAxleCounter> CreateResetAxleCounter(::flatbuffers::FlatBufferBuilder &_fbb, const ResetAxleCounterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct OperatorCommandT : public ::flatbuffers::NativeTable {
+  typedef OperatorCommand TableType;
+  std::string target_g_id{};
+  proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
+  proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES;
+};
+
+struct OperatorCommand FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef OperatorCommandT NativeTableType;
+  typedef OperatorCommandBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TARGET_G_ID = 4,
+    VT_TARGET_KIND = 6,
+    VT_COMMAND_CODE = 8
+  };
+  const ::flatbuffers::String *target_g_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TARGET_G_ID);
+  }
+  proto::OperatorTargetKind target_kind() const {
+    return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
+  }
+  proto::OperatorCommandCode command_code() const {
+    return static_cast<proto::OperatorCommandCode>(GetField<int8_t>(VT_COMMAND_CODE, 0));
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_TARGET_G_ID) &&
+           verifier.VerifyString(target_g_id()) &&
+           VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
+           VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
+           verifier.EndTable();
+  }
+  OperatorCommandT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(OperatorCommandT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<OperatorCommand> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct OperatorCommandBuilder {
+  typedef OperatorCommand Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_target_g_id(::flatbuffers::Offset<::flatbuffers::String> target_g_id) {
+    fbb_.AddOffset(OperatorCommand::VT_TARGET_G_ID, target_g_id);
+  }
+  void add_target_kind(proto::OperatorTargetKind target_kind) {
+    fbb_.AddElement<int8_t>(OperatorCommand::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
+  }
+  void add_command_code(proto::OperatorCommandCode command_code) {
+    fbb_.AddElement<int8_t>(OperatorCommand::VT_COMMAND_CODE, static_cast<int8_t>(command_code), 0);
+  }
+  explicit OperatorCommandBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<OperatorCommand> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<OperatorCommand>(end);
+    fbb_.Required(o, OperatorCommand::VT_TARGET_G_ID);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<OperatorCommand> CreateOperatorCommand(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> target_g_id = 0,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES) {
+  OperatorCommandBuilder builder_(_fbb);
+  builder_.add_target_g_id(target_g_id);
+  builder_.add_command_code(command_code);
+  builder_.add_target_kind(target_kind);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<OperatorCommand> CreateOperatorCommandDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *target_g_id = nullptr,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES) {
+  auto target_g_id__ = target_g_id ? _fbb.CreateString(target_g_id) : 0;
+  return proto::CreateOperatorCommand(
+      _fbb,
+      target_g_id__,
+      target_kind,
+      command_code);
+}
+
+::flatbuffers::Offset<OperatorCommand> CreateOperatorCommand(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 struct CommandAckT : public ::flatbuffers::NativeTable {
   typedef CommandAck TableType;
   uint32_t req_seq_id = 0;
@@ -1327,6 +1622,38 @@ inline ::flatbuffers::Offset<ResetAxleCounter> ResetAxleCounter::Pack(::flatbuff
   return proto::CreateResetAxleCounter(
       _fbb,
       _block_section_g_id);
+}
+
+inline OperatorCommandT *OperatorCommand::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<OperatorCommandT>(new OperatorCommandT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void OperatorCommand::UnPackTo(OperatorCommandT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = target_g_id(); if (_e) _o->target_g_id = _e->str(); }
+  { auto _e = target_kind(); _o->target_kind = _e; }
+  { auto _e = command_code(); _o->command_code = _e; }
+}
+
+inline ::flatbuffers::Offset<OperatorCommand> CreateOperatorCommand(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return OperatorCommand::Pack(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<OperatorCommand> OperatorCommand::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const OperatorCommandT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _target_g_id = _fbb.CreateString(_o->target_g_id);
+  auto _target_kind = _o->target_kind;
+  auto _command_code = _o->command_code;
+  return proto::CreateOperatorCommand(
+      _fbb,
+      _target_g_id,
+      _target_kind,
+      _command_code);
 }
 
 inline CommandAckT *CommandAck::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {

@@ -6,6 +6,8 @@
 #include <engine/core/engine_state.hpp>
 #include <srk/ebilock/ebilock_system.hpp>
 
+#include <algorithm>
+
 // ── Test helpers ──────────────────────────────────────────────────────────────
 // Build a minimal EngineState topology for testing interlocking rules.
 //
@@ -30,6 +32,7 @@ static const GID ZWR1 = GID{"ZWR-zwr1"};
 static const GID SEM_W = GID{"SEM-W"};
 static const GID SEM_E = GID{"SEM-E"};
 static const GID WK1 = GID{"WK-wk1"};  // derailer on tor_a
+static const GID BL1 = GID{"BL-SHL12-001"};
 
 EngineState make_state()
 {
@@ -119,6 +122,27 @@ EngineState make_state()
     wk.guards_track_section_gid = TOR_A;
     wk.state = DerailerState::LOCKED;
     st.insert_derailer(wk);
+
+    return st;
+}
+
+EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState::NEUTRAL,
+                                  BlockSectionState state = BlockSectionState::CLOSED,
+                                  int axle_count = 0)
+{
+    EngineState st;
+    st.set_session_id("TEST");
+    st.set_current_tick(1);
+
+    BlockSection bs;
+    bs.gid = BL1;
+    bs.pid = "bl1";
+    bs.sid = SID{"TST"};
+    bs.neighbor_sid = SID{"NGR"};
+    bs.direction = dir;
+    bs.state = state;
+    bs.axle_count = axle_count;
+    st.insert_block_section(bs);
 
     return st;
 }
@@ -391,20 +415,126 @@ TEST(EbiLockR7, RejectsNonExistentAlarm)
     EXPECT_EQ(v->reason_code, 0x01);  // NOT_FOUND
 }
 
-// ── Unsupported SHL-12 command ────────────────────────────────────────────────
+// ── SHL-12 block commands ─────────────────────────────────────────────────────
 
-TEST(EbiLockR, RejectsShl12Command)
+TEST(EbiLockShl12, SupportedCommandTypesIncludeBlockCommands)
 {
     srk::ebilock::EbiLockSystem sys{0};
-    auto st = make_state();
 
-    Command cmd = SetBlockDirectionCmd{GID{"BL-001"}, Shl12Op::BLW};
+    const auto types = sys.supported_command_types();
+    EXPECT_NE(std::find(types.begin(), types.end(), "SetBlockDirectionCmd"), types.end());
+    EXPECT_NE(std::find(types.begin(), types.end(), "InitAxleCounterResetCmd"), types.end());
+    EXPECT_NE(std::find(types.begin(), types.end(), "ResetAxleCounterCmd"), types.end());
+}
+
+TEST(EbiLockShl12, BLWAcceptsFromNeutral)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+
+    Command cmd = SetBlockDirectionCmd{BL1, Shl12Op::BLW};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+
+    auto changes = sys.execute_command(st, cmd);
+    ASSERT_EQ(changes.size(), 1u);
+    auto* bdc = std::get_if<BlockDirectionChange>(&changes[0]);
+    ASSERT_NE(bdc, nullptr);
+    EXPECT_EQ(bdc->new_direction, BlockDirectionState::OUTBOUND_PENDING);
+    EXPECT_TRUE(bdc->requires_neighbor_confirmation);
+}
+
+TEST(EbiLockShl12, BLPConfirmsOutboundAndOpensBlock)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::OUTBOUND_PENDING);
+
+    Command cmd = SetBlockDirectionCmd{BL1, Shl12Op::BLP};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+
+    auto changes = sys.execute_command(st, cmd);
+    ASSERT_EQ(changes.size(), 2u);
+    auto* bdc = std::get_if<BlockDirectionChange>(&changes[0]);
+    ASSERT_NE(bdc, nullptr);
+    EXPECT_EQ(bdc->new_direction, BlockDirectionState::OUTBOUND);
+    auto* bsc = std::get_if<BlockSectionStateChange>(&changes[1]);
+    ASSERT_NE(bsc, nullptr);
+    EXPECT_EQ(bsc->new_state, BlockSectionState::OPEN);
+}
+
+TEST(EbiLockShl12, BLZRejectsOccupiedBlock)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::OUTBOUND, BlockSectionState::OPEN, 2);
+
+    Command cmd = SetBlockDirectionCmd{BL1, Shl12Op::BLZ};
     auto v = sys.check_command(st, cmd);
     ASSERT_TRUE(v.has_value());
-    EXPECT_EQ(v->reason_code, 0x07);  // UNSUPPORTED
+    EXPECT_EQ(v->reason_code, 0x02);  // SAFETY_BLOCK
+}
+
+TEST(EbiLockShl12, SLIAndSLKResetAxleCounterProcedure)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+
+    Command init = InitAxleCounterResetCmd{BL1};
+    EXPECT_FALSE(sys.check_command(st, init).has_value());
+    auto init_changes = sys.execute_command(st, init);
+    ASSERT_EQ(init_changes.size(), 1u);
+    auto* init_dir = std::get_if<BlockDirectionChange>(&init_changes[0]);
+    ASSERT_NE(init_dir, nullptr);
+    EXPECT_EQ(init_dir->new_direction, BlockDirectionState::RESET_PENDING);
+
+    st.apply_block_section_direction(BL1, BlockDirectionState::RESET_PENDING);
+
+    Command reset = ResetAxleCounterCmd{BL1};
+    EXPECT_FALSE(sys.check_command(st, reset).has_value());
+    auto reset_changes = sys.execute_command(st, reset);
+    ASSERT_EQ(reset_changes.size(), 2u);
+    auto* reset_dir = std::get_if<BlockDirectionChange>(&reset_changes[0]);
+    ASSERT_NE(reset_dir, nullptr);
+    EXPECT_EQ(reset_dir->new_direction, BlockDirectionState::NEUTRAL);
+    auto* close = std::get_if<BlockSectionStateChange>(&reset_changes[1]);
+    ASSERT_NE(close, nullptr);
+    EXPECT_EQ(close->new_state, BlockSectionState::CLOSED);
 }
 
 // ── ControlSystemRegistry integration ────────────────────────────────────────
+
+TEST(EbiLockOperatorCommands, SESStopsSignal)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state();
+    st.apply_signal_aspect(SEM_W, SignalAspect::S2_PROCEED);
+
+    Command cmd = OperatorCommandCmd{SEM_W, OperatorTargetKind::SIGNAL, OperatorCommandCode::SES};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    bool stopped = false;
+    for (const auto& change : changes)
+    {
+        if (const auto* sig = std::get_if<SignalAspectChange>(&change))
+            stopped = sig->gid == SEM_W && sig->new_aspect == SignalAspect::S1_STOP;
+    }
+    EXPECT_TRUE(stopped);
+}
+
+TEST(EbiLockOperatorCommands, BLWUsesGenericOperatorCommand)
+{
+    srk::ebilock::EbiLockSystem sys{0};
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+
+    Command cmd =
+        OperatorCommandCmd{BL1, OperatorTargetKind::BLOCK_SECTION, OperatorCommandCode::BLW};
+    EXPECT_FALSE(sys.check_command(st, cmd).has_value());
+    auto changes = sys.execute_command(st, cmd);
+
+    ASSERT_GE(changes.size(), 2u);
+    auto* bdc = std::get_if<BlockDirectionChange>(&changes[1]);
+    ASSERT_NE(bdc, nullptr);
+    EXPECT_EQ(bdc->new_direction, BlockDirectionState::OUTBOUND_PENDING);
+}
 
 TEST(ControlSystemRegistry, EbiLockRegistered)
 {

@@ -71,6 +71,16 @@ struct StateApplier
         state.apply_block_section_direction(c.gid, c.new_direction);
     }
 
+    void operator()(const AxleCounterResetChange& c)
+    {
+        state.apply_axle_counter_reset(c.gid, c.target_kind);
+    }
+
+    void operator()(const OperatorCommandStateChange& c)
+    {
+        state.apply_operator_command_state(c.gid, c.target_kind, c.code, c.active);
+    }
+
     void operator()(const RouteAdded& c) { state.add_route(c.route); }
 
     void operator()(const RouteRemoved& c) { state.remove_route(c.route_id); }

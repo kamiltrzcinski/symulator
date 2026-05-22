@@ -44,7 +44,7 @@ std::vector<std::string> Ml8System::supported_command_types() const
         "SetSwitchPositionCmd", "SetSignalAspectCmd",   "SetDerailerPositionCmd",
         "SetBlockSectionCmd",   "RequestRouteCmd",      "CancelRouteCmd",
         "AcknowledgeAlarmCmd",  "SetBlockDirectionCmd", "InitAxleCounterResetCmd",
-        "ResetAxleCounterCmd",
+        "ResetAxleCounterCmd",  "OperatorCommandCmd",
     };
 }
 
@@ -78,6 +78,8 @@ std::optional<InterlockingViolation> Ml8System::check_command(const IStateView& 
                 return check_sli(state, c);
             else if constexpr (std::is_same_v<T, ResetAxleCounterCmd>)
                 return check_slk(state, c);
+            else if constexpr (std::is_same_v<T, OperatorCommandCmd>)
+                return srk::common::check_operator_command(state, c);
             else
                 return InterlockingViolation{NAK_UNSUPPORTED, "Unrecognised command", GID{}};
         },
@@ -120,6 +122,8 @@ std::vector<DeviceStateChange> Ml8System::execute_command(const IStateView& stat
                 return execute_sli(state, c);
             else if constexpr (std::is_same_v<T, ResetAxleCounterCmd>)
                 return execute_slk(state, c);
+            else if constexpr (std::is_same_v<T, OperatorCommandCmd>)
+                return srk::common::execute_operator_command(state, c, eea4_throw_ticks_);
             else
                 return {};
         },

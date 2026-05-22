@@ -174,6 +174,26 @@ TEST(StateApplier, BlockDirectionChange_setsDirection)
 
 // ── RouteAdded / RouteRemoved ─────────────────────────────────────────────────
 
+TEST(StateApplier, OperatorCommandStateChange_setsSignalStopFlag)
+{
+    auto st = make_state();
+    apply(st, OperatorCommandStateChange{GID{"SEM-A"}, OperatorTargetKind::SIGNAL,
+                                         OperatorCommandCode::SES, true});
+    EXPECT_TRUE(st.find_signal(GID{"SEM-A"})->operator_state.stopped);
+
+    apply(st, OperatorCommandStateChange{GID{"SEM-A"}, OperatorTargetKind::SIGNAL,
+                                         OperatorCommandCode::SEO, false});
+    EXPECT_FALSE(st.find_signal(GID{"SEM-A"})->operator_state.stopped);
+}
+
+TEST(StateApplier, AxleCounterResetChange_resetsBlockAxleCount)
+{
+    auto st = make_state();
+    st.apply_block_section_axle_count(GID{"BL-1"}, 4);
+    apply(st, AxleCounterResetChange{GID{"BL-1"}, OperatorTargetKind::BLOCK_SECTION});
+    EXPECT_EQ(st.find_block_section(GID{"BL-1"})->axle_count, 0);
+}
+
 TEST(StateApplier, RouteAdded_addsRoute)
 {
     auto st = make_state();

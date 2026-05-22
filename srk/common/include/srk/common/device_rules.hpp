@@ -89,6 +89,13 @@ std::optional<InterlockingViolation> check_acknowledge_alarm(const IStateView& s
 std::vector<DeviceStateChange> execute_acknowledge_alarm(const IStateView& state,
                                                          const AcknowledgeAlarmCmd& cmd);
 
+std::optional<InterlockingViolation> check_operator_command(const IStateView& state,
+                                                            const OperatorCommandCmd& cmd);
+
+std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
+                                                        const OperatorCommandCmd& cmd,
+                                                        int throw_time_ticks);
+
 // ── Tick helpers ──────────────────────────────────────────────────────────────
 // Called from IControlSystem::on_tick.
 

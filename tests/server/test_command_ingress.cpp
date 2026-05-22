@@ -85,6 +85,24 @@ TEST(CommandIngress, SetBlockSection_Inverted)
 }
 
 // ── Unknown cmd_type returns nullopt ─────────────────────────────────────────
+TEST(CommandIngress, OperatorCommand)
+{
+    flatbuffers::FlatBufferBuilder fbb;
+    auto gid = fbb.CreateString("ZBG_2P");
+    fbb.Finish(proto::CreateOperatorCommand(fbb, gid, proto::OperatorTargetKind_BLOCK_SECTION,
+                                            proto::OperatorCommandCode_BLW));
+
+    const auto payload = make_payload(0x20, fbb);
+    const auto result =
+        CommandIngress::parse_payload(payload.data(), static_cast<uint32_t>(payload.size()));
+    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(std::holds_alternative<OperatorCommandCmd>(*result));
+    const auto& cmd = std::get<OperatorCommandCmd>(*result);
+    EXPECT_EQ(cmd.target_gid.value, "ZBG_2P");
+    EXPECT_EQ(cmd.target_kind, OperatorTargetKind::BLOCK_SECTION);
+    EXPECT_EQ(cmd.code, OperatorCommandCode::BLW);
+}
+
 TEST(CommandIngress, UnknownCmdType)
 {
     const std::vector<uint8_t> payload = {0xFF, 0x01, 0x02};

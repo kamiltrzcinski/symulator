@@ -81,6 +81,20 @@ struct BlockDirectionChange
     bool requires_neighbor_confirmation = false;  // true after BLW (waiting for BLP)
 };
 
+struct AxleCounterResetChange
+{
+    GID gid;
+    OperatorTargetKind target_kind;
+};
+
+struct OperatorCommandStateChange
+{
+    GID gid;
+    OperatorTargetKind target_kind;
+    OperatorCommandCode code;
+    bool active = true;
+};
+
 struct RouteAdded
 {
     RouteState route;
@@ -104,8 +118,9 @@ struct AlarmCleared
 
 using DeviceStateChange =
     std::variant<SignalAspectChange, SwitchPositionChange, SwitchLocked, SwitchUnlocked,
-                 DerailerStateChange, BlockSectionStateChange, BlockDirectionChange, RouteAdded,
-                 RouteRemoved, AlarmRaised, AlarmCleared>;
+                 DerailerStateChange, BlockSectionStateChange, BlockDirectionChange,
+                 AxleCounterResetChange, OperatorCommandStateChange, RouteAdded, RouteRemoved,
+                 AlarmRaised, AlarmCleared>;
 
 // ── InterlockingViolation ────────────────────────────────────────────────────
 // Returned by check_command when the command is rejected.

@@ -87,6 +87,70 @@ table ResetAxleCounter {
     block_section_g_id: string (required);
 }
 
+// cmd_type 0x20
+enum OperatorTargetKind : byte {
+    SIGNAL              = 0,
+    SWITCH              = 1,
+    DERAILER            = 2,
+    TRACK_SECTION       = 3,
+    BLOCK_SECTION       = 4,
+    AXLE_COUNTER_SYSTEM = 5,
+    STATION             = 6,
+}
+
+enum OperatorCommandCode : byte {
+    SES  = 0,
+    SEO  = 1,
+    SZI  = 2,
+    SZW  = 3,
+    SZN  = 4,
+    SZO  = 5,
+    SAM  = 6,
+    SAW  = 7,
+    ZWP  = 8,
+    ZWM  = 9,
+    ZWS  = 10,
+    ZWO  = 11,
+    ITS  = 12,
+    ITO  = 13,
+    ZWB  = 14,
+    ZBP  = 15,
+    ZBM  = 16,
+    ZRI  = 17,
+    ZRK  = 18,
+    OPS  = 19,
+    SLI  = 20,
+    SLK  = 21,
+    BLW  = 22,
+    BLP  = 23,
+    BLO  = 24,
+    BLZ  = 25,
+    BLAI = 26,
+    BLA  = 27,
+    BLS  = 28,
+    OST  = 29,
+    ZKB  = 30,
+    PZM  = 31,
+    OZK  = 32,
+    ZESI = 33,
+    ZES  = 34,
+    PZZI = 35,
+    PZZ  = 36,
+    POZ  = 37,
+    DPOI = 38,
+    DPO  = 39,
+    DKOI = 40,
+    DKO  = 41,
+    DKPI = 42,
+    DKP  = 43,
+}
+
+table OperatorCommand {
+    target_g_id:  string (required);
+    target_kind:  OperatorTargetKind;
+    command_code: OperatorCommandCode;
+}
+
 // ── Command acknowledgement (S → C, msg_type 0x11) ──────────────────────────
 table CommandAck {
     req_seq_id: uint32;   // seq_id of the original COMMAND frame

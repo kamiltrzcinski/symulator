@@ -2,6 +2,19 @@
 
 All notable changes are documented here.
 
+## [0.4.3] — 2026-05-22
+
+### Added
+- **Commands**: Added the `OperatorCommand` protocol command (`cmd_type 0x20`) and a complete operator-command catalog covering signal, switch/derailer, track, axle-counter, Eac, SHL-12, and Eap procedures from the X-4-02850 command documentation.
+- **Engine**: Added persistent operator-command runtime flags for signals, switches, derailers, track sections, and block sections, including stop, substitute-signal, automatic-route, clamp, traffic-closure, detection-bypass, special-procedure, and axle-counter reset states.
+- **SRK**: Added shared execution support for documented operator commands in EbiLock and ML8, including command-state changes, signal stopping/substitute operations, switch/derailer plus/minus commands, axle-counter reset handling, and line-block direction/stop/special procedures.
+- **Protocol**: Regenerated FlatBuffers command headers and extended the JSON command catalog with the full `OperatorCommand` schema and all supported command codes.
+- **Tests**: Added coverage for `OperatorCommand` parsing, state application, and representative EbiLock operator-command execution.
+
+### Changed
+- **EbiLock**: Extended EbiLock command support to include SHL-12-style block direction and axle-counter commands in addition to the generic operator-command path.
+- **ML8**: Registered the generic operator-command path alongside existing ML8 and SHL-12 commands.
+
 Entry format:
 ```
 ## [version] — YYYY-MM-DD

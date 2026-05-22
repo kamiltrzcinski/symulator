@@ -182,6 +182,88 @@
           }
         }
       }
+    },
+    {
+      "cmd_type": "OperatorCommand",
+      "cmd_code": "0x20",
+      "payload_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_g_id",
+          "target_kind",
+          "command_code"
+        ],
+        "properties": {
+          "target_g_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "target_kind": {
+            "type": "string",
+            "enum": [
+              "SIGNAL",
+              "SWITCH",
+              "DERAILER",
+              "TRACK_SECTION",
+              "BLOCK_SECTION",
+              "AXLE_COUNTER_SYSTEM",
+              "STATION"
+            ]
+          },
+          "command_code": {
+            "type": "string",
+            "enum": [
+              "SES",
+              "SEO",
+              "SZI",
+              "SZW",
+              "SZN",
+              "SZO",
+              "SAM",
+              "SAW",
+              "ZWP",
+              "ZWM",
+              "ZWS",
+              "ZWO",
+              "ITS",
+              "ITO",
+              "ZWB",
+              "ZBP",
+              "ZBM",
+              "ZRI",
+              "ZRK",
+              "OPS",
+              "SLI",
+              "SLK",
+              "BLW",
+              "BLP",
+              "BLO",
+              "BLZ",
+              "BLAI",
+              "BLA",
+              "BLS",
+              "OST",
+              "ZKB",
+              "PZM",
+              "OZK",
+              "ZESI",
+              "ZES",
+              "PZZI",
+              "PZZ",
+              "POZ",
+              "DPOI",
+              "DPO",
+              "DKOI",
+              "DKO",
+              "DKPI",
+              "DKP"
+            ]
+          }
+        }
+      }
     }
   ]
 }

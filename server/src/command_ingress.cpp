@@ -23,6 +23,7 @@ constexpr uint8_t kAcknowledgeAlarm = 0x07;
 constexpr uint8_t kSetBlockDirection = 0x08;
 constexpr uint8_t kInitAxleCounterReset = 0x09;
 constexpr uint8_t kResetAxleCounter = 0x0A;
+constexpr uint8_t kOperatorCommand = 0x20;
 }  // namespace cmd
 
 // ── Proto → Engine enum conversions ──────────────────────────────────────────
@@ -64,6 +65,16 @@ static engine::core::Shl12Op from_proto(proto::Shl12Op op)
 {
     // Ordinals match.
     return static_cast<engine::core::Shl12Op>(op);
+}
+
+static engine::core::OperatorTargetKind from_proto(proto::OperatorTargetKind kind)
+{
+    return static_cast<engine::core::OperatorTargetKind>(kind);
+}
+
+static engine::core::OperatorCommandCode from_proto(proto::OperatorCommandCode code)
+{
+    return static_cast<engine::core::OperatorCommandCode>(code);
 }
 
 // ── parse_command ─────────────────────────────────────────────────────────────
@@ -179,6 +190,18 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!msg->block_section_g_id())
                 return std::nullopt;
             return ResetAxleCounterCmd{GID{msg->block_section_g_id()->str()}};
+        }
+
+        case cmd::kOperatorCommand:
+        {
+            if (!verifier.VerifyBuffer<proto::OperatorCommand>())
+                return std::nullopt;
+            const auto* msg = flatbuffers::GetRoot<proto::OperatorCommand>(fb_data);
+            if (!msg->target_g_id())
+                return std::nullopt;
+            return OperatorCommandCmd{GID{msg->target_g_id()->str()},
+                                      from_proto(msg->target_kind()),
+                                      from_proto(msg->command_code())};
         }
 
         default:

@@ -20,6 +20,20 @@
 namespace engine::core
 {
 
+struct OperatorCommandRuntimeState
+{
+    bool stopped = false;
+    bool substitute_initialized = false;
+    bool substitute_active = false;
+    bool automatic_route_enabled = false;
+    bool clamped = false;
+    bool traffic_closed = false;
+    bool detection_bypassed = false;
+    bool special_initialized = false;
+    bool special_active = false;
+    bool axle_reset_initialized = false;
+};
+
 // ── Connection port on the end of a track section ────────────────────────────
 // Exactly one of it_id / iz_id is present per side (boundary ↔ section counter
 // for sections that touch a boundary node, or section ↔ switch counter for
@@ -53,6 +67,7 @@ struct TrackSection
     TrackOccupancy occupancy = TrackOccupancy::FREE;
     int axle_count = 0;            // live axle-counter reading
     std::optional<GID> train_gid;  // GID of the train currently on this section (if known)
+    OperatorCommandRuntimeState operator_state;
 };
 
 // ── Switch leg (connection port on a switch) ─────────────────────────────────
@@ -84,6 +99,7 @@ struct Switch
     int axle_count = 0;
     std::optional<GID> locked_by_route;  // non-empty when a route locks this switch
     int moving_ticks_remaining = 0;      // countdown while position == MOVING
+    OperatorCommandRuntimeState operator_state;
 };
 
 // ── Signal (semafor / tarcza) ────────────────────────────────────────────────
@@ -108,6 +124,7 @@ struct Signal
     // ── Runtime ──
     SignalAspect current_aspect = SignalAspect::S1_STOP;
     std::optional<GID> locked_by_route;  // non-empty when route display is active
+    OperatorCommandRuntimeState operator_state;
 };
 
 // ── Derailer (wykolejnica) ───────────────────────────────────────────────────
@@ -123,6 +140,7 @@ struct Derailer
     // ── Runtime ──
     DerailerState state = DerailerState::LOCKED;
     std::optional<GID> locked_by_route;
+    OperatorCommandRuntimeState operator_state;
 };
 
 // ── Block section (blok liniowy SHL-12) ──────────────────────────────────────
@@ -144,6 +162,7 @@ struct BlockSection
     BlockSectionState state = BlockSectionState::CLOSED;
     BlockDirectionState direction = BlockDirectionState::NEUTRAL;
     int axle_count = 0;  // aggregate axle counter for the whole block
+    OperatorCommandRuntimeState operator_state;
 };
 
 // ── Route (droga przebiegu) ──────────────────────────────────────────────────

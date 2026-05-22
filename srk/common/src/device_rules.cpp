@@ -340,6 +340,170 @@ std::vector<DeviceStateChange> execute_acknowledge_alarm(const IStateView& /*sta
     return {AlarmCleared{cmd.alarm_id}};
 }
 
+static bool target_exists(const IStateView& state, const OperatorCommandCmd& cmd)
+{
+    switch (cmd.target_kind)
+    {
+        case OperatorTargetKind::SIGNAL:
+            return state.find_signal(cmd.target_gid) != nullptr;
+        case OperatorTargetKind::SWITCH:
+            return state.find_switch(cmd.target_gid) != nullptr ||
+                   state.find_derailer(cmd.target_gid) != nullptr;
+        case OperatorTargetKind::DERAILER:
+            return state.find_derailer(cmd.target_gid) != nullptr;
+        case OperatorTargetKind::TRACK_SECTION:
+            return state.find_track_section(cmd.target_gid) != nullptr;
+        case OperatorTargetKind::BLOCK_SECTION:
+            return state.find_block_section(cmd.target_gid) != nullptr;
+        case OperatorTargetKind::AXLE_COUNTER_SYSTEM:
+        case OperatorTargetKind::STATION:
+            return !cmd.target_gid.value.empty();
+    }
+    return false;
+}
+
+std::optional<InterlockingViolation> check_operator_command(const IStateView& state,
+                                                            const OperatorCommandCmd& cmd)
+{
+    if (!target_exists(state, cmd))
+        return violation(NAK_NOT_FOUND, "Operator command target not found: " + cmd.target_gid.value,
+                         cmd.target_gid);
+
+    if (cmd.code == OperatorCommandCode::ZWP || cmd.code == OperatorCommandCode::ZWM ||
+        cmd.code == OperatorCommandCode::ZBP || cmd.code == OperatorCommandCode::ZBM)
+    {
+        if (const Switch* sw = state.find_switch(cmd.target_gid))
+        {
+            if (sw->occupancy == TrackOccupancy::OCCUPIED)
+                return violation(NAK_SAFETY_BLOCK,
+                                 "Switch is occupied: " + cmd.target_gid.value, cmd.target_gid);
+            if (sw->locked_by_route.has_value())
+                return violation(NAK_ROUTE_LOCKED,
+                                 "Switch locked by route: " + cmd.target_gid.value,
+                                 cmd.target_gid);
+            if (sw->position == SwitchPosition::MOVING)
+                return violation(NAK_SWITCH_MOVING,
+                                 "Switch is moving: " + cmd.target_gid.value, cmd.target_gid);
+        }
+    }
+
+    if (cmd.code == OperatorCommandCode::BLZ)
+    {
+        const BlockSection* bs = state.find_block_section(cmd.target_gid);
+        if (bs && bs->axle_count != 0)
+            return violation(NAK_SAFETY_BLOCK, "Cannot release block direction: axle count != 0",
+                             cmd.target_gid);
+    }
+
+    return std::nullopt;
+}
+
+std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
+                                                        const OperatorCommandCmd& cmd,
+                                                        int throw_time_ticks)
+{
+    std::vector<DeviceStateChange> changes;
+    changes.push_back(OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, true});
+
+    switch (cmd.code)
+    {
+        case OperatorCommandCode::SES:
+            if (const Signal* sig = state.find_signal(cmd.target_gid))
+            {
+                const auto aspect = sig->type == Signal::Type::SHUNTING ? SignalAspect::MS1_STOP
+                                                                         : SignalAspect::S1_STOP;
+                changes.push_back(
+                    SignalAspectChange{cmd.target_gid, aspect, ChangeCause::COMMAND, std::nullopt});
+            }
+            break;
+        case OperatorCommandCode::SEO:
+        case OperatorCommandCode::SZO:
+        case OperatorCommandCode::SAW:
+        case OperatorCommandCode::ZWO:
+        case OperatorCommandCode::ITO:
+        case OperatorCommandCode::OST:
+        case OperatorCommandCode::OZK:
+            changes.push_back(
+                OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, false});
+            break;
+        case OperatorCommandCode::SZW:
+        case OperatorCommandCode::SZN:
+            changes.push_back(SignalAspectChange{cmd.target_gid, SignalAspect::S2_PROCEED,
+                                                 ChangeCause::COMMAND, std::nullopt});
+            break;
+        case OperatorCommandCode::ZWP:
+        case OperatorCommandCode::ZBP:
+            if (state.find_switch(cmd.target_gid))
+            {
+                auto sub = execute_set_switch_position(
+                    state, SetSwitchPositionCmd{cmd.target_gid, SwitchPosition::STRAIGHT},
+                    throw_time_ticks);
+                changes.insert(changes.end(), sub.begin(), sub.end());
+            }
+            else if (state.find_derailer(cmd.target_gid))
+            {
+                auto sub = execute_set_derailer_position(
+                    state, SetDerailerPositionCmd{cmd.target_gid, DerailerState::LOCKED});
+                changes.insert(changes.end(), sub.begin(), sub.end());
+            }
+            break;
+        case OperatorCommandCode::ZWM:
+        case OperatorCommandCode::ZBM:
+            if (state.find_switch(cmd.target_gid))
+            {
+                auto sub = execute_set_switch_position(
+                    state, SetSwitchPositionCmd{cmd.target_gid, SwitchPosition::DIVERGENT},
+                    throw_time_ticks);
+                changes.insert(changes.end(), sub.begin(), sub.end());
+            }
+            else if (state.find_derailer(cmd.target_gid))
+            {
+                auto sub = execute_set_derailer_position(
+                    state, SetDerailerPositionCmd{cmd.target_gid, DerailerState::UNLOCKED});
+                changes.insert(changes.end(), sub.begin(), sub.end());
+            }
+            break;
+        case OperatorCommandCode::SLK:
+            changes.push_back(AxleCounterResetChange{cmd.target_gid, cmd.target_kind});
+            changes.push_back(
+                OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, false});
+            break;
+        case OperatorCommandCode::BLS:
+            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+            break;
+        case OperatorCommandCode::BLW:
+            changes.push_back(BlockDirectionChange{cmd.target_gid,
+                                                   BlockDirectionState::OUTBOUND_PENDING, true});
+            break;
+        case OperatorCommandCode::BLP:
+            if (const BlockSection* bs = state.find_block_section(cmd.target_gid))
+            {
+                const auto direction = bs->direction == BlockDirectionState::INBOUND_PENDING
+                                           ? BlockDirectionState::INBOUND
+                                           : BlockDirectionState::OUTBOUND;
+                changes.push_back(BlockDirectionChange{cmd.target_gid, direction, false});
+                changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::OPEN});
+            }
+            break;
+        case OperatorCommandCode::BLO:
+        case OperatorCommandCode::BLZ:
+        case OperatorCommandCode::BLA:
+        case OperatorCommandCode::OPS:
+            changes.push_back(
+                BlockDirectionChange{cmd.target_gid, BlockDirectionState::NEUTRAL, false});
+            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+            break;
+        case OperatorCommandCode::BLAI:
+            changes.push_back(
+                BlockDirectionChange{cmd.target_gid, BlockDirectionState::EMERGENCY, false});
+            break;
+        default:
+            break;
+    }
+
+    return changes;
+}
+
 // ── Tick helpers ──────────────────────────────────────────────────────────────
 
 std::vector<DeviceStateChange> tick_switch_machines(const IStateView& state)
