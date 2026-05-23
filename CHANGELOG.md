@@ -2,6 +2,17 @@
 
 All notable changes are documented here.
 
+## [0.5.1] - 2026-05-23
+
+### Added
+- **DbWriter PostgreSQL pipeline**: Production `PgDbWriter : IDbWriter` using libpqxx 8.x.
+  - `server/include/server/pg_db_writer.hpp` + `server/src/pg_db_writer.cpp`: connects via libpq connection string; `init_session()` inserts into `session.sessions` and returns UUID; `write_dispatch_telegram()` inserts to `session.dispatch_telegrams`; `update_edr_track_clear_time()` updates `track_clear_time` as time-of-day `INTERVAL`.
+  - `server/CMakeLists.txt`: new `server_db_lib` static library links `server_lib + libpqxx::pqxx`; unit tests remain libpqxx-free.
+  - `server/session_server.cpp`: `--db` CLI flag + `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` env-var fallback; `BilateralChannel` wired into `SessionServer` for the first time.
+  - `tests/integration/test_pg_db_writer.cpp`: 4 integration tests (auto-skipped when `SYMULATOR_TEST_DB` is not set).
+  - `vcpkg.json`: added `libpqxx` dependency.
+- **IDbWriter**: added `virtual std::string init_session(const std::string& display_name, int schema_version) = 0;` to the interface; `NullDbWriter` returns a deterministic UUID sentinel.
+
 ## [0.5.0] - 2026-05-23
 
 ### Refactored

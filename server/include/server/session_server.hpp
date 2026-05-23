@@ -16,7 +16,10 @@
 
 #pragma once
 
+#include "server/bilateral_channel.hpp"
+#include "server/db_writer.hpp"
 #include "server/dispatch_bus.hpp"
+#include "server/dispatch_exchange_manager.hpp"
 #include "server/ownership_guard.hpp"
 #include "server/transport_gateway.hpp"
 
@@ -41,6 +44,9 @@ struct SessionConfig
     std::filesystem::path scenario_dir;  ///< Scenario directory (meta.json, topology.json, …)
     std::filesystem::path data_dir;      ///< Fleet data root (vehicle_types/, vehicles/, trains/)
     uint16_t port = 9420;                ///< TCP listen port
+    /// libpq connection string, e.g. "host=localhost port=5432 dbname=symulator user=sim password=…"
+    /// Empty string = use NullDbWriter (no DB persistence).
+    std::string db_connection_string;
 };
 
 // ── SessionServer ─────────────────────────────────────────────────────────────
@@ -90,10 +96,17 @@ private:
     // Declaration order == construction order.
     // dispatch_bus_ holds a reference to gateway_, so it must be declared after
     // gateway_ (and therefore destroyed before it).
+    // bilateral_channel_ holds references to exchange_mgr_, db_writer_, and
+    // gateway_, so it must be declared after all three.
+    // Destruction is LIFO: bilateral_channel_ → exchange_mgr_ → dispatch_bus_
+    //   → gateway_ → db_writer_ → ownership_.
 
     OwnershipGuard ownership_;
+    std::unique_ptr<IDbWriter> db_writer_;
     std::unique_ptr<TransportGateway> gateway_;
     std::unique_ptr<DispatchBus> dispatch_bus_;
+    std::unique_ptr<DispatchExchangeManager> exchange_mgr_;
+    std::unique_ptr<BilateralChannel> bilateral_channel_;
 
     // ── ENGINE thread ─────────────────────────────────────────────────────────
     // Declared last: EngineLoop holds non-owning references to state_,

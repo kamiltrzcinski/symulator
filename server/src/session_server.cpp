@@ -1,6 +1,7 @@
 // server/src/session_server.cpp
 
 #include "server/session_server.hpp"
+#include "server/pg_db_writer.hpp"
 
 #include "engine/core/control_system_registry.hpp"
 #include "engine/core/topology_loader.hpp"
@@ -12,6 +13,7 @@
 
 #include <signal.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -24,10 +26,13 @@ namespace server
 
 static void print_usage(std::ostream& out)
 {
-    out << "Usage: simserver --scenario <dir> [--data <dir>] [--port <N>]\n"
+    out << "Usage: simserver --scenario <dir> [--data <dir>] [--port <N>] [--db <connstr>]\n"
            "  --scenario / -s  path to scenario directory   (required)\n"
            "  --data     / -d  path to fleet data root       (default: ./data)\n"
-           "  --port     / -p  TCP listen port               (default: 9420)\n";
+           "  --port     / -p  TCP listen port               (default: 9420)\n"
+           "  --db             libpq connection string        (default: NullDbWriter)\n"
+           "                   also read from env vars: DB_HOST DB_PORT DB_USER DB_PASSWORD "
+           "DB_NAME\n";
 }
 
 SessionServer SessionServer::from_args(int argc, char* argv[])
@@ -44,6 +49,8 @@ SessionServer SessionServer::from_args(int argc, char* argv[])
             cfg.data_dir = argv[++i];
         else if ((arg == "--port" || arg == "-p") && i + 1 < argc)
             cfg.port = static_cast<uint16_t>(std::stoi(argv[++i]));
+        else if (arg == "--db" && i + 1 < argc)
+            cfg.db_connection_string = argv[++i];
         else if (arg == "--help" || arg == "-h")
         {
             print_usage(std::cout);
@@ -56,6 +63,23 @@ SessionServer SessionServer::from_args(int argc, char* argv[])
         std::cerr << "error: --scenario is required.\n";
         print_usage(std::cerr);
         std::exit(1);
+    }
+
+    // If --db was not provided, try to build a connection string from DB_* env vars.
+    // This matches the environment variables set in docker/docker-compose.yml.
+    if (cfg.db_connection_string.empty())
+    {
+        const char* host = std::getenv("DB_HOST");
+        const char* port = std::getenv("DB_PORT");
+        const char* user = std::getenv("DB_USER");
+        const char* pass = std::getenv("DB_PASSWORD");
+        const char* name = std::getenv("DB_NAME");
+        if (host && user && pass && name)
+        {
+            cfg.db_connection_string = std::string("host=") + host +
+                                       " port=" + (port ? port : "5432") + " dbname=" + name +
+                                       " user=" + user + " password=" + pass;
+        }
     }
 
     return SessionServer(std::move(cfg));
@@ -94,12 +118,31 @@ SessionServer::~SessionServer()
 
 void SessionServer::start()
 {
+    // 0. Create DB writer.
+    //    Use PgDbWriter when a connection string is provided; otherwise fall back
+    //    to NullDbWriter so the server works without a PostgreSQL instance.
+    if (!config_.db_connection_string.empty())
+    {
+        std::cout << "[server] Connecting to PostgreSQL…\n";
+        db_writer_ = std::make_unique<PgDbWriter>(config_.db_connection_string);
+        std::cout << "[server] PostgreSQL connected.\n";
+    }
+    else
+    {
+        std::cout << "[server] No DB connection string — using NullDbWriter.\n";
+        db_writer_ = std::make_unique<NullDbWriter>();
+    }
+
     // 1. Load topology → EngineState.
     std::cout << "[server] Loading scenario: " << config_.scenario_dir << "\n";
     const auto meta = engine::core::load_scenario(state_, config_.scenario_dir);
     state_.set_session_id(meta.station_sid);
     std::cout << "[server] Station: " << meta.station_sid
               << "  control_system: " << meta.control_system_id << "\n";
+
+    // 1a. Register session in DB; get UUID for all subsequent DB writes.
+    const auto session_uuid = db_writer_->init_session(meta.station_sid, 1);
+    std::cout << "[server] Session UUID: " << session_uuid << "\n";
 
     // 2. Load fleet data (vehicle types, instances, consists).
     fleet_.load(config_.data_dir);
@@ -115,6 +158,16 @@ void SessionServer::start()
     // 4. Construct network layer.
     gateway_ = std::make_unique<TransportGateway>(cmd_queue_, ownership_, snapshot_);
     dispatch_bus_ = std::make_unique<DispatchBus>(*gateway_);
+
+    // 4a. Wire BilateralChannel — first time the channel is connected to a
+    //     running server instance (previously existed only in unit tests).
+    exchange_mgr_ = std::make_unique<DispatchExchangeManager>();
+    bilateral_channel_ =
+        std::make_unique<BilateralChannel>(*exchange_mgr_, *db_writer_, *gateway_, session_uuid);
+    gateway_->set_bilateral_handler(
+        [this](const std::vector<uint8_t>& payload, const std::string& client_id,
+               const std::string& area_id)
+        { bilateral_channel_->on_inbound(payload, client_id, area_id); });
 
     // 5. Wire ENGINE callbacks.
     //    nak_cb   — called on ENGINE thread when a command fails interlocking.
@@ -157,12 +210,16 @@ void SessionServer::start()
 
 void SessionServer::stop()
 {
-    // Reverse startup order: ENGINE → IO → resources.
+    // Reverse startup order: ENGINE → bilateral → IO → resources.
     if (engine_loop_)
     {
         engine_loop_->stop();
         engine_loop_.reset();
     }
+
+    // Bilateral channel must be torn down before gateway_ closes its sessions.
+    bilateral_channel_.reset();
+    exchange_mgr_.reset();
 
     if (gateway_)
     {
@@ -172,6 +229,7 @@ void SessionServer::stop()
 
     dispatch_bus_.reset();
     control_.reset();
+    db_writer_.reset();
 
     // Unblock any WORK_POOL thread still trying to push a command.
     cmd_queue_.close();

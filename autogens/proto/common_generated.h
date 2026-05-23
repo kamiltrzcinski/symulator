@@ -265,99 +265,114 @@ inline const char *EnumNameChangeCause(ChangeCause e) {
 }
 
 /// Dispatch form types exchanged between neighbouring areas via bilateral channel.
-enum DispatchFormType : int8_t
-{
-    DispatchFormType_S2 = 0,
-    DispatchFormType_S24 = 1,
-    DispatchFormType_S25 = 2,
-    DispatchFormType_S26 = 3,
-    DispatchFormType_S55 = 4,
-    DispatchFormType_S56 = 5,
-    DispatchFormType_MIN = DispatchFormType_S2,
-    DispatchFormType_MAX = DispatchFormType_S56
+enum DispatchFormType : int8_t {
+  DispatchFormType_S2 = 0,
+  DispatchFormType_S24 = 1,
+  DispatchFormType_S25 = 2,
+  DispatchFormType_S26 = 3,
+  DispatchFormType_S55 = 4,
+  DispatchFormType_S56 = 5,
+  DispatchFormType_MIN = DispatchFormType_S2,
+  DispatchFormType_MAX = DispatchFormType_S56
 };
 
-inline const DispatchFormType (&EnumValuesDispatchFormType())[6]
-{
-    static const DispatchFormType values[] = {DispatchFormType_S2,  DispatchFormType_S24,
-                                              DispatchFormType_S25, DispatchFormType_S26,
-                                              DispatchFormType_S55, DispatchFormType_S56};
-    return values;
+inline const DispatchFormType (&EnumValuesDispatchFormType())[6] {
+  static const DispatchFormType values[] = {
+    DispatchFormType_S2,
+    DispatchFormType_S24,
+    DispatchFormType_S25,
+    DispatchFormType_S26,
+    DispatchFormType_S55,
+    DispatchFormType_S56
+  };
+  return values;
 }
 
-inline const char *const *EnumNamesDispatchFormType()
-{
-    static const char *const names[7] = {"S2", "S24", "S25", "S26", "S55", "S56", nullptr};
-    return names;
+inline const char * const *EnumNamesDispatchFormType() {
+  static const char * const names[7] = {
+    "S2",
+    "S24",
+    "S25",
+    "S26",
+    "S55",
+    "S56",
+    nullptr
+  };
+  return names;
 }
 
-inline const char *EnumNameDispatchFormType(DispatchFormType e)
-{
-    if (::flatbuffers::IsOutRange(e, DispatchFormType_S2, DispatchFormType_S56))
-        return "";
-    const size_t index = static_cast<size_t>(e);
-    return EnumNamesDispatchFormType()[index];
+inline const char *EnumNameDispatchFormType(DispatchFormType e) {
+  if (::flatbuffers::IsOutRange(e, DispatchFormType_S2, DispatchFormType_S56)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesDispatchFormType()[index];
 }
 
 /// Direction of a dispatch telegram from the perspective of the sending area.
-enum TelegramDirection : int8_t
-{
-    TelegramDirection_SENT = 0,
-    TelegramDirection_RECEIVED = 1,
-    TelegramDirection_MIN = TelegramDirection_SENT,
-    TelegramDirection_MAX = TelegramDirection_RECEIVED
+enum TelegramDirection : int8_t {
+  TelegramDirection_SENT = 0,
+  TelegramDirection_RECEIVED = 1,
+  TelegramDirection_MIN = TelegramDirection_SENT,
+  TelegramDirection_MAX = TelegramDirection_RECEIVED
 };
 
-inline const TelegramDirection (&EnumValuesTelegramDirection())[2]
-{
-    static const TelegramDirection values[] = {TelegramDirection_SENT, TelegramDirection_RECEIVED};
-    return values;
+inline const TelegramDirection (&EnumValuesTelegramDirection())[2] {
+  static const TelegramDirection values[] = {
+    TelegramDirection_SENT,
+    TelegramDirection_RECEIVED
+  };
+  return values;
 }
 
-inline const char *const *EnumNamesTelegramDirection()
-{
-    static const char *const names[3] = {"SENT", "RECEIVED", nullptr};
-    return names;
+inline const char * const *EnumNamesTelegramDirection() {
+  static const char * const names[3] = {
+    "SENT",
+    "RECEIVED",
+    nullptr
+  };
+  return names;
 }
 
-inline const char *EnumNameTelegramDirection(TelegramDirection e)
-{
-    if (::flatbuffers::IsOutRange(e, TelegramDirection_SENT, TelegramDirection_RECEIVED))
-        return "";
-    const size_t index = static_cast<size_t>(e);
-    return EnumNamesTelegramDirection()[index];
+inline const char *EnumNameTelegramDirection(TelegramDirection e) {
+  if (::flatbuffers::IsOutRange(e, TelegramDirection_SENT, TelegramDirection_RECEIVED)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesTelegramDirection()[index];
 }
 
 /// Exchange lifecycle state (used in BilateralMessage.exchange_status).
-enum ExchangeStatus : int8_t
-{
-    ExchangeStatus_PENDING = 0,
-    ExchangeStatus_ACCEPTED = 1,
-    ExchangeStatus_REJECTED = 2,
-    ExchangeStatus_CLOSED = 3,
-    ExchangeStatus_MIN = ExchangeStatus_PENDING,
-    ExchangeStatus_MAX = ExchangeStatus_CLOSED
+enum ExchangeStatus : int8_t {
+  ExchangeStatus_PENDING = 0,
+  ExchangeStatus_ACCEPTED = 1,
+  ExchangeStatus_REJECTED = 2,
+  ExchangeStatus_CLOSED = 3,
+  ExchangeStatus_MIN = ExchangeStatus_PENDING,
+  ExchangeStatus_MAX = ExchangeStatus_CLOSED
 };
 
-inline const ExchangeStatus (&EnumValuesExchangeStatus())[4]
-{
-    static const ExchangeStatus values[] = {ExchangeStatus_PENDING, ExchangeStatus_ACCEPTED,
-                                            ExchangeStatus_REJECTED, ExchangeStatus_CLOSED};
-    return values;
+inline const ExchangeStatus (&EnumValuesExchangeStatus())[4] {
+  static const ExchangeStatus values[] = {
+    ExchangeStatus_PENDING,
+    ExchangeStatus_ACCEPTED,
+    ExchangeStatus_REJECTED,
+    ExchangeStatus_CLOSED
+  };
+  return values;
 }
 
-inline const char *const *EnumNamesExchangeStatus()
-{
-    static const char *const names[5] = {"PENDING", "ACCEPTED", "REJECTED", "CLOSED", nullptr};
-    return names;
+inline const char * const *EnumNamesExchangeStatus() {
+  static const char * const names[5] = {
+    "PENDING",
+    "ACCEPTED",
+    "REJECTED",
+    "CLOSED",
+    nullptr
+  };
+  return names;
 }
 
-inline const char *EnumNameExchangeStatus(ExchangeStatus e)
-{
-    if (::flatbuffers::IsOutRange(e, ExchangeStatus_PENDING, ExchangeStatus_CLOSED))
-        return "";
-    const size_t index = static_cast<size_t>(e);
-    return EnumNamesExchangeStatus()[index];
+inline const char *EnumNameExchangeStatus(ExchangeStatus e) {
+  if (::flatbuffers::IsOutRange(e, ExchangeStatus_PENDING, ExchangeStatus_CLOSED)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesExchangeStatus()[index];
 }
 
 /// Session lifecycle state

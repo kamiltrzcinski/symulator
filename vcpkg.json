@@ -5,6 +5,7 @@
     "dependencies": [
         "asio",
         "flatbuffers",
+        "libpqxx",
         "nlohmann-json",
         "gtest",
         "openssl",

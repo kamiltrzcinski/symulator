@@ -1885,141 +1885,117 @@ inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChange
 
 ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-struct DispatchTelegramStateChangedT : public ::flatbuffers::NativeTable
-{
-    typedef DispatchTelegramStateChanged TableType;
-    std::string exchange_id{};
-    std::string src_area_id{};
-    std::string dst_area_id{};
-    proto::DispatchFormType form_type = proto::DispatchFormType_S2;
-    proto::TelegramDirection direction = proto::TelegramDirection_SENT;
-    std::string train_number{};
-    proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING;
-    uint64_t timestamp_us = 0;
+struct DispatchTelegramStateChangedT : public ::flatbuffers::NativeTable {
+  typedef DispatchTelegramStateChanged TableType;
+  std::string exchange_id{};
+  std::string src_area_id{};
+  std::string dst_area_id{};
+  proto::DispatchFormType form_type = proto::DispatchFormType_S2;
+  proto::TelegramDirection direction = proto::TelegramDirection_SENT;
+  std::string train_number{};
+  proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING;
+  uint64_t timestamp_us = 0;
 };
 
-struct DispatchTelegramStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
-{
-    typedef DispatchTelegramStateChangedT NativeTableType;
-    typedef DispatchTelegramStateChangedBuilder Builder;
-    enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE
-    {
-        VT_EXCHANGE_ID = 4,
-        VT_SRC_AREA_ID = 6,
-        VT_DST_AREA_ID = 8,
-        VT_FORM_TYPE = 10,
-        VT_DIRECTION = 12,
-        VT_TRAIN_NUMBER = 14,
-        VT_NEW_STATUS = 16,
-        VT_TIMESTAMP_US = 18
-    };
-    const ::flatbuffers::String *exchange_id() const
-    {
-        return GetPointer<const ::flatbuffers::String *>(VT_EXCHANGE_ID);
-    }
-    const ::flatbuffers::String *src_area_id() const
-    {
-        return GetPointer<const ::flatbuffers::String *>(VT_SRC_AREA_ID);
-    }
-    const ::flatbuffers::String *dst_area_id() const
-    {
-        return GetPointer<const ::flatbuffers::String *>(VT_DST_AREA_ID);
-    }
-    proto::DispatchFormType form_type() const
-    {
-        return static_cast<proto::DispatchFormType>(GetField<int8_t>(VT_FORM_TYPE, 0));
-    }
-    proto::TelegramDirection direction() const
-    {
-        return static_cast<proto::TelegramDirection>(GetField<int8_t>(VT_DIRECTION, 0));
-    }
-    const ::flatbuffers::String *train_number() const
-    {
-        return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_NUMBER);
-    }
-    proto::ExchangeStatus new_status() const
-    {
-        return static_cast<proto::ExchangeStatus>(GetField<int8_t>(VT_NEW_STATUS, 0));
-    }
-    uint64_t timestamp_us() const { return GetField<uint64_t>(VT_TIMESTAMP_US, 0); }
-    template<bool B = false>
-    bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const
-    {
-        return VerifyTableStart(verifier) && VerifyOffsetRequired(verifier, VT_EXCHANGE_ID) &&
-               verifier.VerifyString(exchange_id()) &&
-               VerifyOffsetRequired(verifier, VT_SRC_AREA_ID) &&
-               verifier.VerifyString(src_area_id()) &&
-               VerifyOffsetRequired(verifier, VT_DST_AREA_ID) &&
-               verifier.VerifyString(dst_area_id()) &&
-               VerifyField<int8_t>(verifier, VT_FORM_TYPE, 1) &&
-               VerifyField<int8_t>(verifier, VT_DIRECTION, 1) &&
-               VerifyOffset(verifier, VT_TRAIN_NUMBER) && verifier.VerifyString(train_number()) &&
-               VerifyField<int8_t>(verifier, VT_NEW_STATUS, 1) &&
-               VerifyField<uint64_t>(verifier, VT_TIMESTAMP_US, 8) && verifier.EndTable();
-    }
-    DispatchTelegramStateChangedT *UnPack(
-        const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-    void UnPackTo(DispatchTelegramStateChangedT *_o,
-                  const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-    static ::flatbuffers::Offset<DispatchTelegramStateChanged> Pack(
-        ::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o,
-        const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+struct DispatchTelegramStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef DispatchTelegramStateChangedT NativeTableType;
+  typedef DispatchTelegramStateChangedBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_EXCHANGE_ID = 4,
+    VT_SRC_AREA_ID = 6,
+    VT_DST_AREA_ID = 8,
+    VT_FORM_TYPE = 10,
+    VT_DIRECTION = 12,
+    VT_TRAIN_NUMBER = 14,
+    VT_NEW_STATUS = 16,
+    VT_TIMESTAMP_US = 18
+  };
+  const ::flatbuffers::String *exchange_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_EXCHANGE_ID);
+  }
+  const ::flatbuffers::String *src_area_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SRC_AREA_ID);
+  }
+  const ::flatbuffers::String *dst_area_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_DST_AREA_ID);
+  }
+  proto::DispatchFormType form_type() const {
+    return static_cast<proto::DispatchFormType>(GetField<int8_t>(VT_FORM_TYPE, 0));
+  }
+  proto::TelegramDirection direction() const {
+    return static_cast<proto::TelegramDirection>(GetField<int8_t>(VT_DIRECTION, 0));
+  }
+  const ::flatbuffers::String *train_number() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_NUMBER);
+  }
+  proto::ExchangeStatus new_status() const {
+    return static_cast<proto::ExchangeStatus>(GetField<int8_t>(VT_NEW_STATUS, 0));
+  }
+  uint64_t timestamp_us() const {
+    return GetField<uint64_t>(VT_TIMESTAMP_US, 0);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_EXCHANGE_ID) &&
+           verifier.VerifyString(exchange_id()) &&
+           VerifyOffsetRequired(verifier, VT_SRC_AREA_ID) &&
+           verifier.VerifyString(src_area_id()) &&
+           VerifyOffsetRequired(verifier, VT_DST_AREA_ID) &&
+           verifier.VerifyString(dst_area_id()) &&
+           VerifyField<int8_t>(verifier, VT_FORM_TYPE, 1) &&
+           VerifyField<int8_t>(verifier, VT_DIRECTION, 1) &&
+           VerifyOffset(verifier, VT_TRAIN_NUMBER) &&
+           verifier.VerifyString(train_number()) &&
+           VerifyField<int8_t>(verifier, VT_NEW_STATUS, 1) &&
+           VerifyField<uint64_t>(verifier, VT_TIMESTAMP_US, 8) &&
+           verifier.EndTable();
+  }
+  DispatchTelegramStateChangedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(DispatchTelegramStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<DispatchTelegramStateChanged> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
-struct DispatchTelegramStateChangedBuilder
-{
-    typedef DispatchTelegramStateChanged Table;
-    ::flatbuffers::FlatBufferBuilder &fbb_;
-    ::flatbuffers::uoffset_t start_;
-    void add_exchange_id(::flatbuffers::Offset<::flatbuffers::String> exchange_id)
-    {
-        fbb_.AddOffset(DispatchTelegramStateChanged::VT_EXCHANGE_ID, exchange_id);
-    }
-    void add_src_area_id(::flatbuffers::Offset<::flatbuffers::String> src_area_id)
-    {
-        fbb_.AddOffset(DispatchTelegramStateChanged::VT_SRC_AREA_ID, src_area_id);
-    }
-    void add_dst_area_id(::flatbuffers::Offset<::flatbuffers::String> dst_area_id)
-    {
-        fbb_.AddOffset(DispatchTelegramStateChanged::VT_DST_AREA_ID, dst_area_id);
-    }
-    void add_form_type(proto::DispatchFormType form_type)
-    {
-        fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_FORM_TYPE,
-                                static_cast<int8_t>(form_type), 0);
-    }
-    void add_direction(proto::TelegramDirection direction)
-    {
-        fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_DIRECTION,
-                                static_cast<int8_t>(direction), 0);
-    }
-    void add_train_number(::flatbuffers::Offset<::flatbuffers::String> train_number)
-    {
-        fbb_.AddOffset(DispatchTelegramStateChanged::VT_TRAIN_NUMBER, train_number);
-    }
-    void add_new_status(proto::ExchangeStatus new_status)
-    {
-        fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_NEW_STATUS,
-                                static_cast<int8_t>(new_status), 0);
-    }
-    void add_timestamp_us(uint64_t timestamp_us)
-    {
-        fbb_.AddElement<uint64_t>(DispatchTelegramStateChanged::VT_TIMESTAMP_US, timestamp_us, 0);
-    }
-    explicit DispatchTelegramStateChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb)
-    {
-        start_ = fbb_.StartTable();
-    }
-    ::flatbuffers::Offset<DispatchTelegramStateChanged> Finish()
-    {
-        const auto end = fbb_.EndTable(start_);
-        auto o = ::flatbuffers::Offset<DispatchTelegramStateChanged>(end);
-        fbb_.Required(o, DispatchTelegramStateChanged::VT_EXCHANGE_ID);
-        fbb_.Required(o, DispatchTelegramStateChanged::VT_SRC_AREA_ID);
-        fbb_.Required(o, DispatchTelegramStateChanged::VT_DST_AREA_ID);
-        return o;
-    }
+struct DispatchTelegramStateChangedBuilder {
+  typedef DispatchTelegramStateChanged Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_exchange_id(::flatbuffers::Offset<::flatbuffers::String> exchange_id) {
+    fbb_.AddOffset(DispatchTelegramStateChanged::VT_EXCHANGE_ID, exchange_id);
+  }
+  void add_src_area_id(::flatbuffers::Offset<::flatbuffers::String> src_area_id) {
+    fbb_.AddOffset(DispatchTelegramStateChanged::VT_SRC_AREA_ID, src_area_id);
+  }
+  void add_dst_area_id(::flatbuffers::Offset<::flatbuffers::String> dst_area_id) {
+    fbb_.AddOffset(DispatchTelegramStateChanged::VT_DST_AREA_ID, dst_area_id);
+  }
+  void add_form_type(proto::DispatchFormType form_type) {
+    fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_FORM_TYPE, static_cast<int8_t>(form_type), 0);
+  }
+  void add_direction(proto::TelegramDirection direction) {
+    fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_DIRECTION, static_cast<int8_t>(direction), 0);
+  }
+  void add_train_number(::flatbuffers::Offset<::flatbuffers::String> train_number) {
+    fbb_.AddOffset(DispatchTelegramStateChanged::VT_TRAIN_NUMBER, train_number);
+  }
+  void add_new_status(proto::ExchangeStatus new_status) {
+    fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_NEW_STATUS, static_cast<int8_t>(new_status), 0);
+  }
+  void add_timestamp_us(uint64_t timestamp_us) {
+    fbb_.AddElement<uint64_t>(DispatchTelegramStateChanged::VT_TIMESTAMP_US, timestamp_us, 0);
+  }
+  explicit DispatchTelegramStateChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<DispatchTelegramStateChanged> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<DispatchTelegramStateChanged>(end);
+    fbb_.Required(o, DispatchTelegramStateChanged::VT_EXCHANGE_ID);
+    fbb_.Required(o, DispatchTelegramStateChanged::VT_SRC_AREA_ID);
+    fbb_.Required(o, DispatchTelegramStateChanged::VT_DST_AREA_ID);
+    return o;
+  }
 };
 
 inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(
@@ -2030,40 +2006,47 @@ inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegra
     proto::DispatchFormType form_type = proto::DispatchFormType_S2,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     ::flatbuffers::Offset<::flatbuffers::String> train_number = 0,
-    proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING, uint64_t timestamp_us = 0)
-{
-    DispatchTelegramStateChangedBuilder builder_(_fbb);
-    builder_.add_timestamp_us(timestamp_us);
-    builder_.add_train_number(train_number);
-    builder_.add_dst_area_id(dst_area_id);
-    builder_.add_src_area_id(src_area_id);
-    builder_.add_exchange_id(exchange_id);
-    builder_.add_new_status(new_status);
-    builder_.add_direction(direction);
-    builder_.add_form_type(form_type);
-    return builder_.Finish();
+    proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING,
+    uint64_t timestamp_us = 0) {
+  DispatchTelegramStateChangedBuilder builder_(_fbb);
+  builder_.add_timestamp_us(timestamp_us);
+  builder_.add_train_number(train_number);
+  builder_.add_dst_area_id(dst_area_id);
+  builder_.add_src_area_id(src_area_id);
+  builder_.add_exchange_id(exchange_id);
+  builder_.add_new_status(new_status);
+  builder_.add_direction(direction);
+  builder_.add_form_type(form_type);
+  return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb, const char *exchange_id = nullptr,
-    const char *src_area_id = nullptr, const char *dst_area_id = nullptr,
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *exchange_id = nullptr,
+    const char *src_area_id = nullptr,
+    const char *dst_area_id = nullptr,
     proto::DispatchFormType form_type = proto::DispatchFormType_S2,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     const char *train_number = nullptr,
-    proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING, uint64_t timestamp_us = 0)
-{
-    auto exchange_id__ = exchange_id ? _fbb.CreateString(exchange_id) : 0;
-    auto src_area_id__ = src_area_id ? _fbb.CreateString(src_area_id) : 0;
-    auto dst_area_id__ = dst_area_id ? _fbb.CreateString(dst_area_id) : 0;
-    auto train_number__ = train_number ? _fbb.CreateString(train_number) : 0;
-    return proto::CreateDispatchTelegramStateChanged(_fbb, exchange_id__, src_area_id__,
-                                                     dst_area_id__, form_type, direction,
-                                                     train_number__, new_status, timestamp_us);
+    proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING,
+    uint64_t timestamp_us = 0) {
+  auto exchange_id__ = exchange_id ? _fbb.CreateString(exchange_id) : 0;
+  auto src_area_id__ = src_area_id ? _fbb.CreateString(src_area_id) : 0;
+  auto dst_area_id__ = dst_area_id ? _fbb.CreateString(dst_area_id) : 0;
+  auto train_number__ = train_number ? _fbb.CreateString(train_number) : 0;
+  return proto::CreateDispatchTelegramStateChanged(
+      _fbb,
+      exchange_id__,
+      src_area_id__,
+      dst_area_id__,
+      form_type,
+      direction,
+      train_number__,
+      new_status,
+      timestamp_us);
 }
 
-::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(
-    ::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o,
-    const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline SwitchPositionChangedT *SwitchPositionChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<SwitchPositionChangedT>(new SwitchPositionChangedT());
@@ -2644,88 +2627,51 @@ inline ::flatbuffers::Offset<Ml8CommandStateChanged> Ml8CommandStateChanged::Pac
       _active);
 }
 
-inline DispatchTelegramStateChangedT *DispatchTelegramStateChanged::UnPack(
-    const ::flatbuffers::resolver_function_t *_resolver) const
-{
-    auto _o = std::unique_ptr<DispatchTelegramStateChangedT>(new DispatchTelegramStateChangedT());
-    UnPackTo(_o.get(), _resolver);
-    return _o.release();
+inline DispatchTelegramStateChangedT *DispatchTelegramStateChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<DispatchTelegramStateChangedT>(new DispatchTelegramStateChangedT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
-inline void DispatchTelegramStateChanged::UnPackTo(
-    DispatchTelegramStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const
-{
-    (void)_o;
-    (void)_resolver;
-    {
-        auto _e = exchange_id();
-        if (_e)
-            _o->exchange_id = _e->str();
-    }
-    {
-        auto _e = src_area_id();
-        if (_e)
-            _o->src_area_id = _e->str();
-    }
-    {
-        auto _e = dst_area_id();
-        if (_e)
-            _o->dst_area_id = _e->str();
-    }
-    {
-        auto _e = form_type();
-        _o->form_type = _e;
-    }
-    {
-        auto _e = direction();
-        _o->direction = _e;
-    }
-    {
-        auto _e = train_number();
-        if (_e)
-            _o->train_number = _e->str();
-    }
-    {
-        auto _e = new_status();
-        _o->new_status = _e;
-    }
-    {
-        auto _e = timestamp_us();
-        _o->timestamp_us = _e;
-    }
+inline void DispatchTelegramStateChanged::UnPackTo(DispatchTelegramStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = exchange_id(); if (_e) _o->exchange_id = _e->str(); }
+  { auto _e = src_area_id(); if (_e) _o->src_area_id = _e->str(); }
+  { auto _e = dst_area_id(); if (_e) _o->dst_area_id = _e->str(); }
+  { auto _e = form_type(); _o->form_type = _e; }
+  { auto _e = direction(); _o->direction = _e; }
+  { auto _e = train_number(); if (_e) _o->train_number = _e->str(); }
+  { auto _e = new_status(); _o->new_status = _e; }
+  { auto _e = timestamp_us(); _o->timestamp_us = _e; }
 }
 
-inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(
-    ::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o,
-    const ::flatbuffers::rehasher_function_t *_rehasher)
-{
-    return DispatchTelegramStateChanged::Pack(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return DispatchTelegramStateChanged::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<DispatchTelegramStateChanged> DispatchTelegramStateChanged::Pack(
-    ::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT *_o,
-    const ::flatbuffers::rehasher_function_t *_rehasher)
-{
-    (void)_rehasher;
-    (void)_o;
-    struct _VectorArgs
-    {
-        ::flatbuffers::FlatBufferBuilder *__fbb;
-        const DispatchTelegramStateChangedT *__o;
-        const ::flatbuffers::rehasher_function_t *__rehasher;
-    } _va = {&_fbb, _o, _rehasher};
-    (void)_va;
-    auto _exchange_id = _fbb.CreateString(_o->exchange_id);
-    auto _src_area_id = _fbb.CreateString(_o->src_area_id);
-    auto _dst_area_id = _fbb.CreateString(_o->dst_area_id);
-    auto _form_type = _o->form_type;
-    auto _direction = _o->direction;
-    auto _train_number = _o->train_number.empty() ? 0 : _fbb.CreateString(_o->train_number);
-    auto _new_status = _o->new_status;
-    auto _timestamp_us = _o->timestamp_us;
-    return proto::CreateDispatchTelegramStateChanged(_fbb, _exchange_id, _src_area_id, _dst_area_id,
-                                                     _form_type, _direction, _train_number,
-                                                     _new_status, _timestamp_us);
+inline ::flatbuffers::Offset<DispatchTelegramStateChanged> DispatchTelegramStateChanged::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DispatchTelegramStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DispatchTelegramStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _exchange_id = _fbb.CreateString(_o->exchange_id);
+  auto _src_area_id = _fbb.CreateString(_o->src_area_id);
+  auto _dst_area_id = _fbb.CreateString(_o->dst_area_id);
+  auto _form_type = _o->form_type;
+  auto _direction = _o->direction;
+  auto _train_number = _o->train_number.empty() ? 0 : _fbb.CreateString(_o->train_number);
+  auto _new_status = _o->new_status;
+  auto _timestamp_us = _o->timestamp_us;
+  return proto::CreateDispatchTelegramStateChanged(
+      _fbb,
+      _exchange_id,
+      _src_area_id,
+      _dst_area_id,
+      _form_type,
+      _direction,
+      _train_number,
+      _new_status,
+      _timestamp_us);
 }
 
 }  // namespace proto

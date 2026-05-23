@@ -40,6 +40,11 @@ class IDbWriter
 public:
     virtual ~IDbWriter() = default;
 
+    /// Create a session row in session.sessions and return its UUID string.
+    /// Called once at server startup after the scenario is loaded.
+    /// The returned UUID is used as the session_id for all subsequent DB writes.
+    virtual std::string init_session(const std::string& display_name, int schema_version) = 0;
+
     /// Persist a dispatch telegram row.
     virtual void write_dispatch_telegram(const std::string& session_id, TelegramRow row) = 0;
 
@@ -56,6 +61,11 @@ public:
 class NullDbWriter : public IDbWriter
 {
 public:
+    std::string init_session(const std::string& /*display_name*/, int /*schema_version*/) override
+    {
+        return "00000000-0000-0000-0000-000000000001";
+    }
+
     void write_dispatch_telegram(const std::string& /*session_id*/, TelegramRow row) override
     {
         written_telegrams.push_back(std::move(row));

@@ -25,6 +25,21 @@ target_link_libraries(server_lib PUBLIC
 
 target_compile_features(server_lib PUBLIC cxx_std_20)
 
+# PostgreSQL persistence adapter — kept separate so unit tests (tests_server)
+# do not pull in libpq as a dependency.
+find_package(libpqxx CONFIG REQUIRED)
+
+add_library(server_db_lib STATIC
+    src/pg_db_writer.cpp
+)
+
+target_link_libraries(server_db_lib PUBLIC
+    server_lib
+    libpqxx::pqxx
+)
+
+target_compile_features(server_db_lib PUBLIC cxx_std_20)
+
 # Main server executable.
 # session_server.cpp is the composition root — it lives here, not in server_lib,
 # so that unit tests do not pull in the full startup wiring.
@@ -37,7 +52,7 @@ add_executable(symulator-server
 # self-registration in ControlSystemRegistry is executed before main().
 # Without WHOLE_ARCHIVE the linker would drop the unreferenced object files.
 target_link_libraries(symulator-server PRIVATE
-    server_lib
+    server_db_lib
     $<LINK_LIBRARY:WHOLE_ARCHIVE,srk_ebilock,srk_ml8>
 )
 target_compile_features(symulator-server PRIVATE cxx_std_20)
