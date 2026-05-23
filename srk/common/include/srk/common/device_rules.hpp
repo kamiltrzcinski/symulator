@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // ── Shared interlocking rules (R1–R7) ────────────────────────────────────────
@@ -96,11 +97,45 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
                                                         const OperatorCommandCmd& cmd,
                                                         int throw_time_ticks);
 
+// ── R8: SetBlockDirection (SHL-12) ───────────────────────────────────────────
+// Block-direction state machine shared by EbiLock X4 and ESTW ML8.
+// BLW → OUTBOUND_PENDING; BLP confirms; BLO cancels; BLZ releases;
+// BLAI initiates emergency; BLA/OPS execute emergency reset.
+
+std::optional<InterlockingViolation> check_set_block_direction(const IStateView& state,
+                                                               const SetBlockDirectionCmd& cmd);
+
+std::vector<DeviceStateChange> execute_set_block_direction(const IStateView& state,
+                                                           const SetBlockDirectionCmd& cmd);
+
+// ── R9: InitAxleCounterReset (SLI) ───────────────────────────────────────────
+// Requires block section in NEUTRAL state → transitions to RESET_PENDING.
+
+std::optional<InterlockingViolation> check_init_axle_counter_reset(
+    const IStateView& state, const InitAxleCounterResetCmd& cmd);
+
+std::vector<DeviceStateChange> execute_init_axle_counter_reset(const IStateView& state,
+                                                               const InitAxleCounterResetCmd& cmd);
+
+// ── R10: ResetAxleCounter (SLK) ──────────────────────────────────────────────
+// Requires RESET_PENDING → transitions to NEUTRAL and closes block section.
+
+std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& state,
+                                                              const ResetAxleCounterCmd& cmd);
+
+std::vector<DeviceStateChange> execute_reset_axle_counter(const IStateView& state,
+                                                          const ResetAxleCounterCmd& cmd);
+
 // ── Tick helpers ──────────────────────────────────────────────────────────────
 // Called from IControlSystem::on_tick.
 
-// Advance EEA-4 switch machine timers; emit SwitchPositionChange when done.
-std::vector<DeviceStateChange> tick_switch_machines(const IStateView& state);
+// Advance EEA-4 switch machine timers; land switches when the throw-time
+// expires.  pending_targets maps switch GID → intended final position and is
+// maintained by the calling system (populated in execute_command, erased here
+// when the switch lands).
+std::vector<DeviceStateChange> tick_switch_machines(
+    const IStateView& state,
+    std::unordered_map<GID, SwitchPosition, std::hash<GID>>& pending_targets);
 
 // Auto-release routes whose trains have fully cleared.
 std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state);

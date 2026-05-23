@@ -2,7 +2,15 @@
 
 All notable changes are documented here.
 
-## [0.5.0] - 2026-05-23
+## [Unreleased]
+
+### Refactored
+- **srk_common: NAK codes**: Extracted all `COMMAND_NAK` reason codes (0x00–0x09) into a new `srk/common/include/srk/common/nak_codes.hpp`; removed triple-definition from `device_rules.cpp`, `ebilock_system.cpp`, and `ml8_system.cpp`.
+- **srk_common: R8-R10 helpers**: Moved `check/execute_set_block_direction` (SHL-12), `check/execute_init_axle_counter_reset` (SLI), and `check/execute_reset_axle_counter` (SLK) from EbiLock and ML8 into `srk::common`; ~280 lines of copy-pasted code deleted.
+- **srk_common: tick_switch_machines**: Updated signature to accept `pending_targets&`; now fully lands switches at the correct position at end-of-throw instead of just decrementing the counter; `on_tick()` in both systems reduced to a two-liner.
+- **Tests**: Replaced `Engine` and `Server` placeholder tests with real round-trip tests — `EngineState` insert/find for `TrackSection`/`Switch` (4 tests) and `Frame` encode/decode, CRC corruption, partial-buffer (5 tests); total 313/313 passing.
+
+
 
 ### Added
 - **Events**: Added `OperatorCommandStateChanged` (`event_type 0x11`) and `Ml8CommandStateChanged` (`event_type 0x12`) to `events.fbs` and `dispatch_bus.cpp`; both carry `g_id`, `target_kind`, `command_code`, and `active`.

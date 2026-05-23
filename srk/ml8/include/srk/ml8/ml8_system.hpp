@@ -56,26 +56,7 @@ private:
                        std::hash<engine::core::GID>>
         pending_targets_;
 
-    // ── SHL-12 helpers ────────────────────────────────────────────────────────
-    std::optional<engine::core::InterlockingViolation> check_shl12(
-        const engine::core::IStateView& state, const engine::core::SetBlockDirectionCmd& cmd) const;
-
-    std::vector<engine::core::DeviceStateChange> execute_shl12(
-        const engine::core::IStateView& state, const engine::core::SetBlockDirectionCmd& cmd);
-
-    std::optional<engine::core::InterlockingViolation> check_sli(
-        const engine::core::IStateView& state,
-        const engine::core::InitAxleCounterResetCmd& cmd) const;
-
-    std::vector<engine::core::DeviceStateChange> execute_sli(
-        const engine::core::IStateView& state, const engine::core::InitAxleCounterResetCmd& cmd);
-
-    std::optional<engine::core::InterlockingViolation> check_slk(
-        const engine::core::IStateView& state, const engine::core::ResetAxleCounterCmd& cmd) const;
-
-    std::vector<engine::core::DeviceStateChange> execute_slk(
-        const engine::core::IStateView& state, const engine::core::ResetAxleCounterCmd& cmd);
-
+    // ── ML8-specific commands ─────────────────────────────────────────────────
     std::optional<engine::core::InterlockingViolation> check_ml8_command(
         const engine::core::IStateView& state, const engine::core::Ml8CommandCmd& cmd) const;
 

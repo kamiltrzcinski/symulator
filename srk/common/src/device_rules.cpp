@@ -1,4 +1,5 @@
 #include <srk/common/device_rules.hpp>
+#include <srk/common/nak_codes.hpp>
 #include <srk/common/route_graph.hpp>
 
 #include <algorithm>
@@ -13,14 +14,6 @@ static InterlockingViolation violation(uint8_t code, std::string text, const GID
 {
     return InterlockingViolation{code, std::move(text), gid};
 }
-
-// COMMAND_NAK reason codes (from docs/09-communication-contract.md §COMMAND_NAK)
-static constexpr uint8_t NAK_NOT_FOUND = 0x01;
-static constexpr uint8_t NAK_SAFETY_BLOCK = 0x02;
-static constexpr uint8_t NAK_INVALID_STATE = 0x03;
-static constexpr uint8_t NAK_ROUTE_LOCKED = 0x04;
-static constexpr uint8_t NAK_NO_PATH = 0x05;
-static constexpr uint8_t NAK_SWITCH_MOVING = 0x06;
 
 // ── R1: SetSwitchPosition ─────────────────────────────────────────────────────
 
@@ -523,9 +516,205 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
     return changes;
 }
 
+// ── R8: SetBlockDirection (SHL-12) ────────────────────────────────────────────
+
+std::optional<InterlockingViolation> check_set_block_direction(const IStateView& state,
+                                                               const SetBlockDirectionCmd& cmd)
+{
+    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    if (!bs)
+        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
+                         cmd.block_section_gid);
+
+    const BlockDirectionState dir = bs->direction;
+
+    switch (cmd.operation)
+    {
+        case Shl12Op::BLW:
+            if (dir != BlockDirectionState::NEUTRAL)
+                return violation(NAK_INVALID_STATE,
+                                 "BLW requires NEUTRAL direction, current: " +
+                                     std::to_string(static_cast<int>(dir)),
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::BLP:
+            if (dir != BlockDirectionState::OUTBOUND_PENDING &&
+                dir != BlockDirectionState::INBOUND_PENDING)
+                return violation(NAK_INVALID_STATE,
+                                 "BLP requires OUTBOUND_PENDING or INBOUND_PENDING",
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::BLO:
+            if (dir != BlockDirectionState::OUTBOUND_PENDING)
+                return violation(NAK_INVALID_STATE, "BLO requires OUTBOUND_PENDING",
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::BLZ:
+            if (dir != BlockDirectionState::OUTBOUND && dir != BlockDirectionState::INBOUND)
+                return violation(NAK_INVALID_STATE, "BLZ requires OUTBOUND or INBOUND",
+                                 cmd.block_section_gid);
+            if (bs->axle_count != 0)
+                return violation(NAK_SAFETY_BLOCK, "Cannot release direction: axle count != 0",
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::BLAI:
+            if (dir == BlockDirectionState::RESET_PENDING)
+                return violation(NAK_INVALID_STATE, "BLAI not allowed in RESET_PENDING state",
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::BLA:
+            if (dir != BlockDirectionState::EMERGENCY)
+                return violation(NAK_INVALID_STATE, "BLA requires EMERGENCY state",
+                                 cmd.block_section_gid);
+            break;
+
+        case Shl12Op::OPS:
+            if (dir != BlockDirectionState::EMERGENCY && dir != BlockDirectionState::RESET_PENDING)
+                return violation(NAK_INVALID_STATE, "OPS requires EMERGENCY or RESET_PENDING state",
+                                 cmd.block_section_gid);
+            break;
+    }
+
+    return std::nullopt;
+}
+
+std::vector<DeviceStateChange> execute_set_block_direction(const IStateView& state,
+                                                           const SetBlockDirectionCmd& cmd)
+{
+    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    if (!bs)
+        return {};
+
+    std::vector<DeviceStateChange> changes;
+
+    switch (cmd.operation)
+    {
+        case Shl12Op::BLW:
+            // Request outbound direction — transition to OUTBOUND_PENDING.
+            // The neighbour must respond with BLP to confirm.
+            changes.push_back(BlockDirectionChange{
+                cmd.block_section_gid, BlockDirectionState::OUTBOUND_PENDING,
+                true  // requires_neighbor_confirmation
+            });
+            break;
+
+        case Shl12Op::BLP:
+            // Confirm a pending direction.
+            if (bs->direction == BlockDirectionState::OUTBOUND_PENDING)
+            {
+                // Our own BLW was acknowledged by the neighbour.
+                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
+                                                       BlockDirectionState::OUTBOUND, false});
+                // Open the block section for departure.
+                changes.push_back(
+                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
+            }
+            else
+            {
+                // Neighbour's BLW — we confirm INBOUND.
+                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
+                                                       BlockDirectionState::INBOUND, false});
+                changes.push_back(
+                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
+            }
+            break;
+
+        case Shl12Op::BLO:
+            // Cancel pending outbound request.
+            changes.push_back(
+                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+            break;
+
+        case Shl12Op::BLZ:
+            // Release established direction.
+            changes.push_back(
+                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+            changes.push_back(
+                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+            break;
+
+        case Shl12Op::BLAI:
+            changes.push_back(
+                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::EMERGENCY, false});
+            break;
+
+        case Shl12Op::BLA:
+            // Execute emergency direction change — resets to NEUTRAL.
+            changes.push_back(
+                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+            changes.push_back(
+                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+            break;
+
+        case Shl12Op::OPS:
+            // Cancel special procedure — reset to NEUTRAL.
+            changes.push_back(
+                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+            changes.push_back(
+                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+            break;
+    }
+
+    return changes;
+}
+
+// ── R9: InitAxleCounterReset (SLI) ────────────────────────────────────────────
+
+std::optional<InterlockingViolation> check_init_axle_counter_reset(
+    const IStateView& state, const InitAxleCounterResetCmd& cmd)
+{
+    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    if (!bs)
+        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
+                         cmd.block_section_gid);
+
+    if (bs->direction != BlockDirectionState::NEUTRAL)
+        return violation(NAK_INVALID_STATE, "SLI requires NEUTRAL direction",
+                         cmd.block_section_gid);
+    return std::nullopt;
+}
+
+std::vector<DeviceStateChange> execute_init_axle_counter_reset(const IStateView& /*state*/,
+                                                               const InitAxleCounterResetCmd& cmd)
+{
+    return {BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::RESET_PENDING, false}};
+}
+
+// ── R10: ResetAxleCounter (SLK) ───────────────────────────────────────────────
+
+std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& state,
+                                                              const ResetAxleCounterCmd& cmd)
+{
+    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    if (!bs)
+        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
+                         cmd.block_section_gid);
+
+    if (bs->direction != BlockDirectionState::RESET_PENDING)
+        return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
+                         cmd.block_section_gid);
+    return std::nullopt;
+}
+
+std::vector<DeviceStateChange> execute_reset_axle_counter(const IStateView& /*state*/,
+                                                          const ResetAxleCounterCmd& cmd)
+{
+    return {
+        BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false},
+        BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED},
+    };
+}
+
 // ── Tick helpers ──────────────────────────────────────────────────────────────
 
-std::vector<DeviceStateChange> tick_switch_machines(const IStateView& state)
+std::vector<DeviceStateChange> tick_switch_machines(
+    const IStateView& state,
+    std::unordered_map<GID, SwitchPosition, std::hash<GID>>& pending_targets)
 {
     std::vector<DeviceStateChange> changes;
 
@@ -533,21 +722,29 @@ std::vector<DeviceStateChange> tick_switch_machines(const IStateView& state)
         [&](const Switch& sw)
         {
             if (sw.position != SwitchPosition::MOVING)
+            {
+                pending_targets.erase(sw.gid);
                 return;
+            }
             if (sw.moving_ticks_remaining <= 0)
+            {
+                // Should not happen; land the switch as a safety fallback.
+                auto it = pending_targets.find(sw.gid);
+                SwitchPosition target =
+                    (it != pending_targets.end()) ? it->second : SwitchPosition::STRAIGHT;
+                pending_targets.erase(sw.gid);
+                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
                 return;
+            }
 
             const int remaining = sw.moving_ticks_remaining - 1;
             if (remaining == 0)
             {
-                // The SRK library cannot know the target position without storing it.
-                // The actual landing position is stored by the SRK implementation that
-                // issued the MOVING change (EbiLockSystem / Ml8System via pending_targets_).
-                // tick_switch_machines() is intentionally not called here directly —
-                // each system calls it from on_tick() where it also tracks targets.
-                // This helper just decrements for visualization purposes.
-                changes.push_back(SwitchPositionChange{sw.gid, SwitchPosition::MOVING,
-                                                       ChangeCause::AUTO, remaining});
+                auto it = pending_targets.find(sw.gid);
+                SwitchPosition target =
+                    (it != pending_targets.end()) ? it->second : SwitchPosition::STRAIGHT;
+                pending_targets.erase(sw.gid);
+                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
             }
             else
             {

@@ -1,4 +1,5 @@
 #include <srk/common/device_rules.hpp>
+#include <srk/common/nak_codes.hpp>
 #include <srk/ebilock/ebilock_system.hpp>
 
 #include <engine/core/control_system_registry.hpp>
@@ -9,16 +10,7 @@ namespace srk::ebilock
 {
 
 using namespace engine::core;
-
-static constexpr uint8_t NAK_NOT_FOUND = 0x01;
-static constexpr uint8_t NAK_SAFETY_BLOCK = 0x02;
-static constexpr uint8_t NAK_INVALID_STATE = 0x03;
-static constexpr uint8_t NAK_UNSUPPORTED = 0x07;
-
-static InterlockingViolation violation(uint8_t code, std::string text, const GID& gid = GID{})
-{
-    return InterlockingViolation{code, std::move(text), gid};
-}
+using namespace srk::common;
 
 // ── Static registration ───────────────────────────────────────────────────────
 
@@ -82,13 +74,13 @@ std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateVi
                 return srk::common::check_acknowledge_alarm(state, c);
 
             else if constexpr (std::is_same_v<T, SetBlockDirectionCmd>)
-                return check_shl12(state, c);
+                return srk::common::check_set_block_direction(state, c);
 
             else if constexpr (std::is_same_v<T, InitAxleCounterResetCmd>)
-                return check_sli(state, c);
+                return srk::common::check_init_axle_counter_reset(state, c);
 
             else if constexpr (std::is_same_v<T, ResetAxleCounterCmd>)
-                return check_slk(state, c);
+                return srk::common::check_reset_axle_counter(state, c);
 
             else if constexpr (std::is_same_v<T, OperatorCommandCmd>)
                 return srk::common::check_operator_command(state, c);
@@ -137,13 +129,13 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
                 return srk::common::execute_acknowledge_alarm(state, c);
 
             else if constexpr (std::is_same_v<T, SetBlockDirectionCmd>)
-                return execute_shl12(state, c);
+                return srk::common::execute_set_block_direction(state, c);
 
             else if constexpr (std::is_same_v<T, InitAxleCounterResetCmd>)
-                return execute_sli(state, c);
+                return srk::common::execute_init_axle_counter_reset(state, c);
 
             else if constexpr (std::is_same_v<T, ResetAxleCounterCmd>)
-                return execute_slk(state, c);
+                return srk::common::execute_reset_axle_counter(state, c);
 
             else if constexpr (std::is_same_v<T, OperatorCommandCmd>)
                 return srk::common::execute_operator_command(state, c, eea4_throw_ticks_);
@@ -158,226 +150,11 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
 
 std::vector<DeviceStateChange> EbiLockSystem::on_tick(const IStateView& state, uint64_t /*tick*/)
 {
-    std::vector<DeviceStateChange> changes;
-
-    // Advance EEA-4 switch machine timers.
-    state.for_each_switch(
-        [&](const Switch& sw)
-        {
-            if (sw.position != SwitchPosition::MOVING)
-            {
-                pending_targets_.erase(sw.gid);
-                return;
-            }
-            if (sw.moving_ticks_remaining <= 0)
-            {
-                // Should not happen; land the switch.
-                auto it = pending_targets_.find(sw.gid);
-                SwitchPosition target =
-                    (it != pending_targets_.end()) ? it->second : SwitchPosition::STRAIGHT;
-                pending_targets_.erase(sw.gid);
-                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
-                return;
-            }
-
-            const int remaining = sw.moving_ticks_remaining - 1;
-            if (remaining == 0)
-            {
-                auto it = pending_targets_.find(sw.gid);
-                SwitchPosition target =
-                    (it != pending_targets_.end()) ? it->second : SwitchPosition::STRAIGHT;
-                pending_targets_.erase(sw.gid);
-                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
-            }
-            else
-            {
-                changes.push_back(SwitchPositionChange{sw.gid, SwitchPosition::MOVING,
-                                                       ChangeCause::AUTO, remaining});
-            }
-        });
-
-    // Auto-release routes whose trains have cleared.
-    auto release_changes = srk::common::tick_route_auto_release(state);
-    changes.insert(changes.end(), std::make_move_iterator(release_changes.begin()),
-                   std::make_move_iterator(release_changes.end()));
-
+    auto changes = srk::common::tick_switch_machines(state, pending_targets_);
+    auto routes = srk::common::tick_route_auto_release(state);
+    changes.insert(changes.end(), std::make_move_iterator(routes.begin()),
+                   std::make_move_iterator(routes.end()));
     return changes;
-}
-
-std::optional<InterlockingViolation> EbiLockSystem::check_shl12(
-    const IStateView& state, const SetBlockDirectionCmd& cmd) const
-{
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
-    if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
-
-    const BlockDirectionState dir = bs->direction;
-
-    switch (cmd.operation)
-    {
-        case Shl12Op::BLW:
-            if (dir != BlockDirectionState::NEUTRAL)
-                return violation(NAK_INVALID_STATE,
-                                 "BLW requires NEUTRAL direction, current: " +
-                                     std::to_string(static_cast<int>(dir)),
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::BLP:
-            if (dir != BlockDirectionState::OUTBOUND_PENDING &&
-                dir != BlockDirectionState::INBOUND_PENDING)
-                return violation(NAK_INVALID_STATE,
-                                 "BLP requires OUTBOUND_PENDING or INBOUND_PENDING",
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::BLO:
-            if (dir != BlockDirectionState::OUTBOUND_PENDING)
-                return violation(NAK_INVALID_STATE, "BLO requires OUTBOUND_PENDING",
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::BLZ:
-            if (dir != BlockDirectionState::OUTBOUND && dir != BlockDirectionState::INBOUND)
-                return violation(NAK_INVALID_STATE, "BLZ requires OUTBOUND or INBOUND",
-                                 cmd.block_section_gid);
-            if (bs->axle_count != 0)
-                return violation(NAK_SAFETY_BLOCK, "Cannot release direction: axle count != 0",
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::BLAI:
-            if (dir == BlockDirectionState::RESET_PENDING)
-                return violation(NAK_INVALID_STATE, "BLAI not allowed in RESET_PENDING state",
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::BLA:
-            if (dir != BlockDirectionState::EMERGENCY)
-                return violation(NAK_INVALID_STATE, "BLA requires EMERGENCY state",
-                                 cmd.block_section_gid);
-            break;
-
-        case Shl12Op::OPS:
-            if (dir != BlockDirectionState::EMERGENCY && dir != BlockDirectionState::RESET_PENDING)
-                return violation(NAK_INVALID_STATE, "OPS requires EMERGENCY or RESET_PENDING state",
-                                 cmd.block_section_gid);
-            break;
-    }
-
-    return std::nullopt;
-}
-
-std::vector<DeviceStateChange> EbiLockSystem::execute_shl12(const IStateView& state,
-                                                            const SetBlockDirectionCmd& cmd)
-{
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
-    if (!bs)
-        return {};
-
-    std::vector<DeviceStateChange> changes;
-
-    switch (cmd.operation)
-    {
-        case Shl12Op::BLW:
-            changes.push_back(BlockDirectionChange{
-                cmd.block_section_gid, BlockDirectionState::OUTBOUND_PENDING, true});
-            break;
-
-        case Shl12Op::BLP:
-            if (bs->direction == BlockDirectionState::OUTBOUND_PENDING)
-            {
-                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
-                                                       BlockDirectionState::OUTBOUND, false});
-                changes.push_back(
-                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
-            }
-            else
-            {
-                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
-                                                       BlockDirectionState::INBOUND, false});
-                changes.push_back(
-                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
-            }
-            break;
-
-        case Shl12Op::BLO:
-            changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
-            break;
-
-        case Shl12Op::BLZ:
-            changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
-            changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
-            break;
-
-        case Shl12Op::BLAI:
-            changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::EMERGENCY, false});
-            break;
-
-        case Shl12Op::BLA:
-            changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
-            changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
-            break;
-
-        case Shl12Op::OPS:
-            changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
-            changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
-            break;
-    }
-
-    return changes;
-}
-
-std::optional<InterlockingViolation> EbiLockSystem::check_sli(
-    const IStateView& state, const InitAxleCounterResetCmd& cmd) const
-{
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
-    if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
-
-    if (bs->direction != BlockDirectionState::NEUTRAL)
-        return violation(NAK_INVALID_STATE, "SLI requires NEUTRAL direction",
-                         cmd.block_section_gid);
-    return std::nullopt;
-}
-
-std::vector<DeviceStateChange> EbiLockSystem::execute_sli(
-    const IStateView& /*state*/, const InitAxleCounterResetCmd& cmd)
-{
-    return {BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::RESET_PENDING, false}};
-}
-
-std::optional<InterlockingViolation> EbiLockSystem::check_slk(
-    const IStateView& state, const ResetAxleCounterCmd& cmd) const
-{
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
-    if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
-
-    if (bs->direction != BlockDirectionState::RESET_PENDING)
-        return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
-                         cmd.block_section_gid);
-    return std::nullopt;
-}
-
-std::vector<DeviceStateChange> EbiLockSystem::execute_slk(
-    const IStateView& /*state*/, const ResetAxleCounterCmd& cmd)
-{
-    return {
-        BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false},
-        BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED},
-    };
 }
 
 }  // namespace srk::ebilock
