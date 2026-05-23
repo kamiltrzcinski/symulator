@@ -6,6 +6,7 @@ add_library(server_lib STATIC
     src/ownership_guard.cpp
     src/transport_gateway.cpp
     src/dispatch_bus.cpp
+    src/dispatch_exchange_manager.cpp
 )
 
 target_include_directories(server_lib PUBLIC
@@ -31,11 +32,11 @@ add_executable(symulator-server
     src/session_server.cpp
 )
 
-# Link srk_ebilock and srk_ml8 explicitly so their static-init self-registration
-# in ControlSystemRegistry is executed before main() calls SessionServer::start().
+# Link srk_ebilock and srk_ml8 with --whole-archive so their static-init
+# self-registration in ControlSystemRegistry is executed before main().
+# Without WHOLE_ARCHIVE the linker would drop the unreferenced object files.
 target_link_libraries(symulator-server PRIVATE
     server_lib
-    srk_ebilock
-    srk_ml8
+    $<LINK_LIBRARY:WHOLE_ARCHIVE,srk_ebilock,srk_ml8>
 )
 target_compile_features(symulator-server PRIVATE cxx_std_20)

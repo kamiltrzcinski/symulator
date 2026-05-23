@@ -13,6 +13,7 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
               FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
+#include "commands_generated.h"
 #include "common_generated.h"
 
 namespace proto {
@@ -80,6 +81,14 @@ struct TrainDecomposedT;
 struct BlockDirectionStateChanged;
 struct BlockDirectionStateChangedBuilder;
 struct BlockDirectionStateChangedT;
+
+struct OperatorCommandStateChanged;
+struct OperatorCommandStateChangedBuilder;
+struct OperatorCommandStateChangedT;
+
+struct Ml8CommandStateChanged;
+struct Ml8CommandStateChangedBuilder;
+struct Ml8CommandStateChangedT;
 
 enum RouteReleaseReason : int8_t {
   RouteReleaseReason_TRAIN_CLEARED = 0,
@@ -1666,6 +1675,212 @@ inline ::flatbuffers::Offset<BlockDirectionStateChanged> CreateBlockDirectionSta
 
 ::flatbuffers::Offset<BlockDirectionStateChanged> CreateBlockDirectionStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const BlockDirectionStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct OperatorCommandStateChangedT : public ::flatbuffers::NativeTable {
+  typedef OperatorCommandStateChanged TableType;
+  std::string g_id{};
+  proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
+  proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES;
+  bool active = false;
+};
+
+struct OperatorCommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef OperatorCommandStateChangedT NativeTableType;
+  typedef OperatorCommandStateChangedBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_G_ID = 4,
+    VT_TARGET_KIND = 6,
+    VT_COMMAND_CODE = 8,
+    VT_ACTIVE = 10
+  };
+  const ::flatbuffers::String *g_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  }
+  proto::OperatorTargetKind target_kind() const {
+    return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
+  }
+  proto::OperatorCommandCode command_code() const {
+    return static_cast<proto::OperatorCommandCode>(GetField<int8_t>(VT_COMMAND_CODE, 0));
+  }
+  bool active() const {
+    return GetField<uint8_t>(VT_ACTIVE, 0) != 0;
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_G_ID) &&
+           verifier.VerifyString(g_id()) &&
+           VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
+           VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_ACTIVE, 1) &&
+           verifier.EndTable();
+  }
+  OperatorCommandStateChangedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(OperatorCommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<OperatorCommandStateChanged> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct OperatorCommandStateChangedBuilder {
+  typedef OperatorCommandStateChanged Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
+    fbb_.AddOffset(OperatorCommandStateChanged::VT_G_ID, g_id);
+  }
+  void add_target_kind(proto::OperatorTargetKind target_kind) {
+    fbb_.AddElement<int8_t>(OperatorCommandStateChanged::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
+  }
+  void add_command_code(proto::OperatorCommandCode command_code) {
+    fbb_.AddElement<int8_t>(OperatorCommandStateChanged::VT_COMMAND_CODE, static_cast<int8_t>(command_code), 0);
+  }
+  void add_active(bool active) {
+    fbb_.AddElement<uint8_t>(OperatorCommandStateChanged::VT_ACTIVE, static_cast<uint8_t>(active), 0);
+  }
+  explicit OperatorCommandStateChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<OperatorCommandStateChanged> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<OperatorCommandStateChanged>(end);
+    fbb_.Required(o, OperatorCommandStateChanged::VT_G_ID);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChanged(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES,
+    bool active = false) {
+  OperatorCommandStateChangedBuilder builder_(_fbb);
+  builder_.add_g_id(g_id);
+  builder_.add_active(active);
+  builder_.add_command_code(command_code);
+  builder_.add_target_kind(target_kind);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChangedDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *g_id = nullptr,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES,
+    bool active = false) {
+  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
+  return proto::CreateOperatorCommandStateChanged(
+      _fbb,
+      g_id__,
+      target_kind,
+      command_code,
+      active);
+}
+
+::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+struct Ml8CommandStateChangedT : public ::flatbuffers::NativeTable {
+  typedef Ml8CommandStateChanged TableType;
+  std::string g_id{};
+  proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
+  proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK;
+  bool active = false;
+};
+
+struct Ml8CommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef Ml8CommandStateChangedT NativeTableType;
+  typedef Ml8CommandStateChangedBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_G_ID = 4,
+    VT_TARGET_KIND = 6,
+    VT_COMMAND_CODE = 8,
+    VT_ACTIVE = 10
+  };
+  const ::flatbuffers::String *g_id() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  }
+  proto::OperatorTargetKind target_kind() const {
+    return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
+  }
+  proto::Ml8CommandCode command_code() const {
+    return static_cast<proto::Ml8CommandCode>(GetField<int8_t>(VT_COMMAND_CODE, 0));
+  }
+  bool active() const {
+    return GetField<uint8_t>(VT_ACTIVE, 0) != 0;
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffsetRequired(verifier, VT_G_ID) &&
+           verifier.VerifyString(g_id()) &&
+           VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
+           VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
+           VerifyField<uint8_t>(verifier, VT_ACTIVE, 1) &&
+           verifier.EndTable();
+  }
+  Ml8CommandStateChangedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(Ml8CommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<Ml8CommandStateChanged> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct Ml8CommandStateChangedBuilder {
+  typedef Ml8CommandStateChanged Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
+    fbb_.AddOffset(Ml8CommandStateChanged::VT_G_ID, g_id);
+  }
+  void add_target_kind(proto::OperatorTargetKind target_kind) {
+    fbb_.AddElement<int8_t>(Ml8CommandStateChanged::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
+  }
+  void add_command_code(proto::Ml8CommandCode command_code) {
+    fbb_.AddElement<int8_t>(Ml8CommandStateChanged::VT_COMMAND_CODE, static_cast<int8_t>(command_code), 0);
+  }
+  void add_active(bool active) {
+    fbb_.AddElement<uint8_t>(Ml8CommandStateChanged::VT_ACTIVE, static_cast<uint8_t>(active), 0);
+  }
+  explicit Ml8CommandStateChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Ml8CommandStateChanged> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Ml8CommandStateChanged>(end);
+    fbb_.Required(o, Ml8CommandStateChanged::VT_G_ID);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK,
+    bool active = false) {
+  Ml8CommandStateChangedBuilder builder_(_fbb);
+  builder_.add_g_id(g_id);
+  builder_.add_active(active);
+  builder_.add_command_code(command_code);
+  builder_.add_target_kind(target_kind);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChangedDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const char *g_id = nullptr,
+    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
+    proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK,
+    bool active = false) {
+  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
+  return proto::CreateMl8CommandStateChanged(
+      _fbb,
+      g_id__,
+      target_kind,
+      command_code,
+      active);
+}
+
+::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 inline SwitchPositionChangedT *SwitchPositionChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<SwitchPositionChangedT>(new SwitchPositionChangedT());
   UnPackTo(_o.get(), _resolver);
@@ -2173,6 +2388,76 @@ inline ::flatbuffers::Offset<BlockDirectionStateChanged> BlockDirectionStateChan
       _g_id,
       _new_direction,
       _cause);
+}
+
+inline OperatorCommandStateChangedT *OperatorCommandStateChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<OperatorCommandStateChangedT>(new OperatorCommandStateChangedT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void OperatorCommandStateChanged::UnPackTo(OperatorCommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = target_kind(); _o->target_kind = _e; }
+  { auto _e = command_code(); _o->command_code = _e; }
+  { auto _e = active(); _o->active = _e; }
+}
+
+inline ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return OperatorCommandStateChanged::Pack(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<OperatorCommandStateChanged> OperatorCommandStateChanged::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const OperatorCommandStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _target_kind = _o->target_kind;
+  auto _command_code = _o->command_code;
+  auto _active = _o->active;
+  return proto::CreateOperatorCommandStateChanged(
+      _fbb,
+      _g_id,
+      _target_kind,
+      _command_code,
+      _active);
+}
+
+inline Ml8CommandStateChangedT *Ml8CommandStateChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<Ml8CommandStateChangedT>(new Ml8CommandStateChangedT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void Ml8CommandStateChanged::UnPackTo(Ml8CommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = target_kind(); _o->target_kind = _e; }
+  { auto _e = command_code(); _o->command_code = _e; }
+  { auto _e = active(); _o->active = _e; }
+}
+
+inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Ml8CommandStateChanged::Pack(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<Ml8CommandStateChanged> Ml8CommandStateChanged::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const Ml8CommandStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _target_kind = _o->target_kind;
+  auto _command_code = _o->command_code;
+  auto _active = _o->active;
+  return proto::CreateMl8CommandStateChanged(
+      _fbb,
+      _g_id,
+      _target_kind,
+      _command_code,
+      _active);
 }
 
 }  // namespace proto

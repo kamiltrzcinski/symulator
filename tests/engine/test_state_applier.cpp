@@ -198,8 +198,8 @@ TEST(StateApplier, Ml8CommandStateChange_recordsLastMl8Command)
 
     const auto* stored = st.find_signal(GID{"SEM-ML8"});
     ASSERT_NE(stored, nullptr);
-    EXPECT_TRUE(stored->operator_state.ml8_command_active);
-    EXPECT_EQ(stored->operator_state.last_ml8_command_code, "STOJ");
+    ASSERT_TRUE(stored->operator_state.active_ml8_command.has_value());
+    EXPECT_EQ(stored->operator_state.active_ml8_command.value(), Ml8CommandCode::STOJ);
 }
 
 TEST(StateApplier, AxleCounterResetChange_resetsBlockAxleCount)

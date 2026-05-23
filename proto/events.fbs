@@ -6,6 +6,7 @@
 //   flatc --cpp --gen-object-api -o generated/ events.fbs
 
 include "common.fbs";
+include "commands.fbs";
 
 namespace proto;
 
@@ -145,4 +146,20 @@ table BlockDirectionStateChanged {
     g_id:          string (required);
     new_direction: BlockDirectionState;
     cause:         ChangeCause;
+}
+
+// ── event_type 0x11 ────────────────────────────────────────────────────────────
+table OperatorCommandStateChanged {
+    g_id:         string (required);
+    target_kind:  OperatorTargetKind;
+    command_code: OperatorCommandCode;
+    active:       bool;
+}
+
+// ── event_type 0x12 ────────────────────────────────────────────────────────────
+table Ml8CommandStateChanged {
+    g_id:         string (required);
+    target_kind:  OperatorTargetKind;
+    command_code: Ml8CommandCode;
+    active:       bool;
 }

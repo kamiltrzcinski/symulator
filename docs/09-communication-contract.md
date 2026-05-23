@@ -192,6 +192,10 @@ The `DOMAIN_EVENT` payload begins with a 1-byte `event_type` field, a 4-byte `ev
 | 0x0D       | SessionStateChanged          | `new_state` (STARTED \| PAUSED \| RESUMED \| ENDED)              |
 | 0x0E       | TrainComposed                | `train_gID`, `vehicle_gIDs[]`, `total_length_m`, `total_axles`   |
 | 0x0F       | TrainDecomposed              | `train_gID`, `reason`                                            |
+| 0x11       | OperatorCommandStateChanged  | `g_id`, `target_kind`, `command_code: OperatorCommandCode`, `active` |
+| 0x12       | Ml8CommandStateChanged       | `g_id`, `target_kind`, `command_code: Ml8CommandCode`, `active`  |
+
+Events 0x11 and 0x12 are emitted whenever an operator-command runtime flag changes on a device (signal, switch, derailer, track section, block section).  `active = true` means the command is in effect; `active = false` means it was cleared.  These are the wire companions of the `OperatorCommandRuntimeState` field carried in each snapshot device record (see snapshot section below).
 
 Events are **broadcast to all connected clients**. The client filters display by its assigned stations.
 
@@ -222,6 +226,17 @@ Snapshot {
   trains:                 [TrainState]
 }
 ```
+
+Each of `SwitchState`, `TrackSectionState`, `SignalState`, `DerailerState`, and `BlockSectionSnapshotState` contains an `operator_state: OperatorCommandRuntimeState` field that reflects any currently active EbiLock operator command (or ML8 command) on that device:
+
+```
+OperatorCommandRuntimeState {
+  active_operator_command: OperatorCommandCode  // present when an OperatorCommand flag is set
+  active_ml8_command:      Ml8CommandCode       // present when an Ml8Command flag is set
+}
+```
+
+The `operator_state` field is the snapshot equivalent of events 0x11 and 0x12.  On reconnect, a client receiving the snapshot does not need to replay prior events to reconstruct current command-flag state.
 
 For Gdynia Główna Osobowa scale (~60 switches, ~120 sections, ~80 signals) estimated snapshot size is **< 50 kB** uncompressed — single chunk in almost all cases.
 

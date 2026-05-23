@@ -24,6 +24,8 @@ constexpr uint8_t kRouteReleased = 0x08;
 constexpr uint8_t kAlarmRaised = 0x0A;
 constexpr uint8_t kAlarmCleared = 0x0B;
 constexpr uint8_t kBlockDirectionStateChanged = 0x10;
+constexpr uint8_t kOperatorCommandStateChanged = 0x11;
+constexpr uint8_t kMl8CommandStateChanged = 0x12;
 }  // namespace event_type
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -197,7 +199,31 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                     fbb, gid_off, to_proto_direction(ev.new_direction), proto::ChangeCause_COMMAND);
                 fbb.Finish(off);
             }
-            // ── Route set ─────────────────────────────────────────────────────
+            // ── Operator command state ───────────────────────────────────────
+            else if constexpr (std::is_same_v<T, engine::core::OperatorCommandStateChange>)
+            {
+                et = event_type::kOperatorCommandStateChanged;
+                auto gid_off = fbb.CreateString(ev.gid.value);
+                auto off = proto::CreateOperatorCommandStateChanged(
+                    fbb, gid_off,
+                    static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
+                    static_cast<proto::OperatorCommandCode>(static_cast<int>(ev.code)),
+                    ev.active);
+                fbb.Finish(off);
+            }
+            // ── ML8 command state ────────────────────────────────────────────────
+            else if constexpr (std::is_same_v<T, engine::core::Ml8CommandStateChange>)
+            {
+                et = event_type::kMl8CommandStateChanged;
+                auto gid_off = fbb.CreateString(ev.gid.value);
+                auto off = proto::CreateMl8CommandStateChanged(
+                    fbb, gid_off,
+                    static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
+                    static_cast<proto::Ml8CommandCode>(static_cast<int>(ev.code)),
+                    ev.active);
+                fbb.Finish(off);
+            }
+            // ── Route set ───────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::RouteAdded>)
             {
                 et = event_type::kRouteSet;

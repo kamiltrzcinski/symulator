@@ -14,6 +14,9 @@ add_executable(tests_engine
 )
 target_link_libraries(tests_engine PRIVATE engine GTest::gtest_main)
 target_compile_features(tests_engine PRIVATE cxx_std_20)
+target_compile_definitions(tests_engine PRIVATE
+    SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios/gdynia_orlowo"
+)
 
 include(GoogleTest)
 gtest_discover_tests(tests_engine)

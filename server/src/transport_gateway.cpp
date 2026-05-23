@@ -1,6 +1,6 @@
 // server/src/transport_gateway.cpp
 
-#define ASIO_STANDALONE
+// ASIO_STANDALONE is set project-wide via CMake; do not redefine here.
 #include "server/transport_gateway.hpp"
 
 #include "commands_generated.h"

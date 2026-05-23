@@ -2,6 +2,25 @@
 
 All notable changes are documented here.
 
+## [0.5.0] - 2026-05-23
+
+### Added
+- **Events**: Added `OperatorCommandStateChanged` (`event_type 0x11`) and `Ml8CommandStateChanged` (`event_type 0x12`) to `events.fbs` and `dispatch_bus.cpp`; both carry `g_id`, `target_kind`, `command_code`, and `active`.
+- **Snapshot**: Added `OperatorCommandRuntimeState` table to `snapshot.fbs`; field `operator_state` added to `SwitchState`, `TrackSectionState`, `SignalState`, `DerailerState`, and `BlockSectionSnapshotState` so clients receive full command-flag state on reconnect without replaying events.
+- **Track model**: `OperatorCommandRuntimeState` now holds `std::optional<OperatorCommandCode> active_operator_command` and `std::optional<Ml8CommandCode> active_ml8_command` — replaces the previous `bool ml8_command_active` + `std::string last_ml8_command_code` pair with type-safe optionals.
+- **Command helpers**: `constexpr std::string_view operator_command_code_name(OperatorCommandCode)` and `ml8_command_code_name(Ml8CommandCode)` added to `command.hpp` (74 EbiLock codes, 71 ML8 codes).
+- **DispatchExchangeManager**: New `server::DispatchExchangeManager` class (`server/include/server/dispatch_exchange_manager.hpp`) — pure-logic S-form exchange state machine per `(src_area, dst_area)` pair; supports S2/S24/S25/S26, S55/S56 (dangerous goods), and S35 (cancellation); `exchange_id` format `"exch-0000001"`.
+- **E2E smoke test**: Added `scripts/e2e_smoke_test.py` — Python 3 script that connects to a running server, performs HANDSHAKE + SNAPSHOT round-trip, and validates wire format, CRC, and session_id.
+- **Build**: Added `-Wall -Wextra -Wpedantic -Wno-unused-parameter` compile flags to root `CMakeLists.txt`.
+- **Tests**: 17 new tests in `tests/server/test_dispatch_exchange_manager.cpp`; updated `test_state_applier.cpp` for `optional<Ml8CommandCode>`.
+
+### Fixed
+- **TopologyLoader tests**: Added `SCENARIO_DIR` compile definition to `tests/engine/CMakeLists.txt` so `test_topology_loader.cpp` finds scenario files correctly; updated all GIDs in the test to the `l202-` prefix scheme and corrected numeric values (length, maxSpeed, divergent speed).
+- **Static init / SRK registration**: `symulator-server` now links `srk_ebilock` and `srk_ml8` with `$<LINK_LIBRARY:WHOLE_ARCHIVE,...>` (CMake 3.24+) so `ControlSystemRegistry::register_static()` executes before `main()`; previously the linker dropped the object files and the server crashed with `"Unknown control_system: ebilock_x4"`.
+- **Fleet load**: Changed `"axleCount": null` to `"axleCount": 4` in `data/vehicle_types/dmu_unit/motor/dsb.json`; the null value caused a `FleetLoadError` crash at server startup.
+- **CRC-32 thread safety**: Replaced the `static bool ready` lazy-init pattern in `server/src/frame.cpp` with an IIFE-initialised `static const` array; the old pattern was a formal C++ data race (undefined behaviour, detectable by ThreadSanitizer).
+- **Macro redefinition warning**: Removed redundant `#define ASIO_STANDALONE` from `server/include/server/transport_gateway.hpp` and `server/src/transport_gateway.cpp`; the macro is already set project-wide as a CMake compile definition.
+
 ## [0.4.4] - 2026-05-22
 
 ### Added

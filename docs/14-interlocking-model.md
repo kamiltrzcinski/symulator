@@ -254,3 +254,37 @@ The engine maintains an in-memory `RouteIndex` (a map from section_g_id → set 
 | Q-ILK-3 | Should the engine enforce speed limits per signal aspect (S2_PROCEED ≈ line speed, MS2_SHUNTING_ALLOWED ≤ 40 km/h)? | High |
 | Q-ILK-4 | R6 (CancelRoute) is specified but not yet implemented in `device_rules.cpp`. | Medium |
 | Q-ILK-5 | INBOUND_PENDING state — neighbour's BLW confirmation protocol is not yet modelled in the multi-station session layer. | Medium |
+
+---
+
+## Operator command runtime state
+
+Each device (signal, switch, derailer, track section, block section) carries an `OperatorCommandRuntimeState` that records any currently active operator-command flag:
+
+```cpp
+struct OperatorCommandRuntimeState {
+    std::optional<OperatorCommandCode> active_operator_command;  // set by cmd_type 0x20
+    std::optional<Ml8CommandCode>      active_ml8_command;       // set by cmd_type 0x21
+};
+```
+
+Both fields are `std::optional` — a device with no active command flags has both as `nullopt`.  Setting a new command overrides the previous value for the same device (only one OperatorCommand and one Ml8Command flag per device at a time).
+
+This replaces the earlier `bool ml8_command_active` + `std::string last_ml8_command_code` pair.  Using a typed optional eliminates a class of bugs where the active flag and the code string could be out of sync.
+
+### Lifetime and persistence
+
+- `active_operator_command` is set to `Some(code)` by `execute_command(OperatorCommand)` and cleared (back to `nullopt`) by the complementary "clear" command in the EbiLock catalog.
+- `active_ml8_command` follows the same pattern for `Ml8Command` (cmd_type 0x21).
+- Both fields survive reconnect — they are part of the snapshot (`OperatorCommandRuntimeState` table in `snapshot.fbs`) and are delivered to the client in the initial `SNAPSHOT_CHUNK`.
+
+### Code-name helper functions
+
+`engine/core/command.hpp` exposes two `constexpr` helpers for logging and NAK reason text:
+
+```cpp
+constexpr std::string_view operator_command_code_name(OperatorCommandCode c);  // e.g. "P1"
+constexpr std::string_view ml8_command_code_name(Ml8CommandCode c);            // e.g. "BLW"
+```
+
+Both functions cover the full catalogues (74 EbiLock codes, 71 ML8 codes) and return `"UNKNOWN"` for out-of-range values.

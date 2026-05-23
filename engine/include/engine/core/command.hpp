@@ -3,6 +3,7 @@
 #include "types.hpp"
 
 #include <cstdint>
+#include <string_view>
 #include <variant>
 
 // ── Operator command payloads ────────────────────────────────────────────────
@@ -302,5 +303,175 @@ struct EnvelopedCommand
     CommandMeta meta;
     Command payload;
 };
+
+}  // namespace engine::core
+
+// ── Command-code name helpers ─────────────────────────────────────────────────
+// Return the short ASCII code name for logging and diagnostics.
+// Returns an empty string_view for out-of-range values.
+
+namespace engine::core
+{
+
+constexpr std::string_view operator_command_code_name(OperatorCommandCode code) noexcept
+{
+    switch (code)
+    {
+        case OperatorCommandCode::SES:   return "SES";
+        case OperatorCommandCode::SEO:   return "SEO";
+        case OperatorCommandCode::SZI:   return "SZI";
+        case OperatorCommandCode::SZW:   return "SZW";
+        case OperatorCommandCode::SZN:   return "SZN";
+        case OperatorCommandCode::SZO:   return "SZO";
+        case OperatorCommandCode::SAM:   return "SAM";
+        case OperatorCommandCode::SAW:   return "SAW";
+        case OperatorCommandCode::ZWP:   return "ZWP";
+        case OperatorCommandCode::ZWM:   return "ZWM";
+        case OperatorCommandCode::ZWS:   return "ZWS";
+        case OperatorCommandCode::ZWO:   return "ZWO";
+        case OperatorCommandCode::ITS:   return "ITS";
+        case OperatorCommandCode::ITO:   return "ITO";
+        case OperatorCommandCode::ZWB:   return "ZWB";
+        case OperatorCommandCode::ZBP:   return "ZBP";
+        case OperatorCommandCode::ZBM:   return "ZBM";
+        case OperatorCommandCode::ZRI:   return "ZRI";
+        case OperatorCommandCode::ZRK:   return "ZRK";
+        case OperatorCommandCode::OPS:   return "OPS";
+        case OperatorCommandCode::SLI:   return "SLI";
+        case OperatorCommandCode::SLK:   return "SLK";
+        case OperatorCommandCode::BLW:   return "BLW";
+        case OperatorCommandCode::BLP:   return "BLP";
+        case OperatorCommandCode::BLO:   return "BLO";
+        case OperatorCommandCode::BLZ:   return "BLZ";
+        case OperatorCommandCode::BLAI:  return "BLAI";
+        case OperatorCommandCode::BLA:   return "BLA";
+        case OperatorCommandCode::BLS:   return "BLS";
+        case OperatorCommandCode::OST:   return "OST";
+        case OperatorCommandCode::ZKB:   return "ZKB";
+        case OperatorCommandCode::PZM:   return "PZM";
+        case OperatorCommandCode::OZK:   return "OZK";
+        case OperatorCommandCode::ZESI:  return "ZESI";
+        case OperatorCommandCode::ZES:   return "ZES";
+        case OperatorCommandCode::PZZI:  return "PZZI";
+        case OperatorCommandCode::PZZ:   return "PZZ";
+        case OperatorCommandCode::POZ:   return "POZ";
+        case OperatorCommandCode::DPOI:  return "DPOI";
+        case OperatorCommandCode::DPO:   return "DPO";
+        case OperatorCommandCode::DKOI:  return "DKOI";
+        case OperatorCommandCode::DKO:   return "DKO";
+        case OperatorCommandCode::DKPI:  return "DKPI";
+        case OperatorCommandCode::DKP:   return "DKP";
+        case OperatorCommandCode::BPZ:   return "BPZ";
+        case OperatorCommandCode::DPWI:  return "DPWI";
+        case OperatorCommandCode::DPW:   return "DPW";
+        case OperatorCommandCode::BTW:   return "BTW";
+        case OperatorCommandCode::BTO:   return "BTO";
+        case OperatorCommandCode::BPO:   return "BPO";
+        case OperatorCommandCode::BKO:   return "BKO";
+        case OperatorCommandCode::PDZ:   return "PDZ";
+        case OperatorCommandCode::PDO:   return "PDO";
+        case OperatorCommandCode::PZT:   return "PZT";
+        case OperatorCommandCode::PAZ:   return "PAZ";
+        case OperatorCommandCode::PZO:   return "PZO";
+        case OperatorCommandCode::PDII:  return "PDII";
+        case OperatorCommandCode::PDI:   return "PDI";
+        case OperatorCommandCode::MRS:   return "MRS";
+        case OperatorCommandCode::ODS:   return "ODS";
+        case OperatorCommandCode::ZAL:   return "ZAL";
+        case OperatorCommandCode::POC:   return "POC";
+        case OperatorCommandCode::PZA:   return "PZA";
+        case OperatorCommandCode::PZAI:  return "PZAI";
+        case OperatorCommandCode::PZW:   return "PZW";
+        case OperatorCommandCode::SSO:   return "SSO";
+        case OperatorCommandCode::SSS:   return "SSS";
+        case OperatorCommandCode::UPAI:  return "UPAI";
+        case OperatorCommandCode::UPA:   return "UPA";
+        case OperatorCommandCode::UPAO:  return "UPAO";
+        case OperatorCommandCode::UPN:   return "UPN";
+        case OperatorCommandCode::UPO:   return "UPO";
+        case OperatorCommandCode::ZSO:   return "ZSO";
+        case OperatorCommandCode::ZSS:   return "ZSS";
+    }
+    return {};
+}
+
+constexpr std::string_view ml8_command_code_name(Ml8CommandCode code) noexcept
+{
+    switch (code)
+    {
+        case Ml8CommandCode::AK:      return "AK";
+        case Ml8CommandCode::AZK:     return "AZK";
+        case Ml8CommandCode::BLZ:     return "BLZ";
+        case Ml8CommandCode::BLZC:    return "BLZC";
+        case Ml8CommandCode::DOP:     return "DOP";
+        case Ml8CommandCode::DOPS:    return "DOPS";
+        case Ml8CommandCode::DPZ:     return "DPZ";
+        case Ml8CommandCode::HMI:     return "HMI";
+        case Ml8CommandCode::KRA:     return "KRA";
+        case Ml8CommandCode::KSR:     return "KSR";
+        case Ml8CommandCode::LKA:     return "LKA";
+        case Ml8CommandCode::LOFF:    return "LOFF";
+        case Ml8CommandCode::MAN:     return "MAN";
+        case Ml8CommandCode::NPU:     return "NPU";
+        case Ml8CommandCode::NPW:     return "NPW";
+        case Ml8CommandCode::NPZ:     return "NPZ";
+        case Ml8CommandCode::OGI:     return "OGI";
+        case Ml8CommandCode::OP:      return "OP";
+        case Ml8CommandCode::OPO:     return "OPO";
+        case Ml8CommandCode::OSTOP:   return "OSTOP";
+        case Ml8CommandCode::OTB:     return "OTB";
+        case Ml8CommandCode::OTE:     return "OTE";
+        case Ml8CommandCode::OTEYYY:  return "OTEYYY";
+        case Ml8CommandCode::OTP:     return "OTP";
+        case Ml8CommandCode::OTPON:   return "OTPON";
+        case Ml8CommandCode::OT:      return "OT";
+        case Ml8CommandCode::OTZ:     return "OTZ";
+        case Ml8CommandCode::OUZ:     return "OUZ";
+        case Ml8CommandCode::OUZ_DR:  return "OUZ_DR";
+        case Ml8CommandCode::OUZ_DZ:  return "OUZ_DZ";
+        case Ml8CommandCode::OUZ_JN:  return "OUZ_JN";
+        case Ml8CommandCode::OUZ_PJ:  return "OUZ_PJ";
+        case Ml8CommandCode::OUZ_X:   return "OUZ_X";
+        case Ml8CommandCode::OUZ_ZN:  return "OUZ_ZN";
+        case Ml8CommandCode::OWBL:    return "OWBL";
+        case Ml8CommandCode::OZCZ:    return "OZCZ";
+        case Ml8CommandCode::P:       return "P";
+        case Ml8CommandCode::POC:     return "POC";
+        case Ml8CommandCode::POT:     return "POT";
+        case Ml8CommandCode::PZK:     return "PZK";
+        case Ml8CommandCode::PPN:     return "PPN";
+        case Ml8CommandCode::PPZ:     return "PPZ";
+        case Ml8CommandCode::PZ:      return "PZ";
+        case Ml8CommandCode::PZB:     return "PZB";
+        case Ml8CommandCode::PZS:     return "PZS";
+        case Ml8CommandCode::SPEC:    return "SPEC";
+        case Ml8CommandCode::STJ:     return "STJ";
+        case Ml8CommandCode::STOJ:    return "STOJ";
+        case Ml8CommandCode::STOP:    return "STOP";
+        case Ml8CommandCode::SZ:      return "SZ";
+        case Ml8CommandCode::NSZ:     return "NSZ";
+        case Ml8CommandCode::WBL:     return "WBL";
+        case Ml8CommandCode::WPN:     return "WPN";
+        case Ml8CommandCode::WPZ:     return "WPZ";
+        case Ml8CommandCode::WZ:      return "WZ";
+        case Ml8CommandCode::ZCZ:     return "ZCZ";
+        case Ml8CommandCode::ZDM:     return "ZDM";
+        case Ml8CommandCode::ZDP:     return "ZDP";
+        case Ml8CommandCode::ZEROLO:  return "ZEROLO";
+        case Ml8CommandCode::ZI:      return "ZI";
+        case Ml8CommandCode::ZO:      return "ZO";
+        case Ml8CommandCode::ZPO:     return "ZPO";
+        case Ml8CommandCode::ZW:      return "ZW";
+        case Ml8CommandCode::ZWBL:    return "ZWBL";
+        case Ml8CommandCode::Z:       return "Z";
+        case Ml8CommandCode::Z_DR:    return "Z_DR";
+        case Ml8CommandCode::Z_DZ:    return "Z_DZ";
+        case Ml8CommandCode::Z_JN:    return "Z_JN";
+        case Ml8CommandCode::Z_PJ:    return "Z_PJ";
+        case Ml8CommandCode::Z_X:     return "Z_X";
+        case Ml8CommandCode::Z_ZN:    return "Z_ZN";
+    }
+    return {};
+}
 
 }  // namespace engine::core

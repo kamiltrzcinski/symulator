@@ -44,6 +44,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ── Compiler warnings ───────────────────────────────────────────────────────
+# -Wno-unused-parameter: virtual overrides routinely ignore some parameters.
+add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+
 # ── vcpkg toolchain is passed via -DCMAKE_TOOLCHAIN_FILE ───────────────────
 # cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug
 #       -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake

@@ -1,9 +1,0 @@
-{
-    "station_sid": "GOr",
-    "display_name": "Gdynia Orłowo",
-    "area": "TRJ",
-    "line_numbers": [250],
-    "control_system": "ebilock_x4",
-    "notes": "Minimal reference topology for integration tests. Represents approximately 3 platform tracks, 2 switches, and boundary connections to Sopot (south) and Gdynia Główna (north).",
-    "schema_version": 1
-}

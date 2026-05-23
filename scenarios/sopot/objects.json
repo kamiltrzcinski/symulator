@@ -1,0 +1,183 @@
+{
+    "$comment": "Signals and posterunki for Sopot. Each signal references a typeID from data/device_types/. L202 and L250 signals are independent. Signal placement: entry signals at sideA (boundary side) of approach sections; departure signals at sideA (switch side) of exit sections.",
+
+    "signals": [
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Wp1",
+            "pID":                   "l202_Wp1",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l202-t1a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Wp2",
+            "pID":                   "l202_Wp2",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l202-t2a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Op1",
+            "pID":                   "l202_Op1",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l202-t1a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Op2",
+            "pID":                   "l202_Op2",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l202-t2a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Ww1",
+            "pID":                   "l202_Ww1",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l202-t1b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Ww2",
+            "pID":                   "l202_Ww2",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l202-t2b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Np1",
+            "pID":                   "l202_Np1",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l202-t1b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l202-Np2",
+            "pID":                   "l202_Np2",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l202-t2b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Wp501",
+            "pID":                   "l250_Wp501",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l250-t501a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Wp502",
+            "pID":                   "l250_Wp502",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l250-t502a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Op501",
+            "pID":                   "l250_Op501",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l250-t501a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Op502",
+            "pID":                   "l250_Op502",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l250-t502a",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Ww501",
+            "pID":                   "l250_Ww501",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l250-t501b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Ww502",
+            "pID":                   "l250_Ww502",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "DEPARTURE",
+            "governs_track_section": "OT-TRJ-Sp-l250-t502b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Np501",
+            "pID":                   "l250_Np501",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l250-t501b",
+            "initial_aspect":        "STOP"
+        },
+        {
+            "gID":                   "SEM-TRJ-Sp-l250-Np502",
+            "pID":                   "l250_Np502",
+            "sID":                   "Sp",
+            "typeID":                "DVT-GLB-SEM-0000001",
+            "type":                  "ENTRY",
+            "governs_track_section": "OT-TRJ-Sp-l250-t502b",
+            "initial_aspect":        "STOP"
+        }
+    ],
+
+    "posterunki": [
+        {
+            "dispatch_area_id": "Sp_nastawnia",
+            "display_name":     "Sopot — Nastawnia (L202)",
+            "station_sid":      "Sp",
+            "governs_switches": [
+                "ZWR-TRJ-Sp-l202-zwr1", "ZWR-TRJ-Sp-l202-zwr2",
+                "ZWR-TRJ-Sp-l202-zwr3", "ZWR-TRJ-Sp-l202-zwr4"
+            ],
+            "governs_signals": [
+                "SEM-TRJ-Sp-l202-Wp1",  "SEM-TRJ-Sp-l202-Wp2",
+                "SEM-TRJ-Sp-l202-Op1",  "SEM-TRJ-Sp-l202-Op2",
+                "SEM-TRJ-Sp-l202-Ww1",  "SEM-TRJ-Sp-l202-Ww2",
+                "SEM-TRJ-Sp-l202-Np1",  "SEM-TRJ-Sp-l202-Np2"
+            ]
+        },
+        {
+            "dispatch_area_id": "Sp_skm",
+            "display_name":     "Sopot — Nastawnia SKM (L250, controlled from GG-SKM)",
+            "station_sid":      "Sp",
+            "governs_switches": [
+                "ZWR-TRJ-Sp-l250-zwr5", "ZWR-TRJ-Sp-l250-zwr6",
+                "ZWR-TRJ-Sp-l250-zwr7", "ZWR-TRJ-Sp-l250-zwr8"
+            ],
+            "governs_signals": [
+                "SEM-TRJ-Sp-l250-Wp501", "SEM-TRJ-Sp-l250-Wp502",
+                "SEM-TRJ-Sp-l250-Op501", "SEM-TRJ-Sp-l250-Op502",
+                "SEM-TRJ-Sp-l250-Ww501", "SEM-TRJ-Sp-l250-Ww502",
+                "SEM-TRJ-Sp-l250-Np501", "SEM-TRJ-Sp-l250-Np502"
+            ]
+        }
+    ]
+}

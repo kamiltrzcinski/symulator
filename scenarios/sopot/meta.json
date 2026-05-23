@@ -1,0 +1,9 @@
+{
+    "station_sid": "Sp",
+    "display_name": "Sopot",
+    "area": "TRJ",
+    "line_numbers": [202, 250],
+    "control_system": "ebilock_x4",
+    "notes": "After 2010-2013 modernisation L202 (IC/EIC main line) and L250 (SKM) are fully independent with no physical connection. L202: tor 1 and tor 2a (main tracks only). L250: tor 501a and tor 502a, controlled from nastawnia GG-SKM.",
+    "schema_version": 1
+}

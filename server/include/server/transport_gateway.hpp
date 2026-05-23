@@ -12,7 +12,7 @@
 
 #pragma once
 
-#define ASIO_STANDALONE
+// ASIO_STANDALONE is set project-wide via CMake; do not redefine here.
 #include <asio.hpp>
 
 #include "server/command_ingress.hpp"

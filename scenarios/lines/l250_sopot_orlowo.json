@@ -1,0 +1,43 @@
+{
+    "$comment": "Line 250 szlak: Sopot — Gdynia Orlowo. Distance 4069 m (km 11.680 to km 15.749). maxSpeedKmh 70. Two track sections, each ~2034 m. sideA = Sopot side; sideB = Gdynia Orlowo side.",
+    "line_number": 250,
+    "szlak": "Sp-GOr",
+    "track_sections": [
+        {
+            "gID":  "OT-TRJ-Sp-GOr-l250-0001",
+            "pID":  "Sp-GOr-l250-0001",
+            "sideA": {
+                "neighborID": "BND-TRJ-Sp-l250-N",
+                "itID":       "IT-TRJ-Sp-GOr-l250-0001A",
+                "signals":    ["SEM-TRJ-Sp-l250-Ww501", "SEM-TRJ-Sp-l250-Ww502"]
+            },
+            "sideB": {
+                "neighborID": "OT-TRJ-Sp-GOr-l250-0002",
+                "itID":       "IT-TRJ-Sp-GOr-l250-0001B",
+                "signals":    []
+            },
+            "lengthM":     2035,
+            "electrified":  true,
+            "maxSpeedKmh":  70,
+            "occupied":     false
+        },
+        {
+            "gID":  "OT-TRJ-Sp-GOr-l250-0002",
+            "pID":  "Sp-GOr-l250-0002",
+            "sideA": {
+                "neighborID": "OT-TRJ-Sp-GOr-l250-0001",
+                "itID":       "IT-TRJ-Sp-GOr-l250-0002A",
+                "signals":    []
+            },
+            "sideB": {
+                "neighborID": "BND-TRJ-GOr-l250-S",
+                "itID":       "IT-TRJ-Sp-GOr-l250-0002B",
+                "signals":    ["SEM-TRJ-GOr-l250-Wp501", "SEM-TRJ-GOr-l250-Wp502"]
+            },
+            "lengthM":     2034,
+            "electrified":  true,
+            "maxSpeedKmh":  70,
+            "occupied":     false
+        }
+    ]
+}

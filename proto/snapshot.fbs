@@ -6,10 +6,29 @@
 //   flatc --cpp --gen-object-api -o generated/ snapshot.fbs
 
 include "common.fbs";
+include "commands.fbs";
 
 namespace proto;
 
 // ── Per-object state records ─────────────────────────────────────────────────
+
+// Runtime operator-command flags for a single device.
+// ml8_command_active + ml8_command_code together represent optional<Ml8CommandCode>:
+// when ml8_command_active is false, ml8_command_code is undefined.
+table OperatorCommandRuntimeState {
+    stopped:                 bool;
+    substitute_initialized:  bool;
+    substitute_active:       bool;
+    automatic_route_enabled: bool;
+    clamped:                 bool;
+    traffic_closed:          bool;
+    detection_bypassed:      bool;
+    special_initialized:     bool;
+    special_active:          bool;
+    axle_reset_initialized:  bool;
+    ml8_command_active:      bool;
+    ml8_command_code:        Ml8CommandCode;
+}
 
 table SwitchState {
     g_id:      string (required);
@@ -19,6 +38,7 @@ table SwitchState {
     train_g_id: string;
     /// True when a route is currently locking this switch.
     locked_by_route: bool;
+    operator_state: OperatorCommandRuntimeState;
 }
 
 table TrackSectionState {
@@ -26,22 +46,26 @@ table TrackSectionState {
     occupied:  bool;
     axle_count: int32;
     train_g_id: string;
+    operator_state: OperatorCommandRuntimeState;
 }
 
 table SignalState {
     g_id:   string (required);
     aspect: Aspect;
+    operator_state: OperatorCommandRuntimeState;
 }
 
 table DerailerState {
     g_id:     string (required);
     position: DerailerPosition;
+    operator_state: OperatorCommandRuntimeState;
 }
 
 table BlockSectionSnapshotState {
     g_id:            string (required);
     state:           BlockSectionState;
     block_direction: BlockDirectionState;
+    operator_state:  OperatorCommandRuntimeState;
 }
 
 table RouteState {

@@ -212,3 +212,35 @@ TEST(DispatchBus, EventIdMonotonicallyIncreasing)
     const auto f2 = parse_event_frame(*f.bus.make_event_frame(ch, 0u));
     EXPECT_GT(f2.event_id, f1.event_id);
 }
+
+TEST(DispatchBus, OperatorCommandStateChanged)
+{
+    BusTestFixture f;
+    OperatorCommandStateChange ch;
+    ch.gid = GID{"SIG-01"};
+    ch.target_kind = OperatorTargetKind::SIGNAL;
+    ch.code = OperatorCommandCode::SES;
+    ch.active = true;
+
+    const auto frame = f.bus.make_event_frame(ch, 0u);
+    ASSERT_TRUE(frame.has_value());
+    const auto ev = parse_event_frame(*frame);
+    EXPECT_TRUE(ev.valid);
+    EXPECT_EQ(ev.event_type, 0x11u);
+}
+
+TEST(DispatchBus, Ml8CommandStateChanged)
+{
+    BusTestFixture f;
+    Ml8CommandStateChange ch;
+    ch.gid = GID{"BLK-01"};
+    ch.target_kind = OperatorTargetKind::BLOCK_SECTION;
+    ch.code = Ml8CommandCode::AK;
+    ch.active = true;
+
+    const auto frame = f.bus.make_event_frame(ch, 0u);
+    ASSERT_TRUE(frame.has_value());
+    const auto ev = parse_event_frame(*frame);
+    EXPECT_TRUE(ev.valid);
+    EXPECT_EQ(ev.event_type, 0x12u);
+}

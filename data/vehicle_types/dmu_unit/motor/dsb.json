@@ -5,7 +5,7 @@
   "vehicleType": "DMU_UNIT",
   "vehicleSubtype": "MOTOR",
   "lengthM": 75.28,
-  "axleCount": null,
+  "axleCount": 4,
   "massEmptyT": 137.5,
   "massGrossT": 137.5,
   "maxSpeedKmh": 160,

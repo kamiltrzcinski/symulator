@@ -1,6 +1,6 @@
 # Implementation Skeleton
 
-**Status:** Partially implemented — domain layer and SRK interface complete; ENGINE tick loop integration pending.
+**Status:** Domain layer, SRK interface, ENGINE tick loop, server composition root, and first-pass dispatch exchange manager complete.  Remaining work: EDR coordinator, DB persistence pipeline, PLK importer, full client.
 
 ## Purpose
 
@@ -15,8 +15,8 @@ This document describes the server-side class structure and module wiring as of 
 | Header | Description |
 |--------|-------------|
 | `types.hpp` | Vocabulary types: `GID`, `SID`, `DispatchAreaID`, `PlayerID`, `ControlSystemID`; all enums (`SwitchPosition`, `SignalAspect`, `DerailerState`, `BlockSectionState`, `BlockDirectionState`, `TrackOccupancy`, `ChangeCause`, …) |
-| `track_model.hpp` | Value-type structs for runtime device state: `TrackSection`, `Switch`, `Signal`, `Derailer`, `BlockSection`, `RouteState`, `AlarmState`, `BoundaryNode` |
-| `command.hpp` | `Command = std::variant<...>` (10 types, cmd_type 0x01–0x0A); `Shl12Op` enum; `CommandMeta`; `EnvelopedCommand` |
+| `track_model.hpp` | Value-type structs for runtime device state: `TrackSection`, `Switch`, `Signal`, `Derailer`, `BlockSection`, `RouteState`, `AlarmState`, `BoundaryNode`; `OperatorCommandRuntimeState` (holds `optional<OperatorCommandCode>` + `optional<Ml8CommandCode>`) |
+| `command.hpp` | `Command = std::variant<...>` (10 types, cmd_type 0x01–0x0A); `Shl12Op` enum; `CommandMeta`; `EnvelopedCommand`; `operator_command_code_name()` + `ml8_command_code_name()` helpers |
 | `state_view.hpp` | `IStateView` — pure read-only interface; `find_*` and `for_each_*` methods |
 | `engine_state.hpp` / `.cpp` | `EngineState : IStateView` — mutable world state owned by ENGINE thread; `insert_*`, `apply_*` mutators |
 | `engine_snapshot.hpp` / `.cpp` | `EngineSnapshot : IStateView` — immutable deep copy; `AtomicSnapshot` for lock-free cross-thread reads |
@@ -31,16 +31,36 @@ This document describes the server-side class structure and module wiring as of 
 | `libsrk_ebilock` | `"ebilock_x4"` | R1–R7; EEA-4 throw timer; route auto-release |
 | `libsrk_ml8` | `"estw_ml8"` | R1–R7 + SHL-12 (R8–R10: BLW/BLP/BLO/BLZ/BLAI/BLA/OPS/SLI/SLK) |
 
+> **Linker note:** `libsrk_ebilock` and `libsrk_ml8` must be linked into `symulator-server` with `$<LINK_LIBRARY:WHOLE_ARCHIVE,...>` (CMake 3.24+) to prevent the linker from dropping their static-init object files.  Without this, `ControlSystemRegistry::register_static()` never runs and the server crashes with "Unknown control_system".  See `server/CMakeLists.txt`.
+
+### server/ additions
+
+| File | Description |
+|------|-------------|
+| `server/include/server/dispatch_exchange_manager.hpp` | `DispatchExchangeManager` — pure-logic S-form state machine per `(src_area, dst_area)` pair; `TelegramResult`, `TelegramOutcome` types |
+| `server/src/dispatch_exchange_manager.cpp` | Implementation; `generate_exchange_id()` produces `"exch-0000001"` format |
+
 ---
 
-## Current constraint baseline
+## Implementation status
 
-Not yet implemented (blocking next phases):
-- ENGINE tick loop integration: `StateApplier` visitor, per-tick `IControlSystem::on_tick()`, per-command `check_command()` + `execute_command()` (see Q-SRK-1 in [doc 17](17-control-system-interface.md)),
-- topology loader: `topology.json` → `EngineState` inserts,
-- `SnapshotService`: `AtomicSnapshot::load()` → FlatBuffers serialization → chunked `SNAPSHOT_CHUNK`,
-- client broadcast pipeline: `DeviceStateChange` → `DomainEvent` wire encoding,
-- `ZapowiedniowiecManager` and S-form state machine integration.
+**Completed:**
+- ENGINE tick loop: `StateApplier` visitor, `IControlSystem::on_tick()`, `check_command()` + `execute_command()` ✅
+- Topology loader: `topology.json` + `objects.json` → `EngineState` inserts (GID scheme: `l202-` prefix) ✅
+- `SnapshotService`: `AtomicSnapshot::load()` → FlatBuffers → chunked `SNAPSHOT_CHUNK` ✅
+- `DeviceStateChange` → `DomainEvent` wire encoding → `DOMAIN_EVENT (0x20)` broadcast ✅
+- Operator command events `0x11 OperatorCommandStateChanged`, `0x12 Ml8CommandStateChanged` ✅
+- `DispatchExchangeManager`: S-form state machine, 17 unit tests ✅
+- `scripts/e2e_smoke_test.py`: HANDSHAKE + SNAPSHOT round-trip smoke test ✅
+
+**Remaining (next phases):**
+- `ZapowiedniowiecManager`: DB persistence for `session.dispatch_telegrams`, EDR `track_clear_time` update
+- `DbWriter` pipeline: event/snapshot/chat retention
+- `EdrCoordinator`: EDR view integration
+- PLK importer (`IPLKImporter`)
+- Full Qt6 client broadcast rendering
+
+> **Test infra note:** `tests/engine/CMakeLists.txt` sets `SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios/gdynia_orlowo"` via compile definition so `test_topology_loader.cpp` can locate scenario files without hardcoding paths.
 
 The sections below describe the remaining wiring and interface contracts.
 

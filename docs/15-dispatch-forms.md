@@ -88,15 +88,68 @@ The number and positions of crossings on each section are defined in the scenari
 
 ---
 
-## Server-side component: Zapowiedniowiec
+## Server-side component: DispatchExchangeManager
 
-`ZapowiedniowiecManager` is a server-side component (not a thread — it runs on DISPATCHER via callback, or as a service called from WORK_POOL). Its responsibilities:
+`server::DispatchExchangeManager` (`server/include/server/dispatch_exchange_manager.hpp`) is the **implemented** server-side component that manages the S-form exchange state machine.  It is a pure-logic, single-threaded class with no I/O, no engine state, and no DB dependency (DB persistence is the responsibility of the future `ZapowiedniowiecManager` layer).
 
-- Validate that incoming S-form commands respect the allowed state-machine transitions.
-- Reject out-of-order or duplicate telegrams with a structured error.
-- Write `session.dispatch_telegrams` rows via DB_WRITER.
-- Update `session.edr_entries.track_clear_time` on S24/S56 confirmation.
-- Emit `DomainEvent::DispatchTelegramStateChanged` so DISPATCHER can push updates to affected clients.
+### Types
+
+```
+TelegramResult  ACCEPTED | REJECTED_WRONG_STATE | REJECTED_DUPLICATE
+
+TelegramOutcome {
+  result:           TelegramResult
+  new_status:       ExchangeStatus   // state after this telegram; unchanged on rejection
+  telegram_status:  TelegramStatus   // mirrors result for the telegram row
+  exchange_id:      string           // non-empty only when result == ACCEPTED
+}
+```
+
+`exchange_id` format: `"exch-0000001"` — zero-padded decimal counter, monotonically increasing per server instance.
+
+### API
+
+```cpp
+// Submit a telegram and advance the state machine for the (src_area, dst_area) pair.
+TelegramOutcome submit_telegram(
+    const std::string& src_area,
+    const std::string& dst_area,
+    DispatchFormType   form,
+    TelegramDirection  direction,
+    const std::string& train_number);
+
+// Query current ExchangeStatus (returns IDLE if no exchange has been started).
+ExchangeStatus status(const std::string& src_area, const std::string& dst_area) const noexcept;
+
+// Advance S26_RECEIVED → CLOSED (arrival confirmed, EDR track-clear-time set externally).
+void close(const std::string& src_area, const std::string& dst_area);
+```
+
+### Allowed transitions
+
+| Current status | Form | Direction | Result | Next status |
+|---|---|---|---|---|
+| IDLE | S2 | SENT | ACCEPTED | S2_SENT |
+| IDLE | S55 | SENT | ACCEPTED | S2_SENT |
+| S2_SENT | S24 | RECEIVED | ACCEPTED | S24_RECEIVED |
+| S2_SENT | S56 | RECEIVED | ACCEPTED | S24_RECEIVED |
+| S2_SENT | S35 | SENT | ACCEPTED | CANCELLED |
+| S24_RECEIVED | S25 | SENT | ACCEPTED | S25_SENT |
+| S25_SENT | S26 | RECEIVED | ACCEPTED | S26_RECEIVED |
+| S24_RECEIVED | S24 | RECEIVED | REJECTED_DUPLICATE | (unchanged) |
+| any | wrong form | any | REJECTED_WRONG_STATE | (unchanged) |
+
+Any form not listed for the current status → `REJECTED_WRONG_STATE`.
+
+---
+
+## Future component: ZapowiedniowiecManager
+
+The planned `ZapowiedniowiecManager` will wrap `DispatchExchangeManager` and add:
+- Persistence to `session.dispatch_telegrams` via `DB_WRITER`.
+- Update of `session.edr_entries.track_clear_time` on S24/S56 confirmation.
+- Emission of `DomainEvent::DispatchTelegramStateChanged` to `DispatchBus`.
+- `DomainEvent::DispatchTelegramStateChanged` so DISPATCHER can push updates to affected clients.
 
 `ZapowiedniowiecManager` does **not** own any engine state. It is a pure business-logic layer over the DB.
 
