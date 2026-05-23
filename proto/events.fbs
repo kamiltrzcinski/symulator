@@ -163,3 +163,16 @@ table Ml8CommandStateChanged {
     command_code: Ml8CommandCode;
     active:       bool;
 }
+
+// ── event_type 0x13 ────────────────────────────────────────────────────────────
+// Broadcast to the (src_area_id, dst_area_id) pair only.
+table DispatchTelegramStateChanged {
+    exchange_id:     string (required);
+    src_area_id:     string (required);
+    dst_area_id:     string (required);
+    form_type:       DispatchFormType;
+    direction:       TelegramDirection;
+    train_number:    string;
+    new_status:      ExchangeStatus;
+    timestamp_us:    uint64 = 0;
+}

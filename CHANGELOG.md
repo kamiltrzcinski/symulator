@@ -11,6 +11,15 @@ All notable changes are documented here.
 - **Tests**: Replaced `Engine` and `Server` placeholder tests with real round-trip tests — `EngineState` insert/find for `TrackSection`/`Switch` (4 tests) and `Frame` encode/decode, CRC corruption, partial-buffer (5 tests); total 313/313 passing.
 
 ### Added
+- **Bilateral channel (`0x61`)**: New `msg_type 0x61 BILATERAL_MESSAGE` for inter-posterunek S-form and free-text communication scoped to neighbouring `(src_area, dst_area)` pairs.
+  - `proto/bilateral.fbs`: `BilateralMessage` with `BilateralKind` union (`DispatchFormPayload` | `FreeTextPayload`).
+  - `proto/common.fbs`: `DispatchFormType`, `TelegramDirection`, `ExchangeStatus` enums added (reuse C++ enums from `engine::core::types.hpp`).
+  - `proto/events.fbs`: `event_type 0x13 DispatchTelegramStateChanged`.
+  - `server/db_writer.hpp`: `IDbWriter` interface + `NullDbWriter` test double.
+  - `server/bilateral_channel.hpp` + `bilateral_channel.cpp`: parses inbound frame, drives `DispatchExchangeManager`, writes via `IDbWriter`, broadcasts to pair.
+  - `server/transport_gateway`: `dispatch_area_id` in `ClientInfo`; `broadcast_to_pair()`; `set_bilateral_handler()`.
+  - `docker/init.sql`: `track_clear_time INTERVAL` in `session.edr_entries`; new `session.dispatch_telegrams` table.
+  - 10 new unit tests (`tests/server/test_bilateral_channel.cpp`); **323/323 tests pass**.
 - **Events**: Added `OperatorCommandStateChanged` (`event_type 0x11`) and `Ml8CommandStateChanged` (`event_type 0x12`) to `events.fbs` and `dispatch_bus.cpp`; both carry `g_id`, `target_kind`, `command_code`, and `active`.
 - **Snapshot**: Added `OperatorCommandRuntimeState` table to `snapshot.fbs`; field `operator_state` added to `SwitchState`, `TrackSectionState`, `SignalState`, `DerailerState`, and `BlockSectionSnapshotState` so clients receive full command-flag state on reconnect without replaying events.
 - **Track model**: `OperatorCommandRuntimeState` now holds `std::optional<OperatorCommandCode> active_operator_command` and `std::optional<Ml8CommandCode> active_ml8_command` — replaces the previous `bool ml8_command_active` + `std::string last_ml8_command_code` pair with type-safe optionals.

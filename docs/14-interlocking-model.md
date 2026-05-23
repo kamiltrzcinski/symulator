@@ -21,7 +21,7 @@ std::optional<InterlockingViolation>
 
 The violation maps directly to `COMMAND_NAK`.  See [doc 17](17-control-system-interface.md) for the full interface contract.
 
-Shared logic (R1–R7) lives in `libsrk_common` (`srk/common/device_rules.hpp`).  Each SRK library (`libsrk_ebilock`, `libsrk_ml8`) delegates to these helpers and adds system-specific rules.
+Shared logic (R1–R10) lives in `libsrk_common` (`srk/common/device_rules.hpp`).  Each SRK library (`libsrk_ebilock`, `libsrk_ml8`) delegates to these helpers and adds system-specific rules.
 
 ---
 

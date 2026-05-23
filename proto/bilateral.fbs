@@ -1,0 +1,52 @@
+// proto/bilateral.fbs — Bilateral channel (msg_type 0x61 BILATERAL_MESSAGE)
+// Scoped to (src_area_id, dst_area_id) pair — neighbouring posterunki only.
+//
+// Compile with:
+//   flatc --cpp --gen-object-api -o autogens/proto/ proto/bilateral.fbs proto/common.fbs
+//   (or via scripts/generate_compile_commands.py)
+
+include "common.fbs";
+
+namespace proto;
+
+enum BilateralKind : byte {
+    DISPATCH_FORM = 0,
+    FREE_TEXT     = 1,
+}
+
+table DispatchFormPayload {
+    form_type:    DispatchFormType;
+    train_number: string (required);
+    /// Kilometre markers of the protected section (e.g. ["102.4", "118.7"]).
+    km_markers:   [string];
+    /// Track number / line side (optional, e.g. "tor 1").
+    track_number: string;
+}
+
+table FreeTextPayload {
+    body: string (required);
+}
+
+union BilateralBody {
+    DispatchFormPayload,
+    FreeTextPayload,
+}
+
+table BilateralMessage {
+    /// Dispatch area id of the initiating side (always filled by sender).
+    src_area_id:      string (required);
+    /// Dispatch area id of the receiving side (always filled by sender).
+    dst_area_id:      string (required);
+
+    direction:        TelegramDirection;
+    kind:             BilateralKind;
+    body:             BilateralBody;
+
+    // Fields below are filled by the server on outbound frames; clients send them empty:
+    exchange_id:      string;       // e.g. "exch-0000001"
+    exchange_status:  ExchangeStatus;
+    timestamp_us:     uint64 = 0;   // microseconds since Unix epoch
+    sender_id:        string;       // client_id of the sender
+}
+
+root_type BilateralMessage;

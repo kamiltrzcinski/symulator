@@ -65,6 +65,30 @@ enum ChangeCause : byte {
     TIMEOUT  = 2,  // timer-driven release
 }
 
+/// Dispatch form types exchanged between neighbouring areas via bilateral channel.
+enum DispatchFormType : byte {
+    S2  = 0,   // Zapowiedź — zgłoszenie pociągu do sąsiada
+    S24 = 1,   // Droga wolna — tor zwolniony, pociąg przybył
+    S25 = 2,   // Zatrzymanie pociągu — prośba o wstrzymanie
+    S26 = 3,   // Zgoda na zatrzymanie
+    S55 = 4,   // Odwołanie zapowiedzi
+    S56 = 5,   // Odwołanie drogi wolnej
+}
+
+/// Direction of a dispatch telegram from the perspective of the sending area.
+enum TelegramDirection : byte {
+    SENT     = 0,
+    RECEIVED = 1,
+}
+
+/// Exchange lifecycle state (used in BilateralMessage.exchange_status).
+enum ExchangeStatus : byte {
+    PENDING  = 0,
+    ACCEPTED = 1,
+    REJECTED = 2,
+    CLOSED   = 3,
+}
+
 /// Session lifecycle state
 enum SessionState : byte {
     STARTED  = 0,

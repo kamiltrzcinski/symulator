@@ -7,6 +7,7 @@ add_library(server_lib STATIC
     src/transport_gateway.cpp
     src/dispatch_bus.cpp
     src/dispatch_exchange_manager.cpp
+    src/bilateral_channel.cpp
 )
 
 target_include_directories(server_lib PUBLIC

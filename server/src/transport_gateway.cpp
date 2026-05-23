@@ -106,6 +106,10 @@ void ClientSession::handle_frame(const DecodedFrame& frame)
         case msg_type::kHeartbeat:
             handle_heartbeat(frame);
             break;
+        case msg_type::kBilateral:
+            if (is_active())
+                handle_bilateral(frame);
+            break;
         default:
             break;  // ignore unknown / unimplemented types
     }
@@ -215,6 +219,13 @@ void ClientSession::handle_heartbeat(const DecodedFrame& frame)
     send_frame(msg_type::kHeartbeatAck, 0, build_flatbuffers_payload(fbb));
 }
 
+void ClientSession::handle_bilateral(const DecodedFrame& frame)
+{
+    const auto& handler = gateway_.bilateral_handler();
+    if (handler)
+        handler(frame.payload, info_.player_id, info_.dispatch_area_id);
+}
+
 void ClientSession::send_frame(uint8_t mt, uint8_t flags, const std::vector<uint8_t>& payload)
 {
     const uint32_t seq = tx_seq_.fetch_add(1, std::memory_order_relaxed);
@@ -321,6 +332,33 @@ void TransportGateway::broadcast(std::vector<uint8_t> frame)
                            session->send(*data);
                    }
                });
+}
+
+void TransportGateway::broadcast_to_pair(const std::string& src_area_id,
+                                         const std::string& dst_area_id, std::vector<uint8_t> frame)
+{
+    auto data = std::make_shared<std::vector<uint8_t>>(std::move(frame));
+    auto src = std::make_shared<std::string>(src_area_id);
+    auto dst = std::make_shared<std::string>(dst_area_id);
+
+    asio::post(io_ctx_,
+               [this, src, dst, data]()
+               {
+                   std::scoped_lock lock{sessions_mutex_};
+                   for (auto& [ptr, session] : sessions_)
+                   {
+                       if (!session->is_active())
+                           continue;
+                       const auto& area = session->info().dispatch_area_id;
+                       if (area == *src || area == *dst)
+                           session->send(*data);
+                   }
+               });
+}
+
+void TransportGateway::set_bilateral_handler(BilateralHandler handler)
+{
+    bilateral_handler_ = std::move(handler);
 }
 
 void TransportGateway::register_session(std::shared_ptr<ClientSession> session)

@@ -20,7 +20,8 @@ The interface decouples the engine from railway signalling standards.  Adding a 
 srk/
 ├── common/           libsrk_common  — shared safety rules and BFS path finder
 │   ├── include/srk/common/
-│   │   ├── device_rules.hpp   — R1–R7 check/execute helpers
+│   │   ├── nak_codes.hpp      — COMMAND_NAK reason codes 0x00–0x09 (single source of truth)
+│   │   ├── device_rules.hpp   — R1–R10 check/execute helpers + check/execute_operator_command
 │   │   └── route_graph.hpp    — RoutePathNode, RoutePath, find_route_path()
 │   └── src/
 │       ├── device_rules.cpp

@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS session.edr_entries (
     scheduled_departure  INTERVAL    NOT NULL,
     actual_departure     INTERVAL,
     track_number         TEXT,
+    track_clear_time     INTERVAL,              -- "Droga wolna" — set by S24/S56 in BilateralChannel
     stop_type            TEXT        NOT NULL DEFAULT 'COMMERCIAL',
     status               TEXT        NOT NULL DEFAULT 'PENDING',
                                      -- PENDING | ARRIVED | DEPARTED | SKIPPED | CANCELLED
@@ -155,3 +156,28 @@ CREATE TABLE IF NOT EXISTS session.chat_log (
 
 CREATE INDEX IF NOT EXISTS idx_chat_session
     ON session.chat_log (session_id, timestamp_us);
+
+-- Bilateral channel — dispatch telegrams (S-forms and free-text between neighbouring areas).
+CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
+    id              BIGSERIAL   PRIMARY KEY,
+    session_id      UUID        NOT NULL REFERENCES session.sessions(id),
+    form_type       TEXT        NOT NULL,   -- S2 | S24 | S25 | S26 | S55 | S56 | FREE_TEXT …
+    exchange_id     TEXT        NOT NULL,   -- e.g. "exch-0000001"
+    train_number    TEXT        NOT NULL,
+    from_sid        TEXT        NOT NULL,   -- source dispatch area id
+    to_sid          TEXT        NOT NULL,   -- destination dispatch area id
+    direction       TEXT        NOT NULL,   -- SENT | RECEIVED (from src perspective)
+    status          TEXT        NOT NULL DEFAULT 'PENDING',
+                                            -- PENDING | ACCEPTED | REJECTED | CLOSED
+    track_number    TEXT,
+    km_markers      TEXT[],
+    body            TEXT        NOT NULL,   -- JSON snapshot of the telegram payload
+    timestamp_us    BIGINT      NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_exchange
+    ON session.dispatch_telegrams (session_id, exchange_id);
+CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_train
+    ON session.dispatch_telegrams (session_id, train_number);
+CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_areas
+    ON session.dispatch_telegrams (session_id, from_sid, to_sid);

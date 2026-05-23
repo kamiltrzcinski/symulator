@@ -27,9 +27,9 @@ This document describes the server-side class structure and module wiring as of 
 
 | Library | Registered ID | Rules |
 |---------|---------------|-------|
-| `libsrk_common` | — (helper, not standalone) | `check_set_switch_position`, `check_set_signal_aspect`, `check_unlock_derailer`, `check_set_block_section`, `check_request_route`, `check_acknowledge_alarm`; `find_route_path()` BFS |
-| `libsrk_ebilock` | `"ebilock_x4"` | R1–R7; EEA-4 throw timer; route auto-release |
-| `libsrk_ml8` | `"estw_ml8"` | R1–R7 + SHL-12 (R8–R10: BLW/BLP/BLO/BLZ/BLAI/BLA/OPS/SLI/SLK) |
+| `libsrk_common` | — (helper, not standalone) | R1–R10 check/execute helpers; `check/execute_operator_command`; `tick_switch_machines`; `find_route_path()` BFS; `nak_codes.hpp` (0x00–0x09) |
+| `libsrk_ebilock` | `"ebilock_x4"` | R1–R10 via srk_common; EEA-4 throw timer; route auto-release |
+| `libsrk_ml8` | `"estw_ml8"` | R1–R10 via srk_common + ML8-specific commands (R8–R10: BLW/BLP/BLO/BLZ/BLAI/BLA/OPS/SLI/SLK) |
 
 > **Linker note:** `libsrk_ebilock` and `libsrk_ml8` must be linked into `symulator-server` with `$<LINK_LIBRARY:WHOLE_ARCHIVE,...>` (CMake 3.24+) to prevent the linker from dropping their static-init object files.  Without this, `ControlSystemRegistry::register_static()` never runs and the server crashes with "Unknown control_system".  See `server/CMakeLists.txt`.
 

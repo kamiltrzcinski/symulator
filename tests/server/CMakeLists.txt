@@ -5,6 +5,7 @@ add_executable(tests_server
     test_ownership_guard.cpp
     test_dispatch_bus.cpp
     test_dispatch_exchange_manager.cpp
+    test_bilateral_channel.cpp
 )
 target_link_libraries(tests_server PRIVATE server_lib GTest::gtest_main)
 target_compile_features(tests_server PRIVATE cxx_std_20)
