@@ -4,6 +4,12 @@ All notable changes are documented here.
 
 ## [0.5.3]
 
+### Fixed
+- **DB schema**: added `ON DELETE CASCADE` to all foreign keys referencing `session.sessions(id)` in
+  `docker/init.sql` (`events`, `snapshots`, `edr_entries`, `posterunek_assignments`, `chat_log`,
+  `dispatch_telegrams`); integration test `TearDown` no longer hits FK constraint violations when
+  deleting the session row.
+
 ### Added
 - **TrainFleet switch & boundary traversal** (`engine`): trains now move through the topology
   graph correctly.

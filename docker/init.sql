@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS session.sessions (
 -- Append-only event log.  Never updated, never deleted during an active session.
 CREATE TABLE IF NOT EXISTS session.events (
     id           BIGSERIAL PRIMARY KEY,
-    session_id   UUID      NOT NULL REFERENCES session.sessions(id),
+    session_id   UUID      NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     event_type   SMALLINT  NOT NULL,   -- mirrors DOMAIN_EVENT event_type byte (see docs/09)
     event_id     BIGINT    NOT NULL,   -- server monotonic counter
     timestamp_us BIGINT    NOT NULL,   -- microseconds since session epoch
@@ -94,7 +94,7 @@ CREATE INDEX IF NOT EXISTS idx_events_session_object
 -- Periodic engine snapshots for fast reconnect and replay.
 CREATE TABLE IF NOT EXISTS session.snapshots (
     id           BIGSERIAL PRIMARY KEY,
-    session_id   UUID      NOT NULL REFERENCES session.sessions(id),
+    session_id   UUID      NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     seq_cursor   BIGINT    NOT NULL,   -- event_id of last event included
     timestamp_us BIGINT    NOT NULL,
     payload      BYTEA     NOT NULL    -- FlatBuffers Snapshot table (see proto/snapshot.fbs)
@@ -106,7 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_snapshots_session_cursor
 -- Live EDR: one row per train × station passage within a session.
 CREATE TABLE IF NOT EXISTS session.edr_entries (
     id                   BIGSERIAL   PRIMARY KEY,
-    session_id           UUID        NOT NULL REFERENCES session.sessions(id),
+    session_id           UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     train_number         TEXT        NOT NULL,
     station_sid          TEXT        NOT NULL,
     posterunek_id        TEXT,
@@ -131,7 +131,7 @@ CREATE INDEX IF NOT EXISTS idx_edr_train
 -- Posterunek ownership — who controls which sub-post.
 CREATE TABLE IF NOT EXISTS session.posterunek_assignments (
     id            BIGSERIAL   PRIMARY KEY,
-    session_id    UUID        NOT NULL REFERENCES session.sessions(id),
+    session_id    UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     posterunek_id TEXT        NOT NULL,
     station_sid   TEXT        NOT NULL,
     client_id     TEXT        NOT NULL,
@@ -146,7 +146,7 @@ CREATE INDEX IF NOT EXISTS idx_posterunek_active
 -- Chat log — kept separate from domain events for independent retention and querying.
 CREATE TABLE IF NOT EXISTS session.chat_log (
     id           BIGSERIAL PRIMARY KEY,
-    session_id   UUID      NOT NULL REFERENCES session.sessions(id),
+    session_id   UUID      NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     sender_id    TEXT      NOT NULL,
     target_type  TEXT      NOT NULL,   -- BROADCAST | STATION | PLAYER
     target_id    TEXT,                 -- NULL when BROADCAST
@@ -160,7 +160,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_session
 -- Bilateral channel — dispatch telegrams (S-forms and free-text between neighbouring areas).
 CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
     id              BIGSERIAL   PRIMARY KEY,
-    session_id      UUID        NOT NULL REFERENCES session.sessions(id),
+    session_id      UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     form_type       TEXT        NOT NULL,   -- S2 | S24 | S25 | S26 | S55 | S56 | FREE_TEXT …
     exchange_id     TEXT        NOT NULL,   -- e.g. "exch-0000001"
     train_number    TEXT        NOT NULL,
