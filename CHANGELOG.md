@@ -4,6 +4,9 @@ All notable changes are documented here.
 
 ## [0.5.2] - 2026-05-24
 
+### Added
+- **LICENSE**: proprietary All Rights Reserved — source available for inspection only; no license is granted to use, copy, modify, or distribute without written permission from both copyright holders.
+
 ### Fixed
 - **CI**: `3rdParty/vcpkg` added as a git submodule so `actions/checkout` with `submodules: recursive` can download it; previously `bootstrap-vcpkg.sh` was missing in the runner environment.
 - **Compiler warnings**: migrated all `pqxx::transaction_base::exec_params()` call sites to the non-deprecated `exec(sql, pqxx::params{...})` API (pqxx 8.x); silenced `[[nodiscard]]` setup-call warnings in `test_dispatch_exchange_manager.cpp` with explicit `std::ignore =`.
