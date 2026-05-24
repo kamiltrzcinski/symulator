@@ -94,16 +94,16 @@ void SessionServer::run()
     // Cross-platform signal handling using asio::signal_set
     asio::io_context sig_io;
     asio::signal_set signals(sig_io, SIGINT, SIGTERM);
-    signals.async_wait([&](const std::error_code&, int sig)
-    {
-        std::cout << "\n[server] Signal " << sig << " received, shutting down…\n";
-        sig_io.stop();
-    });
+    signals.async_wait(
+        [&](const std::error_code&, int sig)
+        {
+            std::cout << "\n[server] Signal " << sig << " received, shutting down…\n";
+            sig_io.stop();
+        });
     sig_io.run();
 
     stop();
 }
-
 
 // ── Constructor / destructor ──────────────────────────────────────────────────
 
@@ -157,13 +157,14 @@ void SessionServer::start()
 
     // 4. Construct network layer.
     gateway_ = std::make_unique<TransportGateway>(cmd_queue_, ownership_, snapshot_);
-    dispatch_bus_ = std::make_unique<DispatchBus>(*gateway_);
+    dispatch_bus_ = std::make_unique<DispatchBus>(*gateway_, *db_writer_, session_uuid);
 
     // 4a. Wire BilateralChannel — first time the channel is connected to a
     //     running server instance (previously existed only in unit tests).
     exchange_mgr_ = std::make_unique<DispatchExchangeManager>();
-    bilateral_channel_ =
-        std::make_unique<BilateralChannel>(*exchange_mgr_, *db_writer_, *gateway_, session_uuid);
+    edr_coordinator_ = std::make_unique<EdrCoordinator>(*db_writer_, session_uuid);
+    bilateral_channel_ = std::make_unique<BilateralChannel>(*exchange_mgr_, *db_writer_, *gateway_,
+                                                            *edr_coordinator_, session_uuid);
     gateway_->set_bilateral_handler(
         [this](const std::vector<uint8_t>& payload, const std::string& client_id,
                const std::string& area_id)
@@ -219,6 +220,7 @@ void SessionServer::stop()
 
     // Bilateral channel must be torn down before gateway_ closes its sessions.
     bilateral_channel_.reset();
+    edr_coordinator_.reset();
     exchange_mgr_.reset();
 
     if (gateway_)

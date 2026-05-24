@@ -35,6 +35,16 @@ struct TelegramRow
     std::uint64_t timestamp_us{0};
 };
 
+/// One row in session.events (append-only domain event log).
+struct DomainEventRow
+{
+    uint8_t event_type{0};                  ///< DOMAIN_EVENT event_type byte (docs/09)
+    uint32_t event_id{0};                   ///< server monotonic counter (same value as wire frame)
+    uint64_t timestamp_us{0};               ///< microseconds since session epoch
+    std::optional<std::string> object_gid;  ///< NULL for session-level events
+    std::vector<uint8_t> payload;           ///< raw FlatBuffers body (without the 13-byte prefix)
+};
+
 class IDbWriter
 {
 public:
@@ -45,6 +55,11 @@ public:
     /// The returned UUID is used as the session_id for all subsequent DB writes.
     virtual std::string init_session(const std::string& display_name, int schema_version) = 0;
 
+    /// Append one domain event to session.events.
+    /// Called from the ENGINE thread for every DeviceStateChange that produces a
+    /// DOMAIN_EVENT frame; the event_id and payload must match the wire frame.
+    virtual void write_domain_event(const std::string& session_id, DomainEventRow row) = 0;
+
     /// Persist a dispatch telegram row.
     virtual void write_dispatch_telegram(const std::string& session_id, TelegramRow row) = 0;
 
@@ -54,6 +69,18 @@ public:
                                              const std::string& train_number,
                                              const std::string& station_sid,
                                              std::uint64_t timestamp_us) = 0;
+
+    /// Set actual_departure and status=DEPARTED in session.edr_entries.
+    /// Called when an S25 (departure notification) telegram is accepted.
+    virtual void update_edr_departure(const std::string& session_id,
+                                      const std::string& train_number,
+                                      const std::string& station_sid,
+                                      std::uint64_t timestamp_us) = 0;
+
+    /// Set actual_arrival and status=ARRIVED in session.edr_entries.
+    /// Called when an S26 (arrival confirmation) telegram is accepted.
+    virtual void update_edr_arrival(const std::string& session_id, const std::string& train_number,
+                                    const std::string& station_sid, std::uint64_t timestamp_us) = 0;
 };
 
 /// No-op implementation for unit tests.
@@ -71,12 +98,29 @@ public:
         written_telegrams.push_back(std::move(row));
     }
 
+    void write_domain_event(const std::string& /*session_id*/, DomainEventRow row) override
+    {
+        written_events.push_back(std::move(row));
+    }
+
     void update_edr_track_clear_time(const std::string& /*session_id*/,
                                      const std::string& train_number,
                                      const std::string& station_sid,
                                      std::uint64_t timestamp_us) override
     {
         edr_updates.push_back({train_number, station_sid, timestamp_us});
+    }
+
+    void update_edr_departure(const std::string& /*session_id*/, const std::string& train_number,
+                              const std::string& station_sid, std::uint64_t timestamp_us) override
+    {
+        edr_departures.push_back({train_number, station_sid, timestamp_us});
+    }
+
+    void update_edr_arrival(const std::string& /*session_id*/, const std::string& train_number,
+                            const std::string& station_sid, std::uint64_t timestamp_us) override
+    {
+        edr_arrivals.push_back({train_number, station_sid, timestamp_us});
     }
 
     struct EdrUpdate
@@ -87,7 +131,10 @@ public:
     };
 
     std::vector<TelegramRow> written_telegrams;
+    std::vector<DomainEventRow> written_events;
     std::vector<EdrUpdate> edr_updates;
+    std::vector<EdrUpdate> edr_departures;
+    std::vector<EdrUpdate> edr_arrivals;
 };
 
 }  // namespace server

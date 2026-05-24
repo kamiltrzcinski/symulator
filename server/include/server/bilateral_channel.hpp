@@ -9,11 +9,13 @@
 //   2. Forward the telegram to DispatchExchangeManager.
 //   3. Persist accepted telegrams via IDbWriter.
 //   4. Broadcast the result frame to the (src_area, dst_area) pair.
+//   5. Notify EdrCoordinator for S25/S26 so EDR entries are updated.
 //
 // Must be driven from the IO_THREAD (same thread as TransportGateway callbacks).
 
 #include "server/db_writer.hpp"
 #include "server/dispatch_exchange_manager.hpp"
+#include "server/edr_coordinator.hpp"
 
 #include <cstdint>
 #include <string>
@@ -28,7 +30,7 @@ class BilateralChannel
 {
 public:
     BilateralChannel(DispatchExchangeManager& exchanges, IDbWriter& db_writer,
-                     TransportGateway& gateway, std::string session_id);
+                     TransportGateway& gateway, EdrCoordinator& edr, std::string session_id);
 
     /// Called from ClientSession::handle_frame for msg_type 0x61.
     /// @param payload  Raw FlatBuffers bytes (without the 16-byte wire header).
@@ -41,6 +43,7 @@ private:
     DispatchExchangeManager& exchanges_;
     IDbWriter& db_writer_;
     TransportGateway& gateway_;
+    EdrCoordinator& edr_;
     std::string session_id_;
 };
 

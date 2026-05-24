@@ -8,6 +8,7 @@ add_library(server_lib STATIC
     src/dispatch_bus.cpp
     src/dispatch_exchange_manager.cpp
     src/bilateral_channel.cpp
+    src/edr_coordinator.cpp
 )
 
 target_include_directories(server_lib PUBLIC

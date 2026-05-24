@@ -2,6 +2,27 @@
 
 All notable changes are documented here.
 
+## [0.5.2] - 2026-05-24
+
+### Added
+- **EventLog persistence**: every `DeviceStateChange` emitted by `DispatchBus` is now persisted to `session.events`.
+  - `server/db_writer.hpp`: `DomainEventRow` struct + `write_domain_event()` pure-virtual; `NullDbWriter` captures to `written_events`.
+  - `server/pg_db_writer.cpp`: INSERT INTO `session.events` (session_id, event_type, event_id, timestamp_us, object_gid, payload BYTEA) using `pqxx::bytes_view`.
+  - `server/dispatch_bus.cpp`: extracts 13-byte metadata header from wire frame bytes 16–28 (event_type, event_id, timestamp_us) + resolves `object_gid` via `object_gid_from_change()` C++20 requires-clauses helper covering all 14 `DeviceStateChange` variants.
+  - 2 new integration tests: `WriteDomainEvent_InsertsRow`, `WriteDomainEvent_NullObjectGid`.
+- **EdrCoordinator** (`server/include/server/edr_coordinator.hpp` + `server/src/edr_coordinator.cpp`): new class tracking actual train arrival/departure times in `session.edr_entries`.
+  - S25 accepted → `update_edr_departure()` for the departing station.
+  - S26 accepted → `update_edr_arrival()` for the destination station.
+  - Direction-aware station resolution: SENT → `src_area`, RECEIVED → `dst_area`.
+  - `IDbWriter` extended with `update_edr_departure()` and `update_edr_arrival()`; both use `make_interval(secs => ...)` time-of-day pattern identical to `update_edr_track_clear_time`.
+  - `BilateralChannel` constructor takes `EdrCoordinator&`; `SessionServer` owns and wires it.
+  - `NullDbWriter`: `edr_departures` and `edr_arrivals` capture vectors.
+  - 2 new unit tests: `S25_Sent_SetsEdrDepartureForSrcArea`, `S26_Received_SetsEdrArrivalForDstArea`.
+  - 3 new integration tests: `UpdateEdrDeparture_SetsActualDepartureAndStatus`, `UpdateEdrArrival_SetsActualArrivalAndStatus`, `UpdateEdrDeparture_IdempotentOnAlreadyDeparted` (second call with status=DEPARTED is a no-op).
+- **Docker test environment** (`docker/docker-compose.test.yml`): ephemeral PostgreSQL 16 on port 5433 with `tmpfs` storage; no state persists between runs.
+- **Integration test runner** (`scripts/run_integration_tests.sh`): launches the Docker service, waits for `pg_isready`, runs `ctest -L integration`, tears down; usable locally and in CI.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`): single job on `ubuntu-24.04` — bootstraps vcpkg, caches binary packages by `vcpkg.json` hash, compiles headless build, runs unit tests, applies `docker/init.sql` to a service-container PostgreSQL 16, then runs integration tests; triggers on push/PR to `main`. **332/332 tests pass (9 integration tests verified against live DB)**.
+
 ## [0.5.1] - 2026-05-23
 
 ### Added

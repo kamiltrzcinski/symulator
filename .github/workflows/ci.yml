@@ -1,0 +1,120 @@
+# .github/workflows/ci.yml
+#
+# Main CI pipeline for symulator.
+#
+# Jobs:
+#   build-and-test — compiles the headless server, runs all unit tests, then
+#                    runs the integration test suite against an ephemeral
+#                    PostgreSQL 16 service container.
+#
+# The build uses vcpkg (classic mode, no Qt) with a GitHub Actions cache for
+# binary packages — first run compiles from source, subsequent runs restore
+# pre-built archives and the install step takes only a few seconds.
+#
+# Triggers:
+#   push / pull_request → main
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build & Test (headless, PostgreSQL)
+    runs-on: ubuntu-24.04
+
+    # ── Ephemeral PostgreSQL for integration tests ────────────────────────────
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER:     symulator
+          POSTGRES_PASSWORD: symulator_test_pass
+          POSTGRES_DB:       symulator
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U symulator -d symulator"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+
+    steps:
+      # ── Source ───────────────────────────────────────────────────────────────
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ── System tools ─────────────────────────────────────────────────────────
+      # ubuntu-24.04 runners already have gcc/g++/python3.
+      # We add only what the vcpkg ports and CMake configure step actually need.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build pkg-config \
+            curl zip unzip tar \
+            postgresql-client
+
+      # ── vcpkg bootstrap ───────────────────────────────────────────────────────
+      - name: Bootstrap vcpkg
+        run: bash 3rdParty/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
+      # ── vcpkg binary-package cache ─────────────────────────────────────────
+      # Key includes OS and vcpkg.json hash (which embeds the builtin-baseline).
+      # Cache hit: vcpkg install extracts pre-built zips in seconds.
+      # Cache miss: vcpkg compiles from source and populates the cache.
+      - name: Cache vcpkg binary packages
+        uses: actions/cache@v4
+        with:
+          path: 3rdParty/vcpkg-binary-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      # ── Configure (installs vcpkg deps + cmake configure) ─────────────────
+      - name: Configure (headless, without Qt)
+        env:
+          VCPKG_DISABLE_METRICS: "1"
+        run: |
+          python3 scripts/configure_ninja.py \
+            --headless \
+            --without-qt \
+            --configure-only
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      - name: Build
+        run: cmake --build build/ninja-debug-headless --parallel $(nproc)
+
+      # ── Unit tests (no DB required) ────────────────────────────────────────
+      - name: Unit tests
+        run: |
+          ctest --test-dir build/ninja-debug-headless \
+            --output-on-failure \
+            -LE integration
+
+      # ── Apply DB schema ───────────────────────────────────────────────────
+      # The postgres service starts with an empty database; we apply init.sql
+      # to create the session schema and all tables before integration tests.
+      - name: Apply database schema
+        env:
+          PGPASSWORD: symulator_test_pass
+        run: |
+          psql -h localhost -U symulator -d symulator -f docker/init.sql
+
+      # ── Integration tests ─────────────────────────────────────────────────
+      - name: Integration tests
+        env:
+          SYMULATOR_TEST_DB: >-
+            host=localhost port=5432
+            dbname=symulator
+            user=symulator
+            password=symulator_test_pass
+        run: |
+          ctest --test-dir build/ninja-debug-headless \
+            -L integration \
+            --output-on-failure

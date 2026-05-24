@@ -89,10 +89,12 @@ static proto::ExchangeStatus to_proto_status(engine::core::ExchangeStatus s) noe
 // ── BilateralChannel ──────────────────────────────────────────────────────────
 
 BilateralChannel::BilateralChannel(DispatchExchangeManager& exchanges, IDbWriter& db_writer,
-                                   TransportGateway& gateway, std::string session_id)
+                                   TransportGateway& gateway, EdrCoordinator& edr,
+                                   std::string session_id)
     : exchanges_{exchanges},
       db_writer_{db_writer},
       gateway_{gateway},
+      edr_{edr},
       session_id_{std::move(session_id)}
 {
 }
@@ -216,6 +218,11 @@ void BilateralChannel::on_inbound(const std::vector<std::uint8_t>& payload,
     {
         db_writer_.update_edr_track_clear_time(session_id_, train_number, dst_area, ts);
     }
+
+    // S25 (departure) / S26 (arrival) — update EDR via EdrCoordinator.
+    // SENT: the operator at src_area sent the form → src_area is the affected station.
+    // RECEIVED: the operator at src_area recorded receipt → dst_area is the affected station.
+    edr_.on_telegram_accepted(engine_form, direction, src_area, dst_area, train_number, ts);
 
     // 5. Build outbound frame with server-filled fields
     {

@@ -8,6 +8,7 @@
 #include "server/bilateral_channel.hpp"
 #include "server/db_writer.hpp"
 #include "server/dispatch_exchange_manager.hpp"
+#include "server/edr_coordinator.hpp"
 #include "server/ownership_guard.hpp"
 #include "server/transport_gateway.hpp"
 
@@ -71,7 +72,8 @@ struct BilateralChannelFixture : ::testing::Test
     TransportGateway gateway{cmd_queue, ownership, snapshot};
     DispatchExchangeManager exchanges;
     NullDbWriter db;
-    BilateralChannel channel{exchanges, db, gateway, kSession};
+    EdrCoordinator edr{db, kSession};
+    BilateralChannel channel{exchanges, db, gateway, edr, kSession};
 
     void send(const std::vector<uint8_t>& payload, const char* area = kSrcArea)
     {
@@ -122,7 +124,9 @@ TEST_F(BilateralChannelFixture, HappyPath_S2_S24_S25_S26_WritesAll)
                             proto::TelegramDirection_RECEIVED, kTrain));
 
     EXPECT_EQ(db.written_telegrams.size(), 4u);
-    EXPECT_EQ(db.edr_updates.size(), 1u);
+    EXPECT_EQ(db.edr_updates.size(), 1u);     // S24
+    EXPECT_EQ(db.edr_departures.size(), 1u);  // S25
+    EXPECT_EQ(db.edr_arrivals.size(), 1u);    // S26
 }
 
 TEST_F(BilateralChannelFixture, S55_S56_Accepted_WritesEdrUpdate)
@@ -187,4 +191,39 @@ TEST_F(BilateralChannelFixture, AllTelegramsSameExchange_SameExchangeId)
     ASSERT_GE(db.written_telegrams.size(), 2u);
     EXPECT_EQ(db.written_telegrams[0].exchange_id, db.written_telegrams[1].exchange_id);
     EXPECT_FALSE(db.written_telegrams[0].exchange_id.empty());
+}
+
+TEST_F(BilateralChannelFixture, S25_Sent_SetsEdrDepartureForSrcArea)
+{
+    // Full exchange up to S25.
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S2,
+                            proto::TelegramDirection_SENT, kTrain));
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S24,
+                            proto::TelegramDirection_RECEIVED, kTrain));
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S25,
+                            proto::TelegramDirection_SENT, kTrain));
+
+    // S25 SENT from kSrcArea → departure recorded for kSrcArea.
+    ASSERT_EQ(db.edr_departures.size(), 1u);
+    EXPECT_EQ(db.edr_departures[0].train_number, kTrain);
+    EXPECT_EQ(db.edr_departures[0].station_sid, kSrcArea);
+    EXPECT_TRUE(db.edr_arrivals.empty());
+}
+
+TEST_F(BilateralChannelFixture, S26_Received_SetsEdrArrivalForDstArea)
+{
+    // Full exchange up to S26 (all from kSrcArea's perspective).
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S2,
+                            proto::TelegramDirection_SENT, kTrain));
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S24,
+                            proto::TelegramDirection_RECEIVED, kTrain));
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S25,
+                            proto::TelegramDirection_SENT, kTrain));
+    send(make_dispatch_form(kSrcArea, kDstArea, proto::DispatchFormType_S26,
+                            proto::TelegramDirection_RECEIVED, kTrain));
+
+    // S26 RECEIVED by kSrcArea (from kDstArea) → arrival recorded for kDstArea.
+    ASSERT_EQ(db.edr_arrivals.size(), 1u);
+    EXPECT_EQ(db.edr_arrivals[0].train_number, kTrain);
+    EXPECT_EQ(db.edr_arrivals[0].station_sid, kDstArea);
 }

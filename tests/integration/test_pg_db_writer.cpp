@@ -176,4 +176,157 @@ TEST_F(PgDbWriterFixture, UpdateEdrTrackClearTime_UpdatesRow)
     EXPECT_TRUE(r[0][0].as<bool>()) << "track_clear_time should have been set";
 }
 
+TEST_F(PgDbWriterFixture, WriteDomainEvent_InsertsRow)
+{
+    // Simulate a serialized FlatBuffers body (minimal non-empty bytes).
+    const std::vector<uint8_t> fake_payload{0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00};
+
+    server::DomainEventRow row;
+    row.event_type = 0x01;  // SwitchPositionChanged
+    row.event_id = 42;
+    row.timestamp_us = 1'716'559'500'000'000ULL;
+    row.object_gid = "ZWR-TRJ-GOr-zwr1";
+    row.payload = fake_payload;
+
+    writer_->write_domain_event(session_uuid_, row);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec_params(
+        "SELECT event_type, event_id, object_gid, octet_length(payload) "
+        "FROM session.events "
+        "WHERE session_id = $1::uuid",
+        session_uuid_);
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<int>(), 0x01);
+    EXPECT_EQ(r[0][1].as<int64_t>(), 42);
+    EXPECT_EQ(r[0][2].as<std::string>(), "ZWR-TRJ-GOr-zwr1");
+    EXPECT_EQ(r[0][3].as<int>(), static_cast<int>(fake_payload.size()));
+}
+
+TEST_F(PgDbWriterFixture, WriteDomainEvent_NullObjectGid)
+{
+    server::DomainEventRow row;
+    row.event_type = 0x07;  // RouteSet (session-level, no single object GID)
+    row.event_id = 99;
+    row.timestamp_us = 1'716'559'501'000'000ULL;
+    // object_gid left as std::nullopt
+    row.payload = {0x04, 0x00, 0x00, 0x00};
+
+    writer_->write_domain_event(session_uuid_, row);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec_params(
+        "SELECT object_gid IS NULL FROM session.events "
+        "WHERE session_id = $1::uuid AND event_id = $2",
+        session_uuid_, static_cast<int64_t>(99));
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_TRUE(r[0][0].as<bool>()) << "object_gid should be NULL when not set";
+}
+
+// ── EDR departure / arrival ───────────────────────────────────────────────────
+
+TEST_F(PgDbWriterFixture, UpdateEdrDeparture_SetsActualDepartureAndStatus)
+{
+    // Insert a PENDING EDR entry directly so the UPDATE has a target row.
+    {
+        pqxx::connection c{conn_str_};
+        pqxx::work tx{c};
+        tx.exec_params(
+            "INSERT INTO session.edr_entries "
+            "  (session_id, train_number, station_sid, scheduled_departure, status) "
+            "VALUES ($1::uuid, $2, $3, make_interval(secs => 3600), 'PENDING')",
+            session_uuid_, "IC 1001", "ZWR");
+        tx.commit();
+    }
+
+    // ~01:00:30 — 3630 seconds into the day.
+    constexpr uint64_t ts = 3630ULL * 1'000'000ULL;
+    writer_->update_edr_departure(session_uuid_, "IC 1001", "ZWR", ts);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec_params(
+        "SELECT status, "
+        "       EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
+        "FROM session.edr_entries "
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
+        session_uuid_, "IC 1001", "ZWR");
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0]["status"].as<std::string>(), "DEPARTED");
+    EXPECT_EQ(r[0]["secs"].as<int64_t>(), 3630LL);
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrArrival_SetsActualArrivalAndStatus)
+{
+    {
+        pqxx::connection c{conn_str_};
+        pqxx::work tx{c};
+        tx.exec_params(
+            "INSERT INTO session.edr_entries "
+            "  (session_id, train_number, station_sid, scheduled_departure, status) "
+            "VALUES ($1::uuid, $2, $3, make_interval(secs => 7200), 'PENDING')",
+            session_uuid_, "TLK 2002", "SOP");
+        tx.commit();
+    }
+
+    // ~02:00:15 — 7215 seconds into the day.
+    constexpr uint64_t ts = 7215ULL * 1'000'000ULL;
+    writer_->update_edr_arrival(session_uuid_, "TLK 2002", "SOP", ts);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec_params(
+        "SELECT status, "
+        "       EXTRACT(EPOCH FROM actual_arrival)::bigint AS secs "
+        "FROM session.edr_entries "
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
+        session_uuid_, "TLK 2002", "SOP");
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0]["status"].as<std::string>(), "ARRIVED");
+    EXPECT_EQ(r[0]["secs"].as<int64_t>(), 7215LL);
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
+{
+    // Pre-insert row already in DEPARTED state.
+    {
+        pqxx::connection c{conn_str_};
+        pqxx::work tx{c};
+        tx.exec_params(
+            "INSERT INTO session.edr_entries "
+            "  (session_id, train_number, station_sid, scheduled_departure, "
+            "   actual_departure, status) "
+            "VALUES ($1::uuid, $2, $3, make_interval(secs => 1000), "
+            "        make_interval(secs => 1010), 'DEPARTED')",
+            session_uuid_, "EX 3003", "GDY");
+        tx.commit();
+    }
+
+    constexpr uint64_t ts2 = 9999ULL * 1'000'000ULL;
+    writer_->update_edr_departure(session_uuid_, "EX 3003", "GDY", ts2);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec_params(
+        "SELECT EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
+        "FROM session.edr_entries "
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
+        session_uuid_, "EX 3003", "GDY");
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    // Second call must NOT overwrite the original 1010-second value.
+    EXPECT_EQ(r[0]["secs"].as<int64_t>(), 1010LL);
+}
+
 }  // namespace

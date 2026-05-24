@@ -1,6 +1,7 @@
 // server/include/server/dispatch_bus.hpp
 // Consumes DeviceStateChange events from the ENGINE thread and broadcasts them
 // as DOMAIN_EVENT (0x20) wire frames to all ACTIVE clients via TransportGateway.
+// Simultaneously persists each emitted event to session.events via IDbWriter.
 //
 // DOMAIN_EVENT payload layout:
 //   Offset  Size  Field
@@ -15,12 +16,14 @@
 
 #include "engine/core/control_system.hpp"
 #include "engine/core/engine_loop.hpp"
+#include "server/db_writer.hpp"
 #include "server/transport_gateway.hpp"
 
 #include <atomic>
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace server
@@ -29,7 +32,10 @@ namespace server
 class DispatchBus
 {
 public:
-    explicit DispatchBus(TransportGateway& gateway);
+    /// Construct with DB persistence.
+    /// db_writer and session_id are used to append every emitted domain event to
+    /// session.events.  Pass NullDbWriter in unit tests.
+    DispatchBus(TransportGateway& gateway, IDbWriter& db_writer, std::string session_id);
 
     // Returns the StateChangesCallback to pass to EngineLoop.
     // The returned functor is safe to store and invoke from the ENGINE thread.
@@ -49,7 +55,13 @@ public:
 private:
     void on_state_changes(const std::vector<engine::core::DeviceStateChange>& changes);
 
+    /// Extract the primary object GID from a DeviceStateChange for DB logging.
+    static std::optional<std::string> object_gid_from_change(
+        const engine::core::DeviceStateChange& change);
+
     TransportGateway& gateway_;
+    IDbWriter& db_writer_;
+    std::string session_id_;
     std::atomic<uint32_t> next_event_id_{1};
     std::atomic<uint32_t> tx_seq_{0};
 };

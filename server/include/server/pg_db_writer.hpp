@@ -31,6 +31,9 @@ public:
     /// Stores the UUID internally; subsequent write methods use it.
     std::string init_session(const std::string& display_name, int schema_version) override;
 
+    /// INSERT INTO session.events.
+    void write_domain_event(const std::string& session_id, DomainEventRow row) override;
+
     /// INSERT INTO session.dispatch_telegrams.
     void write_dispatch_telegram(const std::string& session_id, TelegramRow row) override;
 
@@ -38,6 +41,14 @@ public:
     void update_edr_track_clear_time(const std::string& session_id, const std::string& train_number,
                                      const std::string& station_sid,
                                      std::uint64_t timestamp_us) override;
+
+    /// UPDATE session.edr_entries SET actual_departure, status='DEPARTED'.
+    void update_edr_departure(const std::string& session_id, const std::string& train_number,
+                              const std::string& station_sid, std::uint64_t timestamp_us) override;
+
+    /// UPDATE session.edr_entries SET actual_arrival, status='ARRIVED'.
+    void update_edr_arrival(const std::string& session_id, const std::string& train_number,
+                            const std::string& station_sid, std::uint64_t timestamp_us) override;
 
 private:
     pqxx::connection conn_;

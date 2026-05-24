@@ -6,6 +6,7 @@
 
 #include "engine/core/control_system.hpp"
 #include "engine/core/track_model.hpp"
+#include "server/db_writer.hpp"
 #include "server/dispatch_bus.hpp"
 #include "server/frame.hpp"
 
@@ -33,7 +34,8 @@ struct BusTestFixture
     server::OwnershipGuard ownership;
     engine::core::AtomicSnapshot snapshot;
     server::TransportGateway gateway{cmd_queue, ownership, snapshot};
-    server::DispatchBus bus{gateway};
+    server::NullDbWriter null_db;
+    server::DispatchBus bus{gateway, null_db, "00000000-0000-0000-0000-000000000001"};
 };
 
 // Decode a DOMAIN_EVENT frame back and check prefix.

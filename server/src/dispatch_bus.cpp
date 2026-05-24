@@ -2,6 +2,7 @@
 
 #include "server/dispatch_bus.hpp"
 
+#include "engine/core/track_model.hpp"
 #include "events_generated.h"
 #include "server/frame.hpp"
 
@@ -101,7 +102,10 @@ static proto::RouteReleaseReason to_proto_release_reason(const std::string& reas
 
 // ── DispatchBus ───────────────────────────────────────────────────────────────
 
-DispatchBus::DispatchBus(TransportGateway& gateway) : gateway_(gateway) {}
+DispatchBus::DispatchBus(TransportGateway& gateway, IDbWriter& db_writer, std::string session_id)
+    : gateway_(gateway), db_writer_(db_writer), session_id_(std::move(session_id))
+{
+}
 
 engine::core::EngineLoop::StateChangesCallback DispatchBus::make_engine_callback()
 {
@@ -207,8 +211,7 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                 auto off = proto::CreateOperatorCommandStateChanged(
                     fbb, gid_off,
                     static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
-                    static_cast<proto::OperatorCommandCode>(static_cast<int>(ev.code)),
-                    ev.active);
+                    static_cast<proto::OperatorCommandCode>(static_cast<int>(ev.code)), ev.active);
                 fbb.Finish(off);
             }
             // ── ML8 command state ────────────────────────────────────────────────
@@ -219,8 +222,7 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                 auto off = proto::CreateMl8CommandStateChanged(
                     fbb, gid_off,
                     static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
-                    static_cast<proto::Ml8CommandCode>(static_cast<int>(ev.code)),
-                    ev.active);
+                    static_cast<proto::Ml8CommandCode>(static_cast<int>(ev.code)), ev.active);
                 fbb.Finish(off);
             }
             // ── Route set ───────────────────────────────────────────────────
@@ -317,9 +319,66 @@ void DispatchBus::on_state_changes(const std::vector<engine::core::DeviceStateCh
     for (const auto& change : changes)
     {
         auto frame = make_event_frame(change, ts);
-        if (frame)
-            gateway_.broadcast(std::move(*frame));
+        if (!frame)
+            continue;
+
+        gateway_.broadcast(*frame);
+
+        // ── Persist to session.events ─────────────────────────────────────────
+        // The wire frame layout (from frame.hpp):
+        //   [0..15]  transport header (16 bytes)
+        //   [16]     event_type
+        //   [17..20] event_id  (uint32 LE)
+        //   [21..28] timestamp_us (uint64 LE)
+        //   [29..]   FlatBuffers body
+        if (frame->size() > 29)
+        {
+            DomainEventRow rec;
+            rec.event_type = (*frame)[16];
+            rec.event_id = static_cast<uint32_t>((*frame)[17]) |
+                           (static_cast<uint32_t>((*frame)[18]) << 8) |
+                           (static_cast<uint32_t>((*frame)[19]) << 16) |
+                           (static_cast<uint32_t>((*frame)[20]) << 24);
+            for (int i = 0; i < 8; ++i)
+                rec.timestamp_us |= static_cast<uint64_t>((*frame)[21 + i]) << (8 * i);
+            rec.object_gid = object_gid_from_change(change);
+            rec.payload.assign(frame->begin() + 29, frame->end());
+            db_writer_.write_domain_event(session_id_, std::move(rec));
+        }
     }
+}
+
+// ── object_gid_from_change ────────────────────────────────────────────────────
+
+// static
+std::optional<std::string> DispatchBus::object_gid_from_change(
+    const engine::core::DeviceStateChange& change)
+{
+    using namespace engine::core;
+    return std::visit(
+        [](const auto& ev) -> std::optional<std::string>
+        {
+            using T = std::decay_t<decltype(ev)>;
+            // Most variants carry a .gid field (the affected device's GID).
+            if constexpr (requires { ev.gid; })
+                return ev.gid.value;
+            // SwitchLocked / SwitchUnlocked carry .switch_gid instead.
+            else if constexpr (requires { ev.switch_gid; })
+                return ev.switch_gid.value;
+            // Route events: use the route_id as the object identifier.
+            else if constexpr (std::is_same_v<T, RouteAdded>)
+                return ev.route.route_id.value;
+            else if constexpr (std::is_same_v<T, RouteRemoved>)
+                return ev.route_id.value;
+            // Alarm events.
+            else if constexpr (std::is_same_v<T, AlarmRaised>)
+                return ev.alarm.object_gid.value;
+            else if constexpr (std::is_same_v<T, AlarmCleared>)
+                return ev.alarm_id.value;
+            else
+                return std::nullopt;
+        },
+        change);
 }
 
 }  // namespace server
