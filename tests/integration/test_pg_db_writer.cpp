@@ -52,7 +52,8 @@ protected:
             pqxx::connection c{conn_str_};
             pqxx::work tx{c};
             // CASCADE handles dispatch_telegrams and edr_entries rows.
-            tx.exec_params("DELETE FROM session.sessions WHERE id = $1::uuid", session_uuid_);
+            tx.exec("DELETE FROM session.sessions WHERE id = $1::uuid",
+                    pqxx::params{session_uuid_});
             tx.commit();
         }
         catch (...)
@@ -73,8 +74,8 @@ TEST_F(PgDbWriterFixture, InitSession_CreatesSessionsRow)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
-        "SELECT display_name, status FROM session.sessions WHERE id = $1::uuid", session_uuid_);
+    const auto r = tx.exec("SELECT display_name, status FROM session.sessions WHERE id = $1::uuid",
+                           pqxx::params{session_uuid_});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -100,11 +101,11 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_InsertsRow)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT form_type, exchange_id, train_number, from_sid, to_sid, direction, status "
         "FROM session.dispatch_telegrams "
         "WHERE session_id = $1::uuid",
-        session_uuid_);
+        pqxx::params{session_uuid_});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -135,10 +136,10 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_NullableTrackNumber)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT track_number IS NULL FROM session.dispatch_telegrams "
         "WHERE session_id = $1::uuid",
-        session_uuid_);
+        pqxx::params{session_uuid_});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -151,11 +152,11 @@ TEST_F(PgDbWriterFixture, UpdateEdrTrackClearTime_UpdatesRow)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
-        tx.exec_params(
+        tx.exec(
             "INSERT INTO session.edr_entries "
             "  (session_id, train_number, station_sid, scheduled_departure, stop_type, status) "
             "VALUES ($1::uuid, $2, $3, '01:00:00'::interval, 'COMMERCIAL', 'PENDING')",
-            session_uuid_, "IC 12345", "SOP");
+            pqxx::params{session_uuid_, "IC 12345", "SOP"});
         tx.commit();
     }
 
@@ -166,10 +167,10 @@ TEST_F(PgDbWriterFixture, UpdateEdrTrackClearTime_UpdatesRow)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT track_clear_time IS NOT NULL FROM session.edr_entries "
         "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        session_uuid_, "IC 12345", "SOP");
+        pqxx::params{session_uuid_, "IC 12345", "SOP"});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -192,11 +193,11 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_InsertsRow)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT event_type, event_id, object_gid, octet_length(payload) "
         "FROM session.events "
         "WHERE session_id = $1::uuid",
-        session_uuid_);
+        pqxx::params{session_uuid_});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -219,10 +220,10 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_NullObjectGid)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT object_gid IS NULL FROM session.events "
         "WHERE session_id = $1::uuid AND event_id = $2",
-        session_uuid_, static_cast<int64_t>(99));
+        pqxx::params{session_uuid_, static_cast<int64_t>(99)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -237,11 +238,11 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_SetsActualDepartureAndStatus)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
-        tx.exec_params(
+        tx.exec(
             "INSERT INTO session.edr_entries "
             "  (session_id, train_number, station_sid, scheduled_departure, status) "
             "VALUES ($1::uuid, $2, $3, make_interval(secs => 3600), 'PENDING')",
-            session_uuid_, "IC 1001", "ZWR");
+            pqxx::params{session_uuid_, "IC 1001", "ZWR"});
         tx.commit();
     }
 
@@ -251,12 +252,12 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_SetsActualDepartureAndStatus)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT status, "
         "       EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
         "FROM session.edr_entries "
         "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        session_uuid_, "IC 1001", "ZWR");
+        pqxx::params{session_uuid_, "IC 1001", "ZWR"});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -269,11 +270,11 @@ TEST_F(PgDbWriterFixture, UpdateEdrArrival_SetsActualArrivalAndStatus)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
-        tx.exec_params(
+        tx.exec(
             "INSERT INTO session.edr_entries "
             "  (session_id, train_number, station_sid, scheduled_departure, status) "
             "VALUES ($1::uuid, $2, $3, make_interval(secs => 7200), 'PENDING')",
-            session_uuid_, "TLK 2002", "SOP");
+            pqxx::params{session_uuid_, "TLK 2002", "SOP"});
         tx.commit();
     }
 
@@ -283,12 +284,12 @@ TEST_F(PgDbWriterFixture, UpdateEdrArrival_SetsActualArrivalAndStatus)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT status, "
         "       EXTRACT(EPOCH FROM actual_arrival)::bigint AS secs "
         "FROM session.edr_entries "
         "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        session_uuid_, "TLK 2002", "SOP");
+        pqxx::params{session_uuid_, "TLK 2002", "SOP"});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -302,13 +303,13 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
-        tx.exec_params(
+        tx.exec(
             "INSERT INTO session.edr_entries "
             "  (session_id, train_number, station_sid, scheduled_departure, "
             "   actual_departure, status) "
             "VALUES ($1::uuid, $2, $3, make_interval(secs => 1000), "
             "        make_interval(secs => 1010), 'DEPARTED')",
-            session_uuid_, "EX 3003", "GDY");
+            pqxx::params{session_uuid_, "EX 3003", "GDY"});
         tx.commit();
     }
 
@@ -317,11 +318,11 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "SELECT EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
         "FROM session.edr_entries "
         "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        session_uuid_, "EX 3003", "GDY");
+        pqxx::params{session_uuid_, "EX 3003", "GDY"});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);

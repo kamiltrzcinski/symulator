@@ -19,10 +19,10 @@ std::string PgDbWriter::init_session(const std::string& display_name, int schema
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    const auto r = tx.exec_params(
+    const auto r = tx.exec(
         "INSERT INTO session.sessions (display_name, schema_version, status, started_at) "
         "VALUES ($1, $2, 'STARTED', now()) RETURNING id::text",
-        display_name, schema_version);
+        pqxx::params{display_name, schema_version});
     tx.commit();
 
     if (r.empty() || r[0][0].is_null())
@@ -42,14 +42,14 @@ void PgDbWriter::write_domain_event(const std::string& /*session_id*/, DomainEve
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    tx.exec_params(
+    tx.exec(
         "INSERT INTO session.events "
         "  (session_id, event_type, event_id, timestamp_us, object_gid, payload) "
         "VALUES ($1::uuid, $2, $3, $4, $5, $6)",
-        session_uuid_, static_cast<int>(row.event_type), static_cast<int64_t>(row.event_id),
-        static_cast<int64_t>(row.timestamp_us),
-        row.object_gid,  // std::optional<std::string>: NULL when empty
-        payload_bv);
+        pqxx::params{session_uuid_, static_cast<int>(row.event_type),
+                     static_cast<int64_t>(row.event_id), static_cast<int64_t>(row.timestamp_us),
+                     row.object_gid,  // std::optional<std::string>: NULL when empty
+                     payload_bv});
     tx.commit();
 }
 
@@ -77,15 +77,15 @@ void PgDbWriter::write_dispatch_telegram(const std::string& /*session_id*/, Tele
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    tx.exec_params(
+    tx.exec(
         "INSERT INTO session.dispatch_telegrams "
         "  (session_id, form_type, exchange_id, train_number, from_sid, to_sid, "
         "   direction, status, track_number, km_markers, body, timestamp_us) "
         "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10::text[], $11, $12)",
-        session_uuid_, row.form_type, row.exchange_id, row.train_number, row.from_sid, row.to_sid,
-        row.direction, row.status,
-        row.track_number,  // std::optional<std::string>: NULL when empty
-        km_array, row.body, static_cast<int64_t>(row.timestamp_us));
+        pqxx::params{session_uuid_, row.form_type, row.exchange_id, row.train_number, row.from_sid,
+                     row.to_sid, row.direction, row.status,
+                     row.track_number,  // std::optional<std::string>: NULL when empty
+                     km_array, row.body, static_cast<int64_t>(row.timestamp_us)});
     tx.commit();
 }
 
@@ -104,7 +104,7 @@ void PgDbWriter::update_edr_track_clear_time(const std::string& /*session_id*/,
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    tx.exec_params(
+    tx.exec(
         "UPDATE session.edr_entries "
         "SET track_clear_time = make_interval(secs => "
         "    ($4::bigint % $5::bigint)::double precision / 1000000.0), "
@@ -112,7 +112,8 @@ void PgDbWriter::update_edr_track_clear_time(const std::string& /*session_id*/,
         "WHERE session_id = $1::uuid "
         "  AND train_number = $2 "
         "  AND station_sid  = $3",
-        session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us), kUsPerDay);
+        pqxx::params{session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us),
+                     kUsPerDay});
     tx.commit();
 }
 
@@ -127,7 +128,7 @@ void PgDbWriter::update_edr_departure(const std::string& /*session_id*/,
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    tx.exec_params(
+    tx.exec(
         "UPDATE session.edr_entries "
         "SET actual_departure = make_interval(secs => "
         "    ($4::bigint % $5::bigint)::double precision / 1000000.0), "
@@ -137,7 +138,8 @@ void PgDbWriter::update_edr_departure(const std::string& /*session_id*/,
         "  AND train_number = $2 "
         "  AND station_sid  = $3 "
         "  AND status != 'DEPARTED'",
-        session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us), kUsPerDay);
+        pqxx::params{session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us),
+                     kUsPerDay});
     tx.commit();
 }
 
@@ -152,7 +154,7 @@ void PgDbWriter::update_edr_arrival(const std::string& /*session_id*/,
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
-    tx.exec_params(
+    tx.exec(
         "UPDATE session.edr_entries "
         "SET actual_arrival = make_interval(secs => "
         "    ($4::bigint % $5::bigint)::double precision / 1000000.0), "
@@ -162,7 +164,8 @@ void PgDbWriter::update_edr_arrival(const std::string& /*session_id*/,
         "  AND train_number = $2 "
         "  AND station_sid  = $3 "
         "  AND status NOT IN ('ARRIVED', 'DEPARTED')",
-        session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us), kUsPerDay);
+        pqxx::params{session_uuid_, train_number, station_sid, static_cast<int64_t>(timestamp_us),
+                     kUsPerDay});
     tx.commit();
 }
 

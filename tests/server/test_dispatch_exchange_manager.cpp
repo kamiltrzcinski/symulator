@@ -7,6 +7,7 @@
 #include "server/dispatch_exchange_manager.hpp"
 
 #include <gtest/gtest.h>
+#include <tuple>
 
 using namespace server;
 using engine::core::DispatchFormType;
@@ -18,7 +19,7 @@ using engine::core::TelegramStatus;
 
 static constexpr const char* kSrcArea = "GGO_nastawnia_A";
 static constexpr const char* kDstArea = "GOP_nastawnia_B";
-static constexpr const char* kTrain   = "TLK-43012";
+static constexpr const char* kTrain = "TLK-43012";
 
 // ── Initial state ─────────────────────────────────────────────────────────────
 
@@ -35,8 +36,8 @@ TEST(DispatchExchangeManager, HappyPath_S2_to_Close)
     DispatchExchangeManager m;
 
     // S2 sent — dispatch request
-    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                                TelegramDirection::SENT, kTrain);
+    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                                kTrain);
     EXPECT_EQ(r1.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r1.new_status, ExchangeStatus::S2_SENT);
     EXPECT_FALSE(r1.exchange_id.empty());
@@ -49,8 +50,8 @@ TEST(DispatchExchangeManager, HappyPath_S2_to_Close)
     EXPECT_EQ(r2.exchange_id, r1.exchange_id);
 
     // S25 sent — departure notification
-    auto r3 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25,
-                                TelegramDirection::SENT, kTrain);
+    auto r3 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25, TelegramDirection::SENT,
+                                kTrain);
     EXPECT_EQ(r3.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r3.new_status, ExchangeStatus::S25_SENT);
 
@@ -71,8 +72,8 @@ TEST(DispatchExchangeManager, DangerousGoodsPath_S55_S56)
 {
     DispatchExchangeManager m;
 
-    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S55,
-                                TelegramDirection::SENT, kTrain);
+    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S55, TelegramDirection::SENT,
+                                kTrain);
     EXPECT_EQ(r1.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r1.new_status, ExchangeStatus::S2_SENT);
 
@@ -88,12 +89,12 @@ TEST(DispatchExchangeManager, CancellationPath_S35)
 {
     DispatchExchangeManager m;
 
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                      TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
     ASSERT_EQ(m.status(kSrcArea, kDstArea), ExchangeStatus::S2_SENT);
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r.new_status, ExchangeStatus::CANCELLED);
 }
@@ -105,15 +106,19 @@ TEST(DispatchExchangeManager, NewExchangeAfterClosed)
     DispatchExchangeManager m;
 
     // Run through to CLOSED
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,   TelegramDirection::SENT,     kTrain);
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S24,  TelegramDirection::RECEIVED, kTrain);
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25,  TelegramDirection::SENT,     kTrain);
-    auto r26 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S26, TelegramDirection::RECEIVED, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S24,
+                                    TelegramDirection::RECEIVED, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25,
+                                    TelegramDirection::SENT, kTrain);
+    auto r26 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S26,
+                                 TelegramDirection::RECEIVED, kTrain);
     m.close(kSrcArea, kDstArea);
 
     // Start a fresh exchange
-    auto r2 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                                TelegramDirection::SENT, "IC-1234");
+    auto r2 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                                "IC-1234");
     EXPECT_EQ(r2.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r2.new_status, ExchangeStatus::S2_SENT);
     // New exchange gets a new exchange_id
@@ -126,12 +131,14 @@ TEST(DispatchExchangeManager, NewExchangeAfterCancelled)
 {
     DispatchExchangeManager m;
 
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,  TelegramDirection::SENT, kTrain);
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35,
+                                    TelegramDirection::SENT, kTrain);
     ASSERT_EQ(m.status(kSrcArea, kDstArea), ExchangeStatus::CANCELLED);
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                               TelegramDirection::SENT, "IC-1234");
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                               "IC-1234");
     EXPECT_EQ(r.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r.new_status, ExchangeStatus::S2_SENT);
 }
@@ -142,10 +149,11 @@ TEST(DispatchExchangeManager, DuplicateS2IsRejected)
 {
     DispatchExchangeManager m;
 
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::REJECTED_DUPLICATE);
     EXPECT_EQ(r.new_status, ExchangeStatus::S2_SENT);  // unchanged
     EXPECT_EQ(r.telegram_status, TelegramStatus::REJECTED);
@@ -155,8 +163,10 @@ TEST(DispatchExchangeManager, DuplicateS24IsRejected)
 {
     DispatchExchangeManager m;
 
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,  TelegramDirection::SENT,     kTrain);
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S24, TelegramDirection::RECEIVED, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S24,
+                                    TelegramDirection::RECEIVED, kTrain);
 
     auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S24,
                                TelegramDirection::RECEIVED, kTrain);
@@ -180,10 +190,11 @@ TEST(DispatchExchangeManager, S25BeforeS24IsRejected)
 {
     DispatchExchangeManager m;
 
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S25, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::REJECTED_WRONG_STATE);
     EXPECT_EQ(r.new_status, ExchangeStatus::S2_SENT);  // unchanged
 }
@@ -192,8 +203,8 @@ TEST(DispatchExchangeManager, S35FromIdleIsRejected)
 {
     DispatchExchangeManager m;
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::REJECTED_WRONG_STATE);
 }
 
@@ -204,7 +215,8 @@ TEST(DispatchExchangeManager, DirectionsAreIndependent)
     DispatchExchangeManager m;
 
     // A → B: start exchange
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
 
     // B → A: completely separate, still IDLE
     EXPECT_EQ(m.status(kDstArea, kSrcArea), ExchangeStatus::IDLE);
@@ -222,7 +234,8 @@ TEST(DispatchExchangeManager, CloseNoOpWhenIdle)
 TEST(DispatchExchangeManager, CloseNoOpWhenS2Sent)
 {
     DispatchExchangeManager m;
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
     m.close(kSrcArea, kDstArea);
     EXPECT_EQ(m.status(kSrcArea, kDstArea), ExchangeStatus::S2_SENT);
 }
@@ -232,10 +245,11 @@ TEST(DispatchExchangeManager, CloseNoOpWhenS2Sent)
 TEST(DispatchExchangeManager, S51AcceptedWhenExchangeActive)
 {
     DispatchExchangeManager m;
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT, kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
+                                    TelegramDirection::SENT, kTrain);
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S51,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S51, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::ACCEPTED);
     EXPECT_EQ(r.new_status, ExchangeStatus::S2_SENT);  // status unchanged
 }
@@ -244,8 +258,8 @@ TEST(DispatchExchangeManager, S51RejectedWhenIdle)
 {
     DispatchExchangeManager m;
 
-    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S51,
-                               TelegramDirection::SENT, kTrain);
+    auto r = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S51, TelegramDirection::SENT,
+                               kTrain);
     EXPECT_EQ(r.result, TelegramResult::REJECTED_WRONG_STATE);
 }
 
@@ -255,12 +269,13 @@ TEST(DispatchExchangeManager, ExchangeIdsAreUnique)
 {
     DispatchExchangeManager m;
 
-    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                                TelegramDirection::SENT, kTrain);
-    m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35, TelegramDirection::SENT, kTrain);
+    auto r1 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                                kTrain);
+    std::ignore = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S35,
+                                    TelegramDirection::SENT, kTrain);
 
-    auto r2 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2,
-                                TelegramDirection::SENT, kTrain);
+    auto r2 = m.submit_telegram(kSrcArea, kDstArea, DispatchFormType::S2, TelegramDirection::SENT,
+                                kTrain);
 
     EXPECT_NE(r1.exchange_id, r2.exchange_id);
     EXPECT_FALSE(r2.exchange_id.empty());
