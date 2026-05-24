@@ -7,6 +7,7 @@ add_executable(tests_engine
     test_physics.cpp
     test_fleet_registry.cpp
     test_train_sim.cpp
+    test_train_fleet.cpp
     test_state_applier.cpp
     test_topology_loader.cpp
     test_engine_loop.cpp

@@ -29,20 +29,56 @@ void TrainFleet::add_train(sim::TrainSimState initial, GID from_gid)
 
 // ── Static topology helpers ───────────────────────────────────────────────────
 
-std::optional<GID> TrainFleet::resolve_next_section(const IStateView& state, const GID& current_gid,
-                                                    const GID& from_gid)
+NextSectionInfo TrainFleet::resolve_next_section(const IStateView& state, const GID& current_gid,
+                                                 const GID& from_gid)
 {
     const TrackSection* current = state.find_track_section(current_gid);
     if (!current)
-        return std::nullopt;
+        return {};
 
     const GID& next_gid = ahead_port(*current, from_gid).neighbor_gid;
     if (next_gid.value.empty())
-        return std::nullopt;
+        return {};
 
-    // Only advance automatically to a neighbouring track section.
-    // Switch or boundary node traversal is not yet implemented.
-    return state.find_track_section(next_gid) ? std::make_optional(next_gid) : std::nullopt;
+    // ── Direct track section ────────────────────────────────────────────────
+    if (state.find_track_section(next_gid))
+        return {next_gid, current_gid, false};
+
+    // ── Switch traversal ────────────────────────────────────────────────────
+    if (const Switch* sw = state.find_switch(next_gid))
+    {
+        // MOVING: switch is not yet in a stable position — train must wait.
+        if (sw->position == SwitchPosition::MOVING)
+            return {};
+
+        // Determine the exit leg based on which leg connects back to current_gid.
+        GID exit_gid{};
+        if (sw->trunk.neighbor_gid == current_gid)
+        {
+            // Entering from the trunk (pień) — exit through the selected leg.
+            exit_gid = (sw->position == SwitchPosition::STRAIGHT) ? sw->straight.neighbor_gid
+                                                                  : sw->divergent.neighbor_gid;
+        }
+        else
+        {
+            // Entering from either the straight or divergent leg — always exit via trunk.
+            exit_gid = sw->trunk.neighbor_gid;
+        }
+
+        if (exit_gid.value.empty())
+            return {};
+
+        // from_gid for the next section is the switch GID, because the next
+        // TrackSection has side_X.neighbor_gid == switch, not the previous section.
+        return {exit_gid, next_gid, false};
+    }
+
+    // ── Boundary node — train is leaving the LCS area ───────────────────────
+    if (state.find_boundary_node(next_gid))
+        return {std::nullopt, {}, true};
+
+    // Unknown neighbour type — treat as dead-end.
+    return {};
 }
 
 SignalAspect TrainFleet::ahead_signal_aspect(const IStateView& state, const TrackSection& section,
@@ -78,6 +114,8 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
         const float position_m = entry.sim.state().physics_state.position_m;
         const float distance_to_signal_m = std::max(0.0f, section->length_m - position_m);
 
+        const NextSectionInfo info = resolve_next_section(state, current_gid, entry.from_gid);
+
         sim::TrainSimTickInput input;
         input.driver_input.aspect = ahead_signal_aspect(state, *section, entry.from_gid);
         input.driver_input.distance_to_signal_m = distance_to_signal_m;
@@ -85,12 +123,31 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
             std::min(speed_limit_ms, entry.sim.state().physics_params.max_speed_ms);
         input.driver_input.max_brake_kn = entry.sim.state().max_brake_kn;
         input.section_length_m = section->length_m;
-        input.next_section_gid = resolve_next_section(state, current_gid, entry.from_gid);
+        input.next_section_gid = info.section_gid;
 
         // Advance physics.
         const auto output = entry.sim.tick(TICK_DT_S, input);
 
-        // Handle section crossing.
+        // ── Boundary crossing detection ────────────────────────────────────
+        // When the ahead neighbour is a BoundaryNode the dead-end path in
+        // TrainSim pins the train at position_m == section_length_m.  Detect
+        // this once, free the section, emit the boundary PipEvent, and mark
+        // the train for removal at the end of this tick.
+        if (info.is_boundary_crossing && !entry.pending_boundary_removal &&
+            entry.sim.state().physics_state.position_m >= section->length_m - 0.001f)
+        {
+            state.apply_track_section_occupancy(current_gid, TrackOccupancy::FREE, 0);
+            pip_events.push_back(PipEvent{
+                .section_gid = current_gid,
+                .station_sid = section->sid,
+                .occupancy = TrackOccupancy::FREE,
+                .slot = std::nullopt,
+                .lcs_boundary_crossing = true,
+            });
+            entry.pending_boundary_removal = true;
+        }
+
+        // ── Section crossing ───────────────────────────────────────────────
         if (output.crossing.has_value())
         {
             const auto& crossing = *output.crossing;
@@ -133,9 +190,16 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
             }
 
             // Update the train's from_gid for next tick.
-            entry.from_gid = crossing.from_section_gid;
+            // For switch traversal info.from_gid is the switch GID, which is
+            // what the new section's TrackPort::neighbor_gid points back to.
+            entry.from_gid = info.from_gid;
         }
     }
+
+    // Remove trains that have exited through a BoundaryNode this tick.
+    entries_.erase(std::remove_if(entries_.begin(), entries_.end(),
+                                  [](const TrainEntry& e) { return e.pending_boundary_removal; }),
+                   entries_.end());
 
     if (pip_cb && !pip_events.empty())
         pip_cb(pip_events);

@@ -2,6 +2,24 @@
 
 All notable changes are documented here.
 
+## [0.5.3]
+
+### Added
+- **TrainFleet switch & boundary traversal** (`engine`): trains now move through the topology
+  graph correctly.
+  - `resolve_next_section()` extended to handle Switch neighbours: trunk→straight/divergent based on
+    `SwitchPosition`; leg→trunk regardless of position.  A `MOVING` switch pins the train at the
+    section boundary until the throw completes.
+  - `BoundaryNode` neighbours trigger a boundary crossing: the section is freed, a
+    `PipEvent{lcs_boundary_crossing=true}` is emitted, and the train is removed from the fleet in
+    the same tick.
+  - `NextSectionInfo` struct (replaces the previous `optional<GID>` return type) carries the next
+    section GID, the new `from_gid` (switch GID after a switch crossing — required for correct
+    `ahead_port()` resolution on the new section), and the `is_boundary_crossing` flag.
+  - 8 new unit tests in `tests/engine/test_train_fleet.cpp` covering: direct section, trunk→straight,
+    trunk→divergent, MOVING switch, leg→trunk, boundary detection, full tick traversal through a
+    switch, and boundary removal with `PipEvent` emission.
+
 ## [0.5.2] - 2026-05-24
 
 ### Added

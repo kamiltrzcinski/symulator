@@ -29,8 +29,27 @@ namespace engine::core
 struct TrainEntry
 {
     sim::TrainSim sim;
-    GID from_gid;  ///< GID of the section/node the train last came from.
-                   ///< Used to determine which port is "ahead" on the current section.
+    GID from_gid;                           ///< GID of the section/node the train last came from.
+                                            ///< Used to determine which port is "ahead" on the
+                                            ///< current section.  After a switch crossing this is
+                                            ///< the switch GID, not the previous track section.
+    bool pending_boundary_removal = false;  ///< Set when the train has reached a BoundaryNode
+                                            ///< and will be erased at the end of the current tick.
+};
+
+// ── NextSectionInfo ───────────────────────────────────────────────────────────
+// Result of resolve_next_section — describes what lies ahead and what the new
+// from_gid should be if a crossing occurs.
+struct NextSectionInfo
+{
+    std::optional<GID> section_gid;     ///< GID of the next TrackSection, or nullopt when
+                                        ///< the train is blocked (MOVING switch, unknown
+                                        ///< neighbor) or exiting via a BoundaryNode.
+    GID from_gid;                       ///< Value to store in TrainEntry::from_gid after a
+                                        ///< crossing.  For switch traversal this is the switch
+                                        ///< GID so that ahead_port() works on the next section.
+    bool is_boundary_crossing = false;  ///< True when the ahead neighbor is a BoundaryNode;
+                                        ///< the train will be removed after this tick.
 };
 
 // ── TrainFleet ────────────────────────────────────────────────────────────────
@@ -66,13 +85,18 @@ public:
     ///                 May be nullptr (no events emitted).
     void tick_all(EngineState& state, uint64_t tick_num, const PipCallback& pip_cb);
 
-private:
-    /// Determine the next section GID for a train currently on `current_gid`
-    /// that came from `from_gid`.  Returns nullopt for switches, boundary nodes,
-    /// or unknown neighbors (train stops at section end).
-    static std::optional<GID> resolve_next_section(const IStateView& state, const GID& current_gid,
-                                                   const GID& from_gid);
+    /// Determine the next section and traversal metadata for a train on `current_gid`
+    /// that came from `from_gid`.
+    ///
+    /// Handles:
+    ///   - Direct TrackSection neighbour (unchanged behaviour)
+    ///   - Switch traversal: trunk→straight/divergent and leg→trunk based on position
+    ///   - BoundaryNode: marks is_boundary_crossing = true so tick_all removes the train
+    ///   - MOVING switch or unknown neighbour: returns section_gid = nullopt (dead-end)
+    static NextSectionInfo resolve_next_section(const IStateView& state, const GID& current_gid,
+                                                const GID& from_gid);
 
+private:
     /// Get the best signal aspect visible from the "ahead" port of `section`.
     /// Falls back to S2_PROCEED when no signals are configured.
     static SignalAspect ahead_signal_aspect(const IStateView& state, const TrackSection& section,
