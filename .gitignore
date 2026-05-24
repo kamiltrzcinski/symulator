@@ -15,6 +15,7 @@ vcpkg_installed/
 # Third-party cache (shared root)
 3rdParty/*
 !3rdParty/README.md
+!3rdParty/vcpkg
 
 # Editor project files
 *.scendb

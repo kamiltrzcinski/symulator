@@ -4,6 +4,11 @@ All notable changes are documented here.
 
 ## [0.5.2] - 2026-05-24
 
+### Fixed
+- **CI**: `3rdParty/vcpkg` added as a git submodule so `actions/checkout` with `submodules: recursive` can download it; previously `bootstrap-vcpkg.sh` was missing in the runner environment.
+
+
+
 ### Added
 - **EventLog persistence**: every `DeviceStateChange` emitted by `DispatchBus` is now persisted to `session.events`.
   - `server/db_writer.hpp`: `DomainEventRow` struct + `write_domain_event()` pure-virtual; `NullDbWriter` captures to `written_events`.
