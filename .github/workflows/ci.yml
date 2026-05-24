@@ -46,7 +46,7 @@ jobs:
     steps:
       # ── Source ───────────────────────────────────────────────────────────────
       - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -70,7 +70,7 @@ jobs:
       # Cache hit: vcpkg install extracts pre-built zips in seconds.
       # Cache miss: vcpkg compiles from source and populates the cache.
       - name: Cache vcpkg binary packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: 3rdParty/vcpkg-binary-cache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}

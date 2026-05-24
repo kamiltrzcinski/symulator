@@ -9,6 +9,8 @@ All notable changes are documented here.
   `docker/init.sql` (`events`, `snapshots`, `edr_entries`, `posterunek_assignments`, `chat_log`,
   `dispatch_telegrams`); integration test `TearDown` no longer hits FK constraint violations when
   deleting the session row.
+- **CI**: bumped `actions/checkout@v4` → `v6` and `actions/cache@v4` → `v5`; both now run on
+  Node.js 24 (v4 actions run on deprecated Node.js 20 which is removed from runners on 2026-09-16).
 
 ### Added
 - **TrainFleet switch & boundary traversal** (`engine`): trains now move through the topology
