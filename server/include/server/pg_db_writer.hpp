@@ -50,6 +50,10 @@ public:
     void update_edr_arrival(const std::string& session_id, const std::string& train_number,
                             const std::string& station_sid, std::uint64_t timestamp_us) override;
 
+    /// UPSERT pip.track_state for one track section.
+    void upsert_pip_track_state(const std::string& session_id, const std::string& section_gid,
+                                const std::string& trains_json) override;
+
 private:
     pqxx::connection conn_;
     std::string session_uuid_;

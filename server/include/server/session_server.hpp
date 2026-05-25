@@ -22,6 +22,7 @@
 #include "server/dispatch_exchange_manager.hpp"
 #include "server/edr_coordinator.hpp"
 #include "server/ownership_guard.hpp"
+#include "server/pip_writer.hpp"
 #include "server/transport_gateway.hpp"
 
 #include "engine/core/control_system.hpp"
@@ -108,6 +109,7 @@ private:
     std::unique_ptr<DispatchBus> dispatch_bus_;
     std::unique_ptr<DispatchExchangeManager> exchange_mgr_;
     std::unique_ptr<EdrCoordinator> edr_coordinator_;
+    std::unique_ptr<PipWriter> pip_writer_;
     std::unique_ptr<BilateralChannel> bilateral_channel_;
 
     // ── ENGINE thread ─────────────────────────────────────────────────────────

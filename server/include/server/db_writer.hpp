@@ -81,6 +81,14 @@ public:
     /// Called when an S26 (arrival confirmation) telegram is accepted.
     virtual void update_edr_arrival(const std::string& session_id, const std::string& train_number,
                                     const std::string& station_sid, std::uint64_t timestamp_us) = 0;
+
+    /// UPSERT pip.track_state for one track section.
+    /// trains_json is a JSON array string, e.g. "[]" or
+    /// "[{\"number\":\"IC123\",\"has_extra_info\":false,\"manually_placed\":false,\"entry_side\":\"LEFT\"}]".
+    /// path_confirmed is NOT touched — it is managed by route-confirmation commands.
+    virtual void upsert_pip_track_state(const std::string& session_id,
+                                        const std::string& section_gid,
+                                        const std::string& trains_json) = 0;
 };
 
 /// No-op implementation for unit tests.
@@ -123,6 +131,18 @@ public:
         edr_arrivals.push_back({train_number, station_sid, timestamp_us});
     }
 
+    void upsert_pip_track_state(const std::string& /*session_id*/, const std::string& section_gid,
+                                const std::string& trains_json) override
+    {
+        pip_upserts.push_back({section_gid, trains_json});
+    }
+
+    struct PipUpsert
+    {
+        std::string section_gid;
+        std::string trains_json;
+    };
+
     struct EdrUpdate
     {
         std::string train_number;
@@ -135,6 +155,7 @@ public:
     std::vector<EdrUpdate> edr_updates;
     std::vector<EdrUpdate> edr_departures;
     std::vector<EdrUpdate> edr_arrivals;
+    std::vector<PipUpsert> pip_upserts;
 };
 
 }  // namespace server

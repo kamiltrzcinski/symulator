@@ -2,6 +2,24 @@
 
 All notable changes are documented here.
 
+## [0.5.4] - 2026-05-25
+
+### Added
+- **PipWriter** (`server/include/server/pip_writer.hpp` + `server/src/pip_writer.cpp`): new class
+  consuming `PipEvent` batches from the ENGINE thread and persisting them to `pip.track_state`.
+  - `IDbWriter::upsert_pip_track_state(session_id, section_gid, trains_json)` added as a pure
+    virtual; executes `INSERT … ON CONFLICT (session_id, section_gid) DO UPDATE SET trains, updated_at`
+    — `path_confirmed` is intentionally not touched (managed by route-confirmation commands).
+  - `NullDbWriter` captures calls in `pip_upserts` (`vector<PipUpsert{section_gid, trains_json}>`).
+  - `PgDbWriter` implements the UPSERT with `$3::jsonb` cast.
+  - `TrainSlot` serialised to JSON array: `[{"number":…,"has_extra_info":…,"manually_placed":…,"entry_side":"LEFT"|"RIGHT"}]`;
+    free section or absent slot → `"[]"`.
+  - `SessionServer` constructs `pip_writer_` (after `edr_coordinator_`, before `bilateral_channel_`
+    in LIFO order); `pip_cb` lambda replaced with `pip_writer_->on_pip_events(events)`.
+  - 4 unit tests in `tests/server/test_pip_writer.cpp`: `FreeSection_UpsertWithEmptyTrains`,
+    `OccupiedSection_UpsertWithTrainSlot`, `LcsBoundaryCrossing_UpsertTargetSection`,
+    `MultipleBatch_UpsertAllSections`. **333/333 tests pass**.
+
 ## [0.5.3]
 
 ### Fixed

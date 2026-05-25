@@ -2,6 +2,7 @@
 
 #include "server/session_server.hpp"
 #include "server/pg_db_writer.hpp"
+#include "server/pip_writer.hpp"
 
 #include "engine/core/control_system_registry.hpp"
 #include "engine/core/topology_loader.hpp"
@@ -163,6 +164,7 @@ void SessionServer::start()
     //     running server instance (previously existed only in unit tests).
     exchange_mgr_ = std::make_unique<DispatchExchangeManager>();
     edr_coordinator_ = std::make_unique<EdrCoordinator>(*db_writer_, session_uuid);
+    pip_writer_ = std::make_unique<PipWriter>(*db_writer_, session_uuid);
     bilateral_channel_ = std::make_unique<BilateralChannel>(*exchange_mgr_, *db_writer_, *gateway_,
                                                             *edr_coordinator_, session_uuid);
     gateway_->set_bilateral_handler(
@@ -181,20 +183,8 @@ void SessionServer::start()
         gateway_->broadcast(make_nak_frame(cmd.meta.seq_id, violation));
     };
 
-    auto pip_cb = [](const std::vector<engine::core::PipEvent>& events)
-    {
-        for (const auto& ev : events)
-        {
-            std::cerr << "[PIP] section=" << ev.section_gid.value
-                      << " station=" << ev.station_sid.value << " occ="
-                      << (ev.occupancy == engine::core::TrackOccupancy::OCCUPIED ? "OCC" : "FREE");
-            if (ev.slot)
-                std::cerr << " train=" << ev.slot->number;
-            if (ev.lcs_boundary_crossing)
-                std::cerr << " [boundary]";
-            std::cerr << "\n";
-        }
-    };
+    auto pip_cb = [this](const std::vector<engine::core::PipEvent>& events)
+    { pip_writer_->on_pip_events(events); };
 
     engine_loop_ = std::make_unique<engine::core::EngineLoop>(
         state_, *control_, cmd_queue_, snapshot_, std::move(nak_cb),
@@ -220,6 +210,7 @@ void SessionServer::stop()
 
     // Bilateral channel must be torn down before gateway_ closes its sessions.
     bilateral_channel_.reset();
+    pip_writer_.reset();
     edr_coordinator_.reset();
     exchange_mgr_.reset();
 

@@ -169,4 +169,23 @@ void PgDbWriter::update_edr_arrival(const std::string& /*session_id*/,
     tx.commit();
 }
 
+// ── upsert_pip_track_state ─────────────────────────────────────────────────────────────────────
+
+void PgDbWriter::upsert_pip_track_state(const std::string& /*session_id*/,
+                                        const std::string& section_gid,
+                                        const std::string& trains_json)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    tx.exec(
+        "INSERT INTO pip.track_state (session_id, section_gid, trains, updated_at) "
+        "VALUES ($1::uuid, $2, $3::jsonb, now()) "
+        "ON CONFLICT (session_id, section_gid) DO UPDATE "
+        "  SET trains = EXCLUDED.trains, "
+        "      updated_at = now()",
+        pqxx::params{session_uuid_, section_gid, trains_json});
+    tx.commit();
+}
+
 }  // namespace server

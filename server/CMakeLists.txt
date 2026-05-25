@@ -9,6 +9,7 @@ add_library(server_lib STATIC
     src/dispatch_exchange_manager.cpp
     src/bilateral_channel.cpp
     src/edr_coordinator.cpp
+    src/pip_writer.cpp
 )
 
 target_include_directories(server_lib PUBLIC
