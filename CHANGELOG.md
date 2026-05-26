@@ -19,6 +19,17 @@ All notable changes are documented here.
   - 4 unit tests in `tests/server/test_pip_writer.cpp`: `FreeSection_UpsertWithEmptyTrains`,
     `OccupiedSection_UpsertWithTrainSlot`, `LcsBoundaryCrossing_UpsertTargetSection`,
     `MultipleBatch_UpsertAllSections`. **333/333 tests pass**.
+- **FleetRegistry tests**: Updated fleet registry fixtures for the family-based vehicle type layout
+  and covered ignored sidecar JSON files.
+
+### Changed
+- **Fleet data**: Reworked `data/vehicles` so each physical vehicle instance lives in its own
+  directory with a canonical `vehicle.json`, aligned with the `data/vehicle_types` hierarchy.
+- **Fleet data**: Grouped vehicle type JSON files by model family/series under `data/vehicle_types`,
+  including shared folders for EMU `WE` variants and electric locomotive `111E` variants.
+- **Fleet loader**: Updated vehicle loading to read only `vehicle.json` files under `data/vehicles`,
+  leaving room for per-vehicle sidecar assets and metadata.
+- **Build**: Scoped compiler warning flags per compiler so MSVC builds use native warning options.
 
 ## [0.5.3]
 

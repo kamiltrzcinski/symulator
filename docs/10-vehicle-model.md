@@ -9,7 +9,7 @@ The fleet data is split into three levels:
 | Level | Directory | Purpose |
 |---|---|---|
 | **Vehicle type** | `data/vehicle_types/` | Physical properties shared by all units of the same model (e.g. every ET22 has the same axle count, mass, speed limit). One JSON file per type. |
-| **Vehicle instance** | `data/vehicles/` | An individual, numbered vehicle. References its type and overrides only what differs (e.g. loaded mass for a freight wagon). One JSON file per unit. |
+| **Vehicle instance** | `data/vehicles/` | An individual, numbered vehicle. References its type and overrides only what differs (e.g. loaded mass for a freight wagon). One directory per unit, with the canonical data stored in `vehicle.json`. |
 | **Train consist** | `data/trains/` | Ordered list of vehicle `gID`s forming a specific trainset. |
 
 Station devices (signals, switches, derailers) are part of the scenario topology and live in `scenarios/`. They are **not** fleet data.
@@ -35,42 +35,77 @@ data/
   vehicle_types/
     locomotive/
       electric/        ← electric mainline and shunting locos
-        et22.json
-        eu07.json
-        ep09.json
+        111e/
+          111eb.json
+          111ed.json
+          111eo.json
+        et/
+          et22.json
+        eu/
+          eu07.json
+        ep/
+          ep09.json
         …
       diesel/          ← diesel mainline and shunting locos
-        sm42.json
-        sp32.json
+        sm/
+          sm42.json
+        sp/
+          sp32.json
         …
       steam/           ← steam locomotives
+        ty/
+          ty2.json
         …
     emu_unit/
       motor/           ← electric multiple unit motor/control cars
-        en57.json
-        ed250.json
+        we/
+          14we.json
+          21we.json
+          36we.json
+        en/
+          en57.json
+        ed/
+          ed250.json
         …
     dmu_unit/
       motor/           ← diesel multiple unit motor cars
-        sa134.json
+        36we/
+          36weh.json
+          36wehd.json
+        sa/
+          sa134.json
         …
     freight_wagon/
       hopper/
-        452w.json
+        452w/
+          452w.json
         …
     service_wagon/     ← track machines, maintenance vehicles
+        wm15/
+          wm15.json
         …
   vehicles/
     locomotive/
-      et22_001.json    ← one file per numbered vehicle instance
-      et22_002.json
-      …
+      electric/
+        et22/
+          et22-001/
+            vehicle.json
+            photos/        <- optional per-vehicle assets
+          et22-002/
+            vehicle.json
+          ...
     freight_wagon/
-      452w_5375001.json
-      …
+      hopper/
+        452w/
+          452w-5375001/
+            vehicle.json
+          ...
     emu_unit/
-      en57_001.json
-      …
+      motor/
+        en57/
+          en57-001/
+            vehicle.json
+          ...
   trains/
     passenger/
       ic_12345.json    ← one file per consist
@@ -89,7 +124,7 @@ scenarios/
       objects.json     ← signals, derailers, posterunki
 ```
 
-The engine scans `data/vehicle_types/`, `data/vehicles/`, and `data/trains/` **recursively**. Subdirectories are named after `vehicleType` (lowercase) with a level for `vehicleSubtype` where applicable. For trains, the folder name must match `trainCategory` (`passenger`, `freight`, `maintenance`).
+The engine scans `data/vehicle_types/` and `data/trains/` **recursively** for JSON files. Vehicle instances are loaded only from files named `data/vehicles/**/vehicle.json`; other JSON files inside a vehicle directory are treated as sidecar metadata and ignored by the fleet loader. Vehicle type subdirectories are named after `vehicleType` (lowercase), `vehicleSubtype` where applicable, and then a family/series folder such as `sa`, `we`, `111e`, `en`, `eu`, `ty`, or `wm15`. For trains, the folder name must match `trainCategory` (`passenger`, `freight`, `maintenance`).
 
 ---
 

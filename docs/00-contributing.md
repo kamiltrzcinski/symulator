@@ -611,8 +611,8 @@ symulator/
   tests/                ← automated tests
   data/
     device_types/       ← device type definitions + device_type_catalog.json (index of all types)
-    vehicle_types/      ← vehicle model/type definitions; subdirs: locomotive/{electric,diesel,steam}, emu_unit/motor, dmu_unit/motor, freight_wagon/hopper, service_wagon
-    vehicles/           ← individual numbered vehicle instances grouped by vehicleType (e.g. locomotive/, emu_unit/, freight_wagon/)
+    vehicle_types/      ← vehicle model/type definitions grouped by category, subtype, and family/series
+    vehicles/           ← individual numbered vehicle instances; each unit has its own directory with vehicle.json and optional assets
     trains/             ← train consist definitions grouped by category (passenger/, freight/, maintenance/)
   scenarios/
     reference/          ← reference station topologies used in integration tests

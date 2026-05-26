@@ -5,6 +5,7 @@ Creates individual JSON files for each vehicle type without index files.
 """
 
 import json
+import re
 from pathlib import Path
 
 # Define base path
@@ -23,6 +24,99 @@ SUBDIR_MAP = {
 
 # Legacy alias: DATA_DIR kept for backward compat in create_template()
 DATA_DIR = VEHICLE_TYPES_ROOT
+
+
+def compact_name(name):
+    """Lowercase family key without separators."""
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def family_dir_name(name, vehicle_type, vehicle_subtype):
+    """Return the vehicle family/series directory for a generated type."""
+    compact = compact_name(name)
+    vt = vehicle_type.upper()
+    vs = vehicle_subtype.upper()
+
+    if vt == "DMU_UNIT":
+        if compact.startswith("36we"):
+            return "36we"
+        for prefix in ("sa", "sn", "vt"):
+            if re.match(rf"^{prefix}\d+", compact):
+                return prefix
+        if compact.startswith("dsb"):
+            return "dsb"
+        return compact
+
+    if vt == "EMU_UNIT":
+        if re.match(r"^\d+we", compact):
+            return "we"
+        for prefix in ("ed", "en", "er", "ew"):
+            if re.match(rf"^{prefix}\d+", compact):
+                return prefix
+        if compact in {"l4268", "lm4268"}:
+            return "4268"
+        return compact
+
+    if vt == "LOCOMOTIVE" and vs == "DIESEL":
+        if re.match(r"^br\d+", compact):
+            return "br"
+        if compact.startswith("class66"):
+            return "class66"
+        if re.match(r"^ls\d+", compact):
+            return "ls"
+        if compact.startswith("m62"):
+            return "m62"
+        if compact.startswith("s200"):
+            return "s200"
+        series_match = re.match(r"^(sm|sp|st|su)\d+", compact)
+        if series_match:
+            return series_match.group(1)
+        family_match = re.match(r"^(15d|16d|6d)", compact)
+        if family_match:
+            return family_match.group(1)
+        return compact
+
+    if vt == "LOCOMOTIVE" and vs == "ELECTRIC":
+        series_match = re.match(r"^(ep|et|eu)\d+", compact)
+        if series_match:
+            return series_match.group(1)
+        numeric_e_match = re.match(r"^(\d+e)[a-z0-9]*$", compact)
+        if numeric_e_match:
+            return numeric_e_match.group(1)
+        for prefix in ("e6act", "e4dcu", "e4msu"):
+            if compact.startswith(prefix):
+                return prefix
+        if re.match(r"^x?4e", compact):
+            return "4e"
+        if compact.startswith("3e"):
+            return "3e"
+        if compact.startswith("br1822"):
+            return "br1822"
+        number_match = re.match(r"^e(\d+)$", compact)
+        if number_match:
+            return number_match.group(1)
+        return compact
+
+    if vt == "LOCOMOTIVE" and vs == "STEAM":
+        series_match = re.match(r"^(oi|ok|ol|pm|pt|tkh|tkt|tp|tr|ty)\d+", compact)
+        if series_match:
+            return series_match.group(1)
+        return compact
+
+    if vt == "SERVICE_WAGON":
+        if compact.startswith("wm15"):
+            return "wm15"
+        if compact.startswith("wm10"):
+            return "wm10"
+        if compact.startswith("wmb10"):
+            return "wmb10"
+        if compact.startswith("ps00"):
+            return "ps00"
+        if re.match(r"^sr\d+", compact):
+            return "sr"
+        return compact
+
+    return compact
 
 # Vehicle type lists
 diesel = [
@@ -92,8 +186,10 @@ def write_vehicle_group(vehicles, vehicle_type, vehicle_subtype, out_dir=None):
     created_files = []
     for vehicle_name in vehicles:
         data = create_template(vehicle_name, vehicle_type, vehicle_subtype)
-        file_name = vehicle_name.replace('/', '_').lower()
-        file_path = out_dir / f"{file_name}.json"
+        file_name = vehicle_name.replace('/', '_').replace(' ', '_').lower()
+        family_dir = out_dir / family_dir_name(vehicle_name, vehicle_type, vehicle_subtype)
+        family_dir.mkdir(parents=True, exist_ok=True)
+        file_path = family_dir / f"{file_name}.json"
 
         try:
             with open(file_path, "w", encoding="utf-8") as f:

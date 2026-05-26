@@ -46,7 +46,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ── Compiler warnings ───────────────────────────────────────────────────────
 # -Wno-unused-parameter: virtual overrides routinely ignore some parameters.
-add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+if(MSVC)
+    add_compile_options(/W4 /permissive-)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+endif()
 
 # ── vcpkg toolchain is passed via -DCMAKE_TOOLCHAIN_FILE ───────────────────
 # cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug

@@ -49,6 +49,28 @@ namespace
     return files;
 }
 
+[[nodiscard]] std::vector<std::filesystem::path> collect_vehicle_files(
+    const std::filesystem::path& root)
+{
+    if (!std::filesystem::exists(root))
+    {
+        throw FleetLoadError("Missing directory: " + root.string());
+    }
+
+    std::vector<std::filesystem::path> files;
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(root))
+    {
+        if (std::filesystem::is_regular_file(entry.path()) &&
+            entry.path().filename() == "vehicle.json")
+        {
+            files.push_back(entry.path());
+        }
+    }
+
+    std::sort(files.begin(), files.end());
+    return files;
+}
+
 [[nodiscard]] json parse_json_file(const std::filesystem::path& path)
 {
     std::ifstream f(path);
@@ -400,7 +422,7 @@ void FleetRegistry::load_types_(const std::filesystem::path& types_dir)
 
 void FleetRegistry::load_vehicles_(const std::filesystem::path& vehicles_dir)
 {
-    const auto files = collect_json_files(vehicles_dir);
+    const auto files = collect_vehicle_files(vehicles_dir);
     for (const auto& path : files)
     {
         const json j = parse_json_file(path);
