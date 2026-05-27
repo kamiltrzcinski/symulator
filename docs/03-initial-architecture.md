@@ -247,7 +247,7 @@ IDispatchAI
   + onDomainEvent(DomainEvent) → void       // observe state changes
   + pollCommands() → std::vector<Command>   // engine calls this each tick
   + assignOperatingPoint(operating_point_id) → void
-  + revokePosterunek(operating_point_id) → void
+  + revokeOperatingPoint(operating_point_id) → void
 ```
 
 `pollCommands` is called by the ENGINE thread at the start of each tick. The implementation must be non-blocking (inference result is prepared asynchronously on a GPU thread and staged in a lock-free buffer; `pollCommands` only reads the buffer).

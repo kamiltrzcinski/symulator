@@ -25,6 +25,9 @@ All notable changes are documented here.
 - **DB schema**: `pip` schema and `pip.track_state` table added to `docker/init.sql`; previously the
   table was written at runtime but absent from the init script, causing a startup failure on fresh
   containers.
+- **Rename `posterunek` → `operating_point`** (continued): two missed occurrences fixed —
+  `single-posterunek` in F-019 (`02-system-requirements.md`) and `revokePosterunek` in the
+  `IDispatchAI` interface sketch (`03-initial-architecture.md`).
 - **PipWriter** (`server/include/server/pip_writer.hpp` + `server/src/pip_writer.cpp`): new class
   consuming `PipEvent` batches from the ENGINE thread and persisting them to `pip.track_state`.
   - `IDbWriter::upsert_pip_track_state(session_id, section_gid, trains_json)` added as a pure
