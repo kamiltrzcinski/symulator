@@ -449,7 +449,8 @@ TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT train_number, station_sid, stop_type, "
-        "       scheduled_departure_secs, track_number "
+        "       EXTRACT(EPOCH FROM scheduled_departure)::bigint AS scheduled_departure_secs, "
+        "       track_number "
         "FROM fleet.timetable_templates "
         "WHERE train_number = $1 AND station_sid = $2",
         pqxx::params{"IC-1234", "SOP"});
@@ -459,7 +460,7 @@ TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
     EXPECT_EQ(r[0][0].as<std::string>(), "IC-1234");
     EXPECT_EQ(r[0][1].as<std::string>(), "SOP");
     EXPECT_EQ(r[0][2].as<std::string>(), "COMMERCIAL");
-    EXPECT_EQ(r[0][3].as<std::string>(), "3660");
+    EXPECT_EQ(r[0][3].as<int64_t>(), 3660LL);
     EXPECT_EQ(r[0][4].as<std::string>(), "T1");
 }
 

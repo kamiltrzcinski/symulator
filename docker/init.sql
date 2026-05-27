@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS fleet.timetable_templates (
     stop_type            TEXT    NOT NULL DEFAULT 'COMMERCIAL'  -- COMMERCIAL | TECHNICAL | PASS_THROUGH
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS uq_timetable_train_station
+    ON fleet.timetable_templates (train_number, station_sid);
+
 CREATE INDEX IF NOT EXISTS idx_timetable_station_dep
     ON fleet.timetable_templates (station_sid, scheduled_departure);
 

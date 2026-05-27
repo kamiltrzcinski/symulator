@@ -278,12 +278,16 @@ void PgDbWriter::upsert_timetable_template(const std::string& train_number,
     tx.exec(
         "INSERT INTO fleet.timetable_templates "
         "  (train_number, station_sid, operating_point_id, "
-        "   scheduled_arrival_secs, scheduled_departure_secs, track_number, stop_type) "
-        "VALUES ($1, $2, $3, $4, $5, $6, $7) "
+        "   scheduled_arrival, scheduled_departure, track_number, stop_type) "
+        "VALUES ($1, $2, $3, "
+        "        CASE WHEN $4::text IS NULL THEN NULL "
+        "             ELSE make_interval(secs => $4::double precision) END, "
+        "        make_interval(secs => $5::double precision), "
+        "        $6, $7) "
         "ON CONFLICT (train_number, station_sid) DO UPDATE "
         "  SET operating_point_id        = EXCLUDED.operating_point_id, "
-        "      scheduled_arrival_secs    = EXCLUDED.scheduled_arrival_secs, "
-        "      scheduled_departure_secs  = EXCLUDED.scheduled_departure_secs, "
+        "      scheduled_arrival         = EXCLUDED.scheduled_arrival, "
+        "      scheduled_departure       = EXCLUDED.scheduled_departure, "
         "      track_number              = EXCLUDED.track_number, "
         "      stop_type                 = EXCLUDED.stop_type",
         pqxx::params{train_number, station_sid, operating_point_id, scheduled_arrival_secs,

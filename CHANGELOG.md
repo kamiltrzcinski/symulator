@@ -91,6 +91,10 @@ All notable changes are documented here.
   leaving room for per-vehicle sidecar assets and metadata.
 - **Build**: Scoped compiler warning flags per compiler so MSVC builds use native warning options.
 
+### Fixed
+- **Timetable template UPSERT compatibility**: `PgDbWriter::upsert_timetable_template(...)` now writes to schema-accurate `scheduled_arrival` / `scheduled_departure` `INTERVAL` columns (via `make_interval(secs => ...)`) instead of non-existent `*_secs` columns.
+- **Schema conflict target for UPSERT**: added unique index `uq_timetable_train_station` on `fleet.timetable_templates(train_number, station_sid)` so `ON CONFLICT (train_number, station_sid)` is valid and integration test `PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow` passes.
+
 ## [0.5.3]
 
 ### Fixed
