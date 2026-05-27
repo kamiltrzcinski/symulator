@@ -330,4 +330,137 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
     EXPECT_EQ(r[0]["secs"].as<int64_t>(), 1010LL);
 }
 
+// ── save_snapshot ─────────────────────────────────────────────────────────────
+
+TEST_F(PgDbWriterFixture, SaveSnapshot_InsertsRow)
+{
+    const std::vector<std::uint8_t> payload{0x01, 0x02, 0x03, 0x04};
+    writer_->save_snapshot(session_uuid_, 42LL, 1'000'000LL, payload);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT seq_cursor, timestamp_us, octet_length(payload) "
+        "FROM session.snapshots "
+        "WHERE session_id = $1::uuid",
+        pqxx::params{session_uuid_});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<int64_t>(), 42LL);
+    EXPECT_EQ(r[0][1].as<int64_t>(), 1'000'000LL);
+    EXPECT_EQ(r[0][2].as<int>(), static_cast<int>(payload.size()));
+}
+
+// ── append_chat_message ───────────────────────────────────────────────────────
+
+TEST_F(PgDbWriterFixture, AppendChatMessage_InsertsRow)
+{
+    writer_->append_chat_message(session_uuid_, "player-1", "BROADCAST", std::nullopt,
+                                 "Hello world", 5'000LL);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT sender_id, target_type, target_id IS NULL, body, timestamp_us "
+        "FROM session.chat_log "
+        "WHERE session_id = $1::uuid",
+        pqxx::params{session_uuid_});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "player-1");
+    EXPECT_EQ(r[0][1].as<std::string>(), "BROADCAST");
+    EXPECT_TRUE(r[0][2].as<bool>()) << "target_id should be NULL for BROADCAST";
+    EXPECT_EQ(r[0][3].as<std::string>(), "Hello world");
+    EXPECT_EQ(r[0][4].as<int64_t>(), 5'000LL);
+}
+
+// ── assign_operating_point / release_operating_point ────────────────────────
+
+TEST_F(PgDbWriterFixture, AssignOperatingPoint_InsertsRow)
+{
+    const int64_t id =
+        writer_->assign_operating_point(session_uuid_, "OP-GDN-1", "GDN", "player-1");
+
+    EXPECT_GT(id, 0);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT operating_point_id, station_sid, client_id, released_at IS NULL "
+        "FROM session.operating_point_assignments "
+        "WHERE session_id = $1::uuid",
+        pqxx::params{session_uuid_});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "OP-GDN-1");
+    EXPECT_EQ(r[0][1].as<std::string>(), "GDN");
+    EXPECT_EQ(r[0][2].as<std::string>(), "player-1");
+    EXPECT_TRUE(r[0][3].as<bool>()) << "released_at should be NULL when still held";
+}
+
+TEST_F(PgDbWriterFixture, ReleaseOperatingPoint_SetsReleasedAt)
+{
+    writer_->assign_operating_point(session_uuid_, "OP-SOP-2", "SOP", "player-2");
+    writer_->release_operating_point(session_uuid_, "OP-SOP-2", "player-2");
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT released_at IS NOT NULL "
+        "FROM session.operating_point_assignments "
+        "WHERE session_id = $1::uuid AND operating_point_id = $2",
+        pqxx::params{session_uuid_, "OP-SOP-2"});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_TRUE(r[0][0].as<bool>()) << "released_at should be set after release";
+}
+
+TEST_F(PgDbWriterFixture, ReleaseOperatingPoint_Idempotent)
+{
+    writer_->assign_operating_point(session_uuid_, "OP-GOR-3", "GOR", "player-3");
+    writer_->release_operating_point(session_uuid_, "OP-GOR-3", "player-3");
+
+    // Second release must not throw and must leave exactly one row.
+    EXPECT_NO_THROW(writer_->release_operating_point(session_uuid_, "OP-GOR-3", "player-3"));
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT COUNT(*) FROM session.operating_point_assignments "
+        "WHERE session_id = $1::uuid AND operating_point_id = $2",
+        pqxx::params{session_uuid_, "OP-GOR-3"});
+    tx.commit();
+
+    EXPECT_EQ(r[0][0].as<int64_t>(), 1LL);
+}
+
+// ── upsert_timetable_template ─────────────────────────────────────────────────
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
+{
+    writer_->upsert_timetable_template("IC-1234", "SOP", std::nullopt, "3600", "3660",
+                                       std::string{"T1"}, "COMMERCIAL");
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT train_number, station_sid, stop_type, "
+        "       scheduled_departure_secs, track_number "
+        "FROM fleet.timetable_templates "
+        "WHERE train_number = $1 AND station_sid = $2",
+        pqxx::params{"IC-1234", "SOP"});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "IC-1234");
+    EXPECT_EQ(r[0][1].as<std::string>(), "SOP");
+    EXPECT_EQ(r[0][2].as<std::string>(), "COMMERCIAL");
+    EXPECT_EQ(r[0][3].as<std::string>(), "3660");
+    EXPECT_EQ(r[0][4].as<std::string>(), "T1");
+}
+
 }  // namespace

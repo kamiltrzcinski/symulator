@@ -53,7 +53,7 @@
    - Links `libtrackview` (shared rendering library) for the tile-based canvas; the operator client links the same library.
    - Produces per-station topology bundles (`meta.json`, `topology.json`, `objects.json`), inter-station section definitions, and timetable template data consumed by the Session Server.
    - Native working format: `.scendb` (SQLite per station project); exports to JSON bundles for the engine.
-   - Operates fully offline for topology and manual timetable authoring; a server connection is required only for PLK schedule import (handled server-side via `IPLKImporter`).
+   - Operates fully offline for topology and manual timetable authoring; PLK schedule import requires a separate integration (not part of the server binary).
    - Subject to the same cross-platform and dependency-bundling requirements as the operator client (see below).
 
 ## Threading model

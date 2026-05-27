@@ -86,6 +86,10 @@ jobs:
             --without-qt \
             --configure-only
 
+      # ── Proto schema sync validation ─────────────────────────────────────
+      - name: Validate FlatBuffers schemas
+        run: cmake --build build/ninja-debug-headless --target validate_proto_schemas
+
       # ── Build ─────────────────────────────────────────────────────────────
       - name: Build
         run: cmake --build build/ninja-debug-headless --parallel $(nproc)

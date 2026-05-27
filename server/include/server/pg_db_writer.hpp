@@ -54,6 +54,35 @@ public:
     void upsert_pip_track_state(const std::string& session_id, const std::string& section_gid,
                                 const std::string& trains_json) override;
 
+    /// INSERT INTO session.snapshots.
+    void save_snapshot(const std::string& session_id, int64_t seq_cursor, int64_t timestamp_us,
+                       const std::vector<std::uint8_t>& payload) override;
+
+    /// INSERT INTO session.chat_log.
+    void append_chat_message(const std::string& session_id, const std::string& sender_id,
+                             const std::string& target_type,
+                             const std::optional<std::string>& target_id, const std::string& body,
+                             int64_t timestamp_us) override;
+
+    /// INSERT INTO session.operating_point_assignments, RETURNING id.
+    int64_t assign_operating_point(const std::string& session_id,
+                                   const std::string& operating_point_id,
+                                   const std::string& station_sid,
+                                   const std::string& client_id) override;
+
+    /// UPDATE session.operating_point_assignments SET released_at = now() WHERE ... AND released_at IS NULL.
+    void release_operating_point(const std::string& session_id,
+                                 const std::string& operating_point_id,
+                                 const std::string& client_id) override;
+
+    /// UPSERT fleet.timetable_templates.
+    void upsert_timetable_template(const std::string& train_number, const std::string& station_sid,
+                                   const std::optional<std::string>& operating_point_id,
+                                   const std::optional<std::string>& scheduled_arrival_secs,
+                                   const std::string& scheduled_departure_secs,
+                                   const std::optional<std::string>& track_number,
+                                   const std::string& stop_type) override;
+
 private:
     pqxx::connection conn_;
     std::string session_uuid_;

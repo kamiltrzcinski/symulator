@@ -136,8 +136,8 @@ enum class TractionStatus : std::uint8_t
     DEFECTIVE,
 };
 
-// ── Dispatch form types (S-forms / Zapowiedniowiec) ───────────────────────────
-// Formal bilateral exchange forms between neighbouring LCS.
+// ── Dispatch form types (S-forms) ────────────────────────────────────────────
+// Formal dispatch exchange forms between neighbouring LCS.
 // Full state machine documented in docs/15-dispatch-forms.md.
 
 enum class DispatchFormType : std::uint8_t
@@ -151,7 +151,7 @@ enum class DispatchFormType : std::uint8_t
     S52,  // Acknowledgement of S51 (B → A)
     S55,  // Dispatch request for dangerous-goods trains (replaces S2)
     S56,  // Line-clear reply for dangerous-goods trains (replaces S24)
-    S76,  // Free-form bilateral message / remarks
+    S76,  // Free-form dispatch message / remarks
 };
 
 enum class TelegramDirection : std::uint8_t
@@ -168,7 +168,7 @@ enum class TelegramStatus : std::uint8_t
     SUPERSEDED,  // Cancelled by a subsequent S35 or new exchange
 };
 
-// State of one bilateral S-form exchange.
+// State of one dispatch S-form exchange.
 // Transitions documented in docs/15-dispatch-forms.md.
 enum class ExchangeStatus : std::uint8_t
 {

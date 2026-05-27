@@ -35,7 +35,7 @@ void EdrCoordinator::on_telegram_accepted(engine::core::DispatchFormType form,
 
         default:
             // S2, S24, S55, S56 — not handled here.
-            // S24/S56 track_clear_time is written by BilateralChannel directly.
+            // S24/S56 track_clear_time is written by DispatchCoordinator directly.
             break;
     }
 }

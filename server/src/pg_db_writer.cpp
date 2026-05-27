@@ -188,4 +188,107 @@ void PgDbWriter::upsert_pip_track_state(const std::string& /*session_id*/,
     tx.commit();
 }
 
+// ── save_snapshot ──────────────────────────────────────────────────────────────
+
+void PgDbWriter::save_snapshot(const std::string& /*session_id*/, int64_t seq_cursor,
+                               int64_t timestamp_us, const std::vector<std::uint8_t>& payload)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    const pqxx::bytes_view bv{reinterpret_cast<const std::byte*>(payload.data()), payload.size()};
+    tx.exec(
+        "INSERT INTO session.snapshots (session_id, seq_cursor, timestamp_us, payload) "
+        "VALUES ($1::uuid, $2, $3, $4)",
+        pqxx::params{session_uuid_, seq_cursor, timestamp_us, bv});
+    tx.commit();
+}
+
+// ── append_chat_message ────────────────────────────────────────────────────────
+
+void PgDbWriter::append_chat_message(const std::string& /*session_id*/,
+                                     const std::string& sender_id, const std::string& target_type,
+                                     const std::optional<std::string>& target_id,
+                                     const std::string& body, int64_t timestamp_us)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    tx.exec(
+        "INSERT INTO session.chat_log "
+        "  (session_id, sender_id, target_type, target_id, body, timestamp_us) "
+        "VALUES ($1::uuid, $2, $3, $4, $5, $6)",
+        pqxx::params{session_uuid_, sender_id, target_type, target_id, body, timestamp_us});
+    tx.commit();
+}
+
+// ── assign_operating_point ────────────────────────────────────────────────────
+
+int64_t PgDbWriter::assign_operating_point(const std::string& /*session_id*/,
+                                           const std::string& operating_point_id,
+                                           const std::string& station_sid,
+                                           const std::string& client_id)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    const auto result = tx.exec(
+        "INSERT INTO session.operating_point_assignments "
+        "  (session_id, operating_point_id, station_sid, client_id) "
+        "VALUES ($1::uuid, $2, $3, $4) "
+        "RETURNING id",
+        pqxx::params{session_uuid_, operating_point_id, station_sid, client_id});
+    tx.commit();
+    return result.at(0, 0).as<int64_t>();
+}
+
+// ── release_operating_point ───────────────────────────────────────────────────
+
+void PgDbWriter::release_operating_point(const std::string& /*session_id*/,
+                                         const std::string& operating_point_id,
+                                         const std::string& client_id)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    tx.exec(
+        "UPDATE session.operating_point_assignments "
+        "SET released_at = now() "
+        "WHERE session_id = $1::uuid "
+        "  AND operating_point_id = $2 "
+        "  AND client_id = $3 "
+        "  AND released_at IS NULL",
+        pqxx::params{session_uuid_, operating_point_id, client_id});
+    tx.commit();
+}
+
+// ── upsert_timetable_template ─────────────────────────────────────────────────
+
+void PgDbWriter::upsert_timetable_template(const std::string& train_number,
+                                           const std::string& station_sid,
+                                           const std::optional<std::string>& operating_point_id,
+                                           const std::optional<std::string>& scheduled_arrival_secs,
+                                           const std::string& scheduled_departure_secs,
+                                           const std::optional<std::string>& track_number,
+                                           const std::string& stop_type)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    tx.exec(
+        "INSERT INTO fleet.timetable_templates "
+        "  (train_number, station_sid, operating_point_id, "
+        "   scheduled_arrival_secs, scheduled_departure_secs, track_number, stop_type) "
+        "VALUES ($1, $2, $3, $4, $5, $6, $7) "
+        "ON CONFLICT (train_number, station_sid) DO UPDATE "
+        "  SET operating_point_id        = EXCLUDED.operating_point_id, "
+        "      scheduled_arrival_secs    = EXCLUDED.scheduled_arrival_secs, "
+        "      scheduled_departure_secs  = EXCLUDED.scheduled_departure_secs, "
+        "      track_number              = EXCLUDED.track_number, "
+        "      stop_type                 = EXCLUDED.stop_type",
+        pqxx::params{train_number, station_sid, operating_point_id, scheduled_arrival_secs,
+                     scheduled_departure_secs, track_number, stop_type});
+    tx.commit();
+}
+
 }  // namespace server

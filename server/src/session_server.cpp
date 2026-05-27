@@ -1,6 +1,8 @@
 // server/src/session_server.cpp
 
 #include "server/session_server.hpp"
+#include "server/dispatch_channel.hpp"
+#include "server/dispatch_coordinator.hpp"
 #include "server/pg_db_writer.hpp"
 #include "server/pip_writer.hpp"
 
@@ -160,17 +162,17 @@ void SessionServer::start()
     gateway_ = std::make_unique<TransportGateway>(cmd_queue_, ownership_, snapshot_);
     dispatch_bus_ = std::make_unique<DispatchBus>(*gateway_, *db_writer_, session_uuid);
 
-    // 4a. Wire BilateralChannel — first time the channel is connected to a
-    //     running server instance (previously existed only in unit tests).
+    // 4a. Wire DispatchCoordinator + DispatchChannel.
     exchange_mgr_ = std::make_unique<DispatchExchangeManager>();
     edr_coordinator_ = std::make_unique<EdrCoordinator>(*db_writer_, session_uuid);
     pip_writer_ = std::make_unique<PipWriter>(*db_writer_, session_uuid);
-    bilateral_channel_ = std::make_unique<BilateralChannel>(*exchange_mgr_, *db_writer_, *gateway_,
-                                                            *edr_coordinator_, session_uuid);
-    gateway_->set_bilateral_handler(
+    dispatch_coordinator_ = std::make_unique<DispatchCoordinator>(*exchange_mgr_, *db_writer_,
+                                                                  *edr_coordinator_, session_uuid);
+    dispatch_channel_ = std::make_unique<DispatchChannel>(*dispatch_coordinator_, *gateway_);
+    gateway_->set_dispatch_channel_handler(
         [this](const std::vector<uint8_t>& payload, const std::string& client_id,
                const std::string& area_id)
-        { bilateral_channel_->on_inbound(payload, client_id, area_id); });
+        { dispatch_channel_->on_inbound(payload, client_id, area_id); });
 
     // 5. Wire ENGINE callbacks.
     //    nak_cb   — called on ENGINE thread when a command fails interlocking.
@@ -201,15 +203,16 @@ void SessionServer::start()
 
 void SessionServer::stop()
 {
-    // Reverse startup order: ENGINE → bilateral → IO → resources.
+    // Reverse startup order: ENGINE → dispatch channel → IO → resources.
     if (engine_loop_)
     {
         engine_loop_->stop();
         engine_loop_.reset();
     }
 
-    // Bilateral channel must be torn down before gateway_ closes its sessions.
-    bilateral_channel_.reset();
+    // Dispatch channel and coordinator must be torn down before gateway_ closes its sessions.
+    dispatch_channel_.reset();
+    dispatch_coordinator_.reset();
     pip_writer_.reset();
     edr_coordinator_.reset();
     exchange_mgr_.reset();

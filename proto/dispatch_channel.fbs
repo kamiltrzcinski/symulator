@@ -1,15 +1,15 @@
-// proto/bilateral.fbs — Bilateral channel (msg_type 0x61 BILATERAL_MESSAGE)
-// Scoped to (src_area_id, dst_area_id) pair — neighbouring posterunki only.
+// proto/dispatch_channel.fbs — Dispatch channel (msg_type 0x61 DISPATCH_CHANNEL_MESSAGE)
+// Scoped to (src_area_id, dst_area_id) pair — neighbouring dispatch areas only.
 //
 // Compile with:
-//   flatc --cpp --gen-object-api -o autogens/proto/ proto/bilateral.fbs proto/common.fbs
+//   flatc --cpp --gen-object-api -o autogens/proto/ proto/dispatch_channel.fbs proto/common.fbs
 //   (or via scripts/generate_compile_commands.py)
 
 include "common.fbs";
 
 namespace proto;
 
-enum BilateralKind : byte {
+enum DispatchChannelMessageKind : byte {
     DISPATCH_FORM = 0,
     FREE_TEXT     = 1,
 }
@@ -27,20 +27,20 @@ table FreeTextPayload {
     body: string (required);
 }
 
-union BilateralBody {
+union DispatchChannelMessageBody {
     DispatchFormPayload,
     FreeTextPayload,
 }
 
-table BilateralMessage {
+table DispatchChannelMessage {
     /// Dispatch area id of the initiating side (always filled by sender).
     src_area_id:      string (required);
     /// Dispatch area id of the receiving side (always filled by sender).
     dst_area_id:      string (required);
 
     direction:        TelegramDirection;
-    kind:             BilateralKind;
-    body:             BilateralBody;
+    kind:             DispatchChannelMessageKind;
+    body:             DispatchChannelMessageBody;
 
     // Fields below are filled by the server on outbound frames; clients send them empty:
     exchange_id:      string;       // e.g. "exch-0000001"
@@ -49,4 +49,4 @@ table BilateralMessage {
     sender_id:        string;       // client_id of the sender
 }
 
-root_type BilateralMessage;
+root_type DispatchChannelMessage;

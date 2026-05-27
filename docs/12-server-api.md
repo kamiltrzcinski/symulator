@@ -35,11 +35,8 @@ This document defines module boundaries as pure virtual C++ interfaces. Each int
 │  │              │ ──────────────▶ fleet + session schemas  │ │
 │  └──────────────┘                                          │
 │         ▲                                                   │
-│  IPLKImporter (HTTP client, startup only)                   │
-│         │                                                   │
-└─────────┼───────────────────────────────────────────────────┘
-          │ HTTPS / X-API-Key
-   pdp-api.plk-sa.pl
+
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -149,63 +146,8 @@ public:
                                               const std::string& stationSID) const = 0;
     virtual ~IEDRService() = default;
 };
-```
-
-### IPLKImporter
-
-Fetches timetable data from the PLK Open Railway Data API and writes to `fleet.timetable_templates`. Called **once at server startup** (or on explicit admin re-import), not during active sessions.
-
-```cpp
-struct PLKImportConfig {
-    std::string apiKey;
-    std::string baseUrl = "https://pdp-api.plk-sa.pl";
-    std::string date;                          // YYYY-MM-DD
-    std::vector<std::string> stationCodes;     // PLK station codes for the 9 Trójmiasto stations
-};
-
-class IPLKImporter {
-public:
-    virtual void import(const PLKImportConfig& config) = 0;
-    virtual ~IPLKImporter() = default;
 };
 ```
-
----
-
-## PLK Open Railway Data API integration
-
-**Source:** `https://pdp-api.plk-sa.pl` — PLK public API, authenticated via `X-API-Key` header.  
-**Documentation:** `https://pdp-api.plk-sa.pl/scalar/v1`
-
-### Endpoints used
-
-| Endpoint | Purpose |
-|---|---|
-| `GET /api/v1/dictionaries/stations` | Resolve station names → PLK station codes for the 9 Trójmiasto stations |
-| `GET /api/v1/schedules?station=...&date=...` | Fetch planned timetable for each station |
-
-### Mapping to `fleet.timetable_templates`
-
-| PLK field | DB column |
-|---|---|
-| `trainNumber` / `scheduleId` | `train_number` |
-| station code | `station_sid` (mapped to internal sID) |
-| `arrivalTime` | `scheduled_arrival` (converted to INTERVAL from session epoch) |
-| `departureTime` | `scheduled_departure` |
-| `trackNumber` / `platform` | `track_number` |
-| `stopType` | `stop_type` (COMMERCIAL / TECHNICAL / PASS_THROUGH) |
-
-### Rate limits and import strategy
-
-- Basic tier: 100 req/hour, 1 000 req/day.
-- 9 stations × 1 request each = **9 requests per import run** — trivially within limits.
-- Import is triggered manually before a session, not automatically on session start.
-- Results are cached in `fleet.timetable_templates`; re-import only when timetable changes (new timetable year, ad-hoc correction).
-- API key stored in server config file (not hardcoded); loaded at startup.
-
-### Future: real-time operations mode
-
-`GET /api/v1/operations` provides real-time train positions and delays. Post-MVP option: a "live timetable" mode where the simulator seeds train positions from PLK real-time data instead of a fixed timetable. Requires no architectural changes — `IEDRService.initSession` would call a different import source.
 
 ---
 
@@ -213,12 +155,11 @@ public:
 
 ```
 1. Server starts
-2. IPLKImporter::import()          → fleet.timetable_templates populated (if not already current)
-3. ITopologyStore::loadStation()   × 9 stations  → topology graph in memory
-4. Client connects → HANDSHAKE
-5. IEDRService::initSession()      → session.edr_entries seeded from fleet.timetable_templates
-6. ISnapshotProvider::buildSnapshot() → sent to client as SNAPSHOT_CHUNK(s)
-7. Normal operation: client sends COMMAND → ICommandHandler::handle()
+2. ITopologyStore::loadStation()   × 9 stations  → topology graph in memory
+3. Client connects → HANDSHAKE
+4. IEDRService::initSession()      → session.edr_entries seeded from fleet.timetable_templates
+5. ISnapshotProvider::buildSnapshot() → sent to client as SNAPSHOT_CHUNK(s)
+6. Normal operation: client sends COMMAND → ICommandHandler::handle()
                      engine calls IEventEmitter::emit() → broadcast + ISessionStore::appendEvent()
 ```
 
@@ -227,8 +168,8 @@ public:
 ## Open questions
 
 - Q-API-1: Should `IEDRService` live in the same process as the engine (direct call) or in a separate process (Unix socket)? Direct call is simpler for MVP; separate process allows independent restart of EDR without stopping the engine.
-- Q-API-2: HTTP client library for `IPLKImporter`: **libcurl** (C, battle-tested, widely packaged) vs. **cpp-httplib** (header-only, C++11). Libcurl preferred for production; cpp-httplib acceptable for MVP given its zero-dependency appeal.
-- Q-API-3: Should the PLK station code → internal `sID` mapping be hardcoded in the importer config, or stored as a dictionary in `fleet.station_map`?
+
+- Q-API-3: Should the PLK station code → internal `sID` mapping be hardcoded in import configuration, or stored as a dictionary in `fleet.station_map`?
 
 ---
 

@@ -78,7 +78,7 @@ set(SYMULATOR_PROTO_SCHEMAS
     "${SYMULATOR_PROTO_DIR}/ownership.fbs"
     "${SYMULATOR_PROTO_DIR}/chat.fbs"
     "${SYMULATOR_PROTO_DIR}/voice.fbs"
-    "${SYMULATOR_PROTO_DIR}/bilateral.fbs"
+    "${SYMULATOR_PROTO_DIR}/dispatch_channel.fbs"
 )
 
 # Generated FlatBuffers headers live in the source tree so they are committed,
@@ -94,7 +94,7 @@ set(SYMULATOR_PROTO_GENERATED_HEADERS
     "${SYMULATOR_PROTO_GENERATED_DIR}/ownership_generated.h"
     "${SYMULATOR_PROTO_GENERATED_DIR}/chat_generated.h"
     "${SYMULATOR_PROTO_GENERATED_DIR}/voice_generated.h"
-    "${SYMULATOR_PROTO_GENERATED_DIR}/bilateral_generated.h"
+    "${SYMULATOR_PROTO_GENERATED_DIR}/dispatch_channel_generated.h"
 )
 
 if(TARGET flatbuffers::flatc)
@@ -174,6 +174,7 @@ endif()
 add_subdirectory(engine)
 add_subdirectory(srk)
 add_subdirectory(server)
+add_subdirectory(libscenario_validation)
 
 if(BUILD_CLIENT OR BUILD_EDITOR)
     add_subdirectory(libtrackview)

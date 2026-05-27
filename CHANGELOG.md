@@ -5,6 +5,35 @@ All notable changes are documented here.
 ## [0.5.4] - 2026-05-25
 
 ### Added
+- **Dispatch channel split**: former dispatch-wire/domain handling was split into two server modules:
+  - `DispatchChannel` (wire/protocol layer): FlatBuffers decode + sender verification + outbound result frame broadcast,
+  - `DispatchCoordinator` (domain layer): S-form state transitions, `session.dispatch_telegrams` persistence, and EDR handoff.
+- **Wire-protocol rename (0x61 unchanged)**: protocol/schema naming migrated to dispatch-channel terminology:
+  - schema file renamed to `proto/dispatch_channel.fbs`,
+  - root/table/union enums renamed to `DispatchChannelMessage*`,
+  - generated header `autogens/proto/dispatch_channel_generated.h` replaced the previous legacy header,
+  - gateway API renamed to `set_dispatch_channel_handler()` and frame constant to `msg_type::kDispatchChannel`.
+- **CI schema guard**: `.github/workflows/ci.yml` now runs `validate_proto_schemas` to enforce FlatBuffers schema/generated-header synchronisation.
+- **DB writer contract extension**: `IDbWriter` gained five persistence methods used by server boundaries:
+  - `save_snapshot(...)`,
+  - `append_chat_message(...)`,
+  - `assign_operating_point(...)`,
+  - `release_operating_point(...)`,
+  - `upsert_timetable_template(...)`.
+  `NullDbWriter` and `PgDbWriter` were updated accordingly.
+- **Scenario validation library**: new `libscenario_validation` static library with layered validators:
+  - Layer 1 (station bundle integrity checks),
+  - Layer 2 (inter-station/route consistency checks),
+  - Layer 3 scaffold (reserved for timetable-layer checks).
+- **New test suites**:
+  - `tests/server/test_dispatch_coordinator.cpp` (12 tests),
+  - `tests/server/test_dispatch_channel.cpp` (12 tests),
+  - `tests/libscenario_validation/test_layer1.cpp` (9 tests),
+  - `tests/libscenario_validation/test_layer2.cpp` (6 tests),
+  - integration additions in `tests/integration/test_pg_db_writer.cpp` for new `IDbWriter` methods.
+- **Build wiring**: `libscenario_validation` and its tests were added to CMake target graph (`CMakeLists.txt` + `tests/CMakeLists.txt`).
+- **Scope correction**: removed server-side PLK importer implementation files and related HTTP dependency from build/dependency manifests; documentation updated to reflect that PLK import belongs to a separate integration path.
+
 - **Unit tests — srk::common**: new test suite `tests/srk/test_srk_common_route_graph.cpp`
   (11 tests) covering `find_route_path()` and `make_route_id()` in detail: straight/divergent
   switch traversal, derailer collection, null-opt cases, ID determinism and uniqueness.
@@ -37,7 +66,7 @@ All notable changes are documented here.
   - `PgDbWriter` implements the UPSERT with `$3::jsonb` cast.
   - `TrainSlot` serialised to JSON array: `[{"number":…,"has_extra_info":…,"manually_placed":…,"entry_side":"LEFT"|"RIGHT"}]`;
     free section or absent slot → `"[]"`.
-  - `SessionServer` constructs `pip_writer_` (after `edr_coordinator_`, before `bilateral_channel_`
+  - `SessionServer` constructs `pip_writer_` (after `edr_coordinator_`, before `dispatch_channel_`
     in LIFO order); `pip_cb` lambda replaced with `pip_writer_->on_pip_events(events)`.
   - 4 unit tests in `tests/server/test_pip_writer.cpp`: `FreeSection_UpsertWithEmptyTrains`,
     `OccupiedSection_UpsertWithTrainSlot`, `LcsBoundaryCrossing_UpsertTargetSection`,
@@ -46,6 +75,7 @@ All notable changes are documented here.
   and covered ignored sidecar JSON files.
 
 ### Changed
+- **Warnings cleanup**: fixed clean-build warnings in the dispatch stack by handling all `DispatchFormType` enum values in `DispatchCoordinator::form_type_str()` and by consuming `[[nodiscard]]` results in `test_dispatch_coordinator.cpp`.
 - **Rename `posterunek` → `operating_point`** throughout the entire codebase:
   - `docker/init.sql`: `session.posterunek_assignments` table renamed to
     `session.operating_point_assignments`; column `posterunek_id` renamed to `operating_point_id`
@@ -109,7 +139,7 @@ All notable changes are documented here.
   - S26 accepted → `update_edr_arrival()` for the destination station.
   - Direction-aware station resolution: SENT → `src_area`, RECEIVED → `dst_area`.
   - `IDbWriter` extended with `update_edr_departure()` and `update_edr_arrival()`; both use `make_interval(secs => ...)` time-of-day pattern identical to `update_edr_track_clear_time`.
-  - `BilateralChannel` constructor takes `EdrCoordinator&`; `SessionServer` owns and wires it.
+  - `DispatchChannel` constructor takes `EdrCoordinator&`; `SessionServer` owns and wires it.
   - `NullDbWriter`: `edr_departures` and `edr_arrivals` capture vectors.
   - 2 new unit tests: `S25_Sent_SetsEdrDepartureForSrcArea`, `S26_Received_SetsEdrArrivalForDstArea`.
   - 3 new integration tests: `UpdateEdrDeparture_SetsActualDepartureAndStatus`, `UpdateEdrArrival_SetsActualArrivalAndStatus`, `UpdateEdrDeparture_IdempotentOnAlreadyDeparted` (second call with status=DEPARTED is a no-op).
@@ -123,7 +153,7 @@ All notable changes are documented here.
 - **DbWriter PostgreSQL pipeline**: Production `PgDbWriter : IDbWriter` using libpqxx 8.x.
   - `server/include/server/pg_db_writer.hpp` + `server/src/pg_db_writer.cpp`: connects via libpq connection string; `init_session()` inserts into `session.sessions` and returns UUID; `write_dispatch_telegram()` inserts to `session.dispatch_telegrams`; `update_edr_track_clear_time()` updates `track_clear_time` as time-of-day `INTERVAL`.
   - `server/CMakeLists.txt`: new `server_db_lib` static library links `server_lib + libpqxx::pqxx`; unit tests remain libpqxx-free.
-  - `server/session_server.cpp`: `--db` CLI flag + `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` env-var fallback; `BilateralChannel` wired into `SessionServer` for the first time.
+  - `server/session_server.cpp`: `--db` CLI flag + `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` env-var fallback; `DispatchChannel` wired into `SessionServer` for the first time.
   - `tests/integration/test_pg_db_writer.cpp`: 4 integration tests (auto-skipped when `SYMULATOR_TEST_DB` is not set).
   - `vcpkg.json`: added `libpqxx` dependency.
 - **IDbWriter**: added `virtual std::string init_session(const std::string& display_name, int schema_version) = 0;` to the interface; `NullDbWriter` returns a deterministic UUID sentinel.
@@ -137,15 +167,15 @@ All notable changes are documented here.
 - **Tests**: Replaced `Engine` and `Server` placeholder tests with real round-trip tests — `EngineState` insert/find for `TrackSection`/`Switch` (4 tests) and `Frame` encode/decode, CRC corruption, partial-buffer (5 tests); total 313/313 passing.
 
 ### Added
-- **Bilateral channel (`0x61`)**: New `msg_type 0x61 BILATERAL_MESSAGE` for inter-posterunek S-form and free-text communication scoped to neighbouring `(src_area, dst_area)` pairs.
-  - `proto/bilateral.fbs`: `BilateralMessage` with `BilateralKind` union (`DispatchFormPayload` | `FreeTextPayload`).
+- **Dispatch channel (`0x61`)**: New `msg_type 0x61 DISPATCH_CHANNEL_MESSAGE` for inter-posterunek S-form and free-text communication scoped to neighbouring `(src_area, dst_area)` pairs.
+  - `proto/dispatch_channel.fbs`: `DispatchChannelMessage` with `DispatchChannelMessageKind` union (`DispatchFormPayload` | `FreeTextPayload`).
   - `proto/common.fbs`: `DispatchFormType`, `TelegramDirection`, `ExchangeStatus` enums added (reuse C++ enums from `engine::core::types.hpp`).
   - `proto/events.fbs`: `event_type 0x13 DispatchTelegramStateChanged`.
   - `server/db_writer.hpp`: `IDbWriter` interface + `NullDbWriter` test double.
-  - `server/bilateral_channel.hpp` + `bilateral_channel.cpp`: parses inbound frame, drives `DispatchExchangeManager`, writes via `IDbWriter`, broadcasts to pair.
-  - `server/transport_gateway`: `dispatch_area_id` in `ClientInfo`; `broadcast_to_pair()`; `set_bilateral_handler()`.
+  - `server/dispatch_channel.hpp` + `dispatch_channel.cpp`: parses inbound frame, drives `DispatchExchangeManager`, writes via `IDbWriter`, broadcasts to pair.
+  - `server/transport_gateway`: `dispatch_area_id` in `ClientInfo`; `broadcast_to_pair()`; `set_dispatch_channel_handler()`.
   - `docker/init.sql`: `track_clear_time INTERVAL` in `session.edr_entries`; new `session.dispatch_telegrams` table.
-  - 10 new unit tests (`tests/server/test_bilateral_channel.cpp`); **323/323 tests pass**.
+  - 10 new unit tests (`tests/server/test_dispatch_channel.cpp`); **323/323 tests pass**.
 - **Events**: Added `OperatorCommandStateChanged` (`event_type 0x11`) and `Ml8CommandStateChanged` (`event_type 0x12`) to `events.fbs` and `dispatch_bus.cpp`; both carry `g_id`, `target_kind`, `command_code`, and `active`.
 - **Snapshot**: Added `OperatorCommandRuntimeState` table to `snapshot.fbs`; field `operator_state` added to `SwitchState`, `TrackSectionState`, `SignalState`, `DerailerState`, and `BlockSectionSnapshotState` so clients receive full command-flag state on reconnect without replaying events.
 - **Track model**: `OperatorCommandRuntimeState` now holds `std::optional<OperatorCommandCode> active_operator_command` and `std::optional<Ml8CommandCode> active_ml8_command` — replaces the previous `bool ml8_command_active` + `std::string last_ml8_command_code` pair with type-safe optionals.
@@ -450,7 +480,7 @@ Entry format:
 ### Added
 - `engine/include/engine/core/types.hpp`: dispatch-form vocabulary — `TrainCategory` enum (`PASSENGER | FREIGHT | MAINTENANCE`); `DispatchFormType` enum (S2/S24/S25/S26/S35/S51/S52/S55/S56/S76); `TelegramDirection` (`SENT | RECEIVED`); `TelegramStatus` (`PENDING | CONFIRMED | REJECTED | SUPERSEDED`); `ExchangeStatus` (full S-form state machine: `IDLE → S2_SENT → S24_RECEIVED → S25_SENT → S26_RECEIVED → CLOSED`; cancellation: `CANCELLED`)
 - `tests/engine/test_types.cpp`: 17 new tests for `TrainCategory`, `DispatchFormType`, `TelegramDirection`, `TelegramStatus`, `ExchangeStatus` (distinct-values, all-forms-reachable, standard-path, cancellation-path); total 92/92
-- `docs/15-dispatch-forms.md`: full dispatch-form specification — S-form catalogue (S2–S76), S2/S24/S25/S26 state machine diagram, cancellation path, duplicate-confirmation guard ("droga wolna" already filled), level-crossing notifications (S51/S52 + km_markers), `ZapowiedniowiecManager` responsibilities, engine types table, open questions Q-SF-1 to Q-SF-3
+- `docs/15-dispatch-forms.md`: full dispatch-form specification — S-form catalogue (S2–S76), S2/S24/S25/S26 state machine diagram, cancellation path, duplicate-confirmation guard ("droga wolna" already filled), level-crossing notifications (S51/S52 + km_markers), `DispatchCoordinator` responsibilities, engine types table, open questions Q-SF-1 to Q-SF-3
 - `docs/11-database-model.md`: `fleet.train_definitions` extended with `train_category`, `classification`, `supplement`, `description` columns; `session.edr_entries` extended with `track_clear_time INTERVAL` (set by S24/S56 confirmation, duplicate guarded by server); `session.dispatch_telegrams` table (form_type, exchange_id, from_sid/to_sid, direction, status, km_markers TEXT[], body, timestamp_us); retention policy entry for `dispatch_telegrams`
 
 ---
@@ -644,7 +674,7 @@ Entry format:
 - `libtrackview` shared rendering library architecture (`13-scenario-editor-architecture.md`): `TrackGrid`, `TrackScene`, `StateOverlay`, `TileSet` abstraction with `EbiScreenTileSet` (wide flat cells, coloured occupancy, arrow-head markers) and `TechnicalDiagramTileSet` (square cells, full 45° diagonals, monochrome); visual style comparison table; usage in operator client
 - Station Editor native project format: `.scendb` (SQLite) with full schema — `project_meta`, `tiles`, `connections`, `objects`, `edit_history`; rationale over flat JSON (FK enforcement, SQL queries, persistent undo/redo)
 - Layout style (`ebi_screen` / `technical_diagram`) selected at project creation; stored in `project_meta`; pure rendering hint, does not affect exported JSON bundles
-- Editor offline operation: topology authoring and manual timetable editing require no server connection; PLK import is forwarded to server and handled by `IPLKImporter` server-side
+- Editor offline operation: topology authoring and manual timetable editing require no server connection; PLK schedule import requires a server connection
 - Component 7 (Scenario Editor) in initial architecture (`03-initial-architecture.md`): standalone C++ desktop tool, links `libtrackview`, produces station bundles + sections + timetable data, operates offline for authoring
 - Cross-platform build requirements (`03-initial-architecture.md`): Linux/Windows/macOS x86-64 targets; all dependencies bundled (Qt6 via deploy tools, SQLite amalgamation, nlohmann/json header-only); CMake ≥ 3.25 + vcpkg; Windows contributor onboarding goal (clone → configure → build, no manual steps)
 
@@ -662,8 +692,8 @@ Entry format:
 ## [0.2.2] — 2026-05-06
 
 ### Added
-- Server internal API document (`12-server-api.md`): seven C++ pure-virtual interface contracts (`ICommandHandler`, `IEventEmitter`, `ISnapshotProvider`, `ITopologyStore`, `ISessionStore`, `IEDRService`, `IPLKImporter`), module boundary diagram, session startup call sequence
-- PLK Open Railway Data API integration: `IPLKImporter` fetches `GET /api/v1/schedules` and `GET /api/v1/dictionaries/stations` at server startup; 9 req/run (well within 100 req/hour basic limit); maps PLK fields to `fleet.timetable_templates`; future real-time operations mode noted (post-MVP, no architectural changes required)
+- Server internal API document (`12-server-api.md`): six C++ pure-virtual interface contracts (`ICommandHandler`, `IEventEmitter`, `ISnapshotProvider`, `ITopologyStore`, `ISessionStore`, `IEDRService`), module boundary diagram, session startup call sequence
+
 - Three open questions recorded (Q-API-1 through Q-API-3)
 
 ### Changed

@@ -7,7 +7,8 @@ add_library(server_lib STATIC
     src/transport_gateway.cpp
     src/dispatch_bus.cpp
     src/dispatch_exchange_manager.cpp
-    src/bilateral_channel.cpp
+    src/dispatch_coordinator.cpp
+    src/dispatch_channel.cpp
     src/edr_coordinator.cpp
     src/pip_writer.cpp
 )

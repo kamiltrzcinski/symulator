@@ -18,7 +18,7 @@
 
 ## Priority P1
 
-- [x] Draft server API (endpoints or channels). **Resolved:** no REST endpoints — server API is C++ pure-virtual interface contracts between modules: `ICommandHandler`, `IEventEmitter`, `ISnapshotProvider`, `ITopologyStore`, `ISessionStore`, `IEDRService`, `IPLKImporter`. PLK Open Railway Data API (`pdp-api.plk-sa.pl`) integrated via `IPLKImporter` for timetable import (9 req/run, well within rate limits). Details in `12-server-api.md`.
+- [x] Draft server API (endpoints or channels). **Resolved:** no REST endpoints — server API is C++ pure-virtual interface contracts between modules: `ICommandHandler`, `IEventEmitter`, `ISnapshotProvider`, `ITopologyStore`, `ISessionStore`, `IEDRService`.
 - [ ] Build command validation prototype in the SRK engine.
 - [ ] Define snapshot and event-log retention strategy.
 - [ ] Create client-server integration test plan.

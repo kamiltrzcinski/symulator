@@ -1,6 +1,6 @@
 # Implementation Skeleton
 
-**Status:** Domain layer, SRK interface, ENGINE tick loop, server composition root, and first-pass dispatch exchange manager complete.  Remaining work: EDR coordinator, DB persistence pipeline, PLK importer, full client.
+**Status:** Domain layer, SRK interface, ENGINE tick loop, server composition root, dispatch exchange manager, `DispatchCoordinator` + `DispatchChannel`, `EdrCoordinator`, `PipWriter`, and DB persistence pipeline complete.  Remaining work: full Qt6 client.
 
 ## Purpose
 
@@ -36,9 +36,15 @@ This document describes the server-side class structure and module wiring as of 
 ### server/ additions
 
 | File | Description |
-|------|-------------|
+|------|--------------|
 | `server/include/server/dispatch_exchange_manager.hpp` | `DispatchExchangeManager` — pure-logic S-form state machine per `(src_area, dst_area)` pair; `TelegramResult`, `TelegramOutcome` types |
 | `server/src/dispatch_exchange_manager.cpp` | Implementation; `generate_exchange_id()` produces `"exch-0000001"` format |
+| `server/include/server/dispatch_coordinator.hpp` | `DispatchCoordinator` — domain-logic layer: drives state machine, persists to `session.dispatch_telegrams`, updates `edr_entries` on S24/S56/S25/S26 |
+| `server/src/dispatch_coordinator.cpp` | Implementation |
+| `server/include/server/dispatch_channel.hpp` | `DispatchChannel` — wire-protocol layer: parses `DISPATCH_CHANNEL_MESSAGE` FlatBuffers, verifies sender, delegates to `DispatchCoordinator`, broadcasts result frame |
+| `server/src/dispatch_channel.cpp` | Implementation |
+| `server/include/server/edr_coordinator.hpp` | `EdrCoordinator` — updates `session.edr_entries` for S25 departure and S26 arrival events |
+| `server/src/edr_coordinator.cpp` | Implementation |
 
 ---
 
@@ -54,10 +60,6 @@ This document describes the server-side class structure and module wiring as of 
 - `scripts/e2e_smoke_test.py`: HANDSHAKE + SNAPSHOT round-trip smoke test ✅
 
 **Remaining (next phases):**
-- `ZapowiedniowiecManager`: DB persistence for `session.dispatch_telegrams`, EDR `track_clear_time` update
-- `DbWriter` pipeline: event/snapshot/chat retention
-- `EdrCoordinator`: EDR view integration
-- PLK importer (`IPLKImporter`)
 - Full Qt6 client broadcast rendering
 
 > **Test infra note:** `tests/engine/CMakeLists.txt` sets `SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios/gdynia_orlowo"` via compile definition so `test_topology_loader.cpp` can locate scenario files without hardcoding paths.
@@ -70,6 +72,9 @@ The sections below describe the remaining wiring and interface contracts.
 
 | Module | Thread / Context | Responsibility now | Responsibility later |
 |---|---|---|---|
+| `DispatchChannel` | `IO_THREAD` | parse `DISPATCH_CHANNEL_MESSAGE`, security check, broadcast | — (complete) |
+| `DispatchCoordinator` | `IO_THREAD` | S-form state machine, dispatch_telegrams persistence, EDR updates | — (complete) |
+| `EdrCoordinator` | `IO_THREAD` | EDR departure/arrival updates via IDbWriter | — (complete) |
 | `TransportGateway` | `IO_POOL` | frame ingress/egress, connection lifecycle | full protocol endpoint behavior |
 | `CommandIngress` | `WORK_POOL` | deserialize + envelope validation | full command parsing + schema upgrades |
 | `OwnershipGuard` | `WORK_POOL` | ownership check hook point | real operating point authorization matrix |

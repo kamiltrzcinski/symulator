@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "server/bilateral_channel.hpp"
 #include "server/db_writer.hpp"
 #include "server/dispatch_bus.hpp"
+#include "server/dispatch_channel.hpp"
+#include "server/dispatch_coordinator.hpp"
 #include "server/dispatch_exchange_manager.hpp"
 #include "server/edr_coordinator.hpp"
 #include "server/ownership_guard.hpp"
@@ -98,10 +99,11 @@ private:
     // Declaration order == construction order.
     // dispatch_bus_ holds a reference to gateway_, so it must be declared after
     // gateway_ (and therefore destroyed before it).
-    // bilateral_channel_ holds references to exchange_mgr_, db_writer_, edr_coordinator_,
-    // and gateway_, so it must be declared after all four.
-    // Destruction is LIFO: bilateral_channel_ → edr_coordinator_ → exchange_mgr_
-    //   → dispatch_bus_ → gateway_ → db_writer_ → ownership_.
+    // dispatch_coordinator_ holds references to exchange_mgr_, db_writer_, edr_coordinator_;
+    // dispatch_channel_ holds references to dispatch_coordinator_ and gateway_.
+    // Both must be declared after all their dependencies.
+    // Destruction is LIFO: dispatch_channel_ → dispatch_coordinator_ → edr_coordinator_
+    //   → exchange_mgr_ → dispatch_bus_ → gateway_ → db_writer_ → ownership_.
 
     OwnershipGuard ownership_;
     std::unique_ptr<IDbWriter> db_writer_;
@@ -110,7 +112,8 @@ private:
     std::unique_ptr<DispatchExchangeManager> exchange_mgr_;
     std::unique_ptr<EdrCoordinator> edr_coordinator_;
     std::unique_ptr<PipWriter> pip_writer_;
-    std::unique_ptr<BilateralChannel> bilateral_channel_;
+    std::unique_ptr<DispatchCoordinator> dispatch_coordinator_;
+    std::unique_ptr<DispatchChannel> dispatch_channel_;
 
     // ── ENGINE thread ─────────────────────────────────────────────────────────
     // Declared last: EngineLoop holds non-owning references to state_,

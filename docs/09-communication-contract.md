@@ -66,7 +66,7 @@ Value  Name                Direction          Category
 0x50   TAKEOVER_REQUEST    C → S              Ownership
 0x51   TAKEOVER_RESPONSE   S → C              Ownership
 0x60   CHAT_MESSAGE        C → S → C(s)       Communication
-0x61   BILATERAL_MESSAGE   C ↔ S ↔ C(pair)    Communication
+0x61   DISPATCH_CHANNEL_MESSAGE   C ↔ S ↔ C(pair)    Communication
 0x70   VOICE_CHAN_JOIN      C → S              Communication
 0x71   VOICE_CHAN_LEAVE     C → S              Communication
 0x72   VOICE_CHAN_STATE     S → C (broadcast)  Communication

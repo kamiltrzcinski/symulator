@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS session.edr_entries (
     scheduled_departure  INTERVAL    NOT NULL,
     actual_departure     INTERVAL,
     track_number         TEXT,
-    track_clear_time     INTERVAL,              -- "Droga wolna" — set by S24/S56 in BilateralChannel
+    track_clear_time     INTERVAL,              -- "Droga wolna" — set by S24/S56 in DispatchCoordinator
     stop_type            TEXT        NOT NULL DEFAULT 'COMMERCIAL',
     status               TEXT        NOT NULL DEFAULT 'PENDING',
                                      -- PENDING | ARRIVED | DEPARTED | SKIPPED | CANCELLED
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS session.chat_log (
 CREATE INDEX IF NOT EXISTS idx_chat_session
     ON session.chat_log (session_id, timestamp_us);
 
--- Bilateral channel — dispatch telegrams (S-forms and free-text between neighbouring areas).
+-- Dispatch channel — dispatch telegrams (S-forms and free-text between neighbouring areas).
 CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
     id              BIGSERIAL   PRIMARY KEY,
     session_id      UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,

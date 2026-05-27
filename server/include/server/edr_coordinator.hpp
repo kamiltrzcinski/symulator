@@ -8,16 +8,16 @@
 // Responsibilities:
 //   S25 accepted  → set actual_departure + status=DEPARTED for the departing station.
 //   S26 accepted  → set actual_arrival  + status=ARRIVED  for the arrival station.
-//   S24/S56       → track_clear_time is handled by BilateralChannel directly via IDbWriter.
+//   S24/S56       → track_clear_time is handled by DispatchCoordinator directly via IDbWriter.
 //
 // Station resolution rule (SENT vs RECEIVED):
 //   SENT:     the operator at src_area just sent the form  → affected station = src_area.
 //   RECEIVED: the operator at src_area recorded a received form → affected station = dst_area.
 //
 // This is consistent regardless of whether the same server models one or both
-// endpoints of the bilateral exchange.
+// endpoints of the dispatch exchange.
 //
-// Threading: called from the IO thread (same thread as BilateralChannel callbacks).
+// Threading: called from the IO thread (same thread as DispatchChannel callbacks).
 
 #include "engine/core/types.hpp"
 #include "server/db_writer.hpp"
@@ -33,7 +33,7 @@ class EdrCoordinator
 public:
     EdrCoordinator(IDbWriter& db, std::string session_id);
 
-    /// Called by BilateralChannel after a dispatch S-form is accepted.
+    /// Called by DispatchCoordinator after a dispatch S-form is accepted.
     ///
     /// @param form          The accepted form type.
     /// @param direction     SENT = src_area is the affected station;

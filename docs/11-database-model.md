@@ -160,14 +160,14 @@ CREATE INDEX ON session.edr_entries (session_id, station_sid, scheduled_departur
 CREATE INDEX ON session.edr_entries (session_id, train_number);
 
 -- Dispatch telegram log (S-form exchange between neighbouring LCS).
--- One row per telegram in a bilateral dispatch exchange.
+-- One row per telegram in a dispatch exchange.
 -- The full S-form state machine is documented in docs/15-dispatch-forms.md.
 CREATE TABLE session.dispatch_telegrams (
     id              BIGSERIAL   PRIMARY KEY,
     session_id      UUID        NOT NULL REFERENCES session.sessions(id),
     form_type       TEXT        NOT NULL,              -- S2 | S24 | S25 | S26 | S35 | S51 |
                                                        -- S52 | S55 | S56 | S76
-    exchange_id     UUID        NOT NULL,              -- groups all telegrams of one bilateral
+    exchange_id     UUID        NOT NULL,              -- groups all telegrams of one dispatch
                                                        -- exchange (question + reply + confirm)
     train_number    TEXT        NOT NULL,
     from_sid        TEXT        NOT NULL,              -- sending LCS

@@ -2,9 +2,9 @@
 
 ## Overview
 
-Dispatch forms (Polish: *formularze zapowiedniowe*, prefix **S**) are the formal bilateral exchange protocol between neighbouring Line Control Sections (LCS). They implement the rule: **a train may not depart toward a neighbouring LCS until that LCS has confirmed the line is clear**.
+Dispatch forms (Polish: *formularze zapowiedniowe*, prefix **S**) are the formal dispatch exchange protocol between neighbouring Line Control Sections (LCS). They implement the rule: **a train may not depart toward a neighbouring LCS until that LCS has confirmed the line is clear**.
 
-In the simulator, this process is handled by the **Zapowiedniowiec** (Dispatch Form) module — a server-side component that manages the state machine of each bilateral exchange and produces/consumes `session.dispatch_telegrams` rows.
+In the simulator, this process is handled by the **`DispatchChannel`** / **`DispatchCoordinator`** pair of server-side components: `DispatchChannel` is the wire-protocol layer that parses `DISPATCH_CHANNEL_MESSAGE` frames and broadcasts results, while `DispatchCoordinator` is the domain-logic layer that drives the exchange state machine, persists telegrams to `session.dispatch_telegrams`, and updates EDR entries.
 
 ---
 
@@ -13,7 +13,7 @@ In the simulator, this process is handled by the **Zapowiedniowiec** (Dispatch F
 | Term | Meaning |
 |---|---|
 | **LCS** | Line Control Section (`SID`) — the basic organisational unit of track control |
-| **Exchange** | One bilateral request/reply/confirm cycle between two LCS; grouped by `exchange_id` (UUID) |
+| **Exchange** | One dispatch request/reply/confirm cycle between two LCS; grouped by `exchange_id` (UUID) |
 | **Telegram** | One message in an exchange; stored as a row in `session.dispatch_telegrams` |
 | **S-form** | Named form template (S2, S24, …); defines the content and allowed sequence of telegrams |
 | **Droga wolna** | "Line clear" — confirmation from the receiving LCS that the line section is unoccupied and the train may be accepted |
@@ -33,7 +33,7 @@ In the simulator, this process is handled by the **Zapowiedniowiec** (Dispatch F
 | **S52** | B → A | Acknowledgement of S51 |
 | **S55** | A → B | Extended dispatch request for trains carrying dangerous goods |
 | **S56** | B → A | Reply to S55 |
-| **S76** | A ↔ B | Free-form bilateral message (remarks, exceptions) |
+| **S76** | A ↔ B | Free-form dispatch message (remarks, exceptions) |
 
 ---
 
@@ -90,7 +90,7 @@ The number and positions of crossings on each section are defined in the scenari
 
 ## Server-side component: DispatchExchangeManager
 
-`server::DispatchExchangeManager` (`server/include/server/dispatch_exchange_manager.hpp`) is the **implemented** server-side component that manages the S-form exchange state machine.  It is a pure-logic, single-threaded class with no I/O, no engine state, and no DB dependency (DB persistence is the responsibility of the future `ZapowiedniowiecManager` layer).
+`server::DispatchExchangeManager` (`server/include/server/dispatch_exchange_manager.hpp`) is the server-side component that manages the S-form exchange state machine.  It is a pure-logic, single-threaded class with no I/O, no engine state, and no DB dependency.  DB persistence is handled by `DispatchCoordinator`, which wraps `DispatchExchangeManager` and writes accepted telegrams to `session.dispatch_telegrams`.
 
 ### Types
 
@@ -143,15 +143,16 @@ Any form not listed for the current status → `REJECTED_WRONG_STATE`.
 
 ---
 
-## Future component: ZapowiedniowiecManager
+## DispatchCoordinator
 
-The planned `ZapowiedniowiecManager` will wrap `DispatchExchangeManager` and add:
-- Persistence to `session.dispatch_telegrams` via `DB_WRITER`.
+`server::DispatchCoordinator` (`server/include/server/dispatch_coordinator.hpp`) wraps `DispatchExchangeManager` and adds:
+- Persistence of accepted telegrams to `session.dispatch_telegrams` via `IDbWriter`.
 - Update of `session.edr_entries.track_clear_time` on S24/S56 confirmation.
-- Emission of `DomainEvent::DispatchTelegramStateChanged` to `DispatchBus`.
-- `DomainEvent::DispatchTelegramStateChanged` so DISPATCHER can push updates to affected clients.
+- Notification of `EdrCoordinator` for S25 (departure) and S26 (arrival) so EDR is updated.
 
-`ZapowiedniowiecManager` does **not** own any engine state. It is a pure business-logic layer over the DB.
+`DispatchCoordinator` does **not** own any engine state and has no I/O. It is the business-logic layer over `DispatchExchangeManager` and `IDbWriter`.
+
+`DispatchChannel` (`server/include/server/dispatch_channel.hpp`) is the wire-protocol layer: it parses `DISPATCH_CHANNEL_MESSAGE` FlatBuffers payloads, verifies sender identity, delegates to `DispatchCoordinator`, and broadcasts the resulting frame to the `(src_area, dst_area)` pair via `TransportGateway`.
 
 ---
 

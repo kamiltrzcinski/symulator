@@ -3,6 +3,7 @@ add_subdirectory(srk)
 add_subdirectory(server)
 add_subdirectory(integration)
 add_subdirectory(proto)
+add_subdirectory(libscenario_validation)
 
 if(TARGET Qt6::Core)
     add_subdirectory(qt6)

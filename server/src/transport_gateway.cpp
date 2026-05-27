@@ -106,9 +106,9 @@ void ClientSession::handle_frame(const DecodedFrame& frame)
         case msg_type::kHeartbeat:
             handle_heartbeat(frame);
             break;
-        case msg_type::kBilateral:
+        case msg_type::kDispatchChannel:
             if (is_active())
-                handle_bilateral(frame);
+                handle_dispatch_channel(frame);
             break;
         default:
             break;  // ignore unknown / unimplemented types
@@ -219,9 +219,9 @@ void ClientSession::handle_heartbeat(const DecodedFrame& frame)
     send_frame(msg_type::kHeartbeatAck, 0, build_flatbuffers_payload(fbb));
 }
 
-void ClientSession::handle_bilateral(const DecodedFrame& frame)
+void ClientSession::handle_dispatch_channel(const DecodedFrame& frame)
 {
-    const auto& handler = gateway_.bilateral_handler();
+    const auto& handler = gateway_.dispatch_channel_handler();
     if (handler)
         handler(frame.payload, info_.player_id, info_.dispatch_area_id);
 }
@@ -356,9 +356,9 @@ void TransportGateway::broadcast_to_pair(const std::string& src_area_id,
                });
 }
 
-void TransportGateway::set_bilateral_handler(BilateralHandler handler)
+void TransportGateway::set_dispatch_channel_handler(DispatchChannelHandler handler)
 {
-    bilateral_handler_ = std::move(handler);
+    dispatch_channel_handler_ = std::move(handler);
 }
 
 void TransportGateway::register_session(std::shared_ptr<ClientSession> session)

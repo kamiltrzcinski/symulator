@@ -89,6 +89,41 @@ public:
     virtual void upsert_pip_track_state(const std::string& session_id,
                                         const std::string& section_gid,
                                         const std::string& trains_json) = 0;
+
+    /// Persist a full session snapshot to session.snapshots.
+    /// payload is the raw FlatBuffers bytes of the snapshot.
+    virtual void save_snapshot(const std::string& session_id, int64_t seq_cursor,
+                               int64_t timestamp_us, const std::vector<std::uint8_t>& payload) = 0;
+
+    /// Append one message to session.chat_log.
+    /// target_type is "BROADCAST" | "AREA" | "PLAYER"; target_id may be nullopt for broadcasts.
+    virtual void append_chat_message(const std::string& session_id, const std::string& sender_id,
+                                     const std::string& target_type,
+                                     const std::optional<std::string>& target_id,
+                                     const std::string& body, int64_t timestamp_us) = 0;
+
+    /// Insert an operating-point assignment and return its auto-generated id.
+    /// Records that client_id has taken operating_point_id at station_sid in this session.
+    virtual int64_t assign_operating_point(const std::string& session_id,
+                                           const std::string& operating_point_id,
+                                           const std::string& station_sid,
+                                           const std::string& client_id) = 0;
+
+    /// Mark an operating-point assignment as released (set released_at = now()).
+    /// Idempotent — no-op if the assignment is already released.
+    virtual void release_operating_point(const std::string& session_id,
+                                         const std::string& operating_point_id,
+                                         const std::string& client_id) = 0;
+
+    /// UPSERT a timetable template row in fleet.timetable_templates.
+    /// scheduled_arrival_secs and track_number may be null for origin/terminus stations.
+    virtual void upsert_timetable_template(const std::string& train_number,
+                                           const std::string& station_sid,
+                                           const std::optional<std::string>& operating_point_id,
+                                           const std::optional<std::string>& scheduled_arrival_secs,
+                                           const std::string& scheduled_departure_secs,
+                                           const std::optional<std::string>& track_number,
+                                           const std::string& stop_type) = 0;
 };
 
 /// No-op implementation for unit tests.
@@ -137,6 +172,48 @@ public:
         pip_upserts.push_back({section_gid, trains_json});
     }
 
+    void save_snapshot(const std::string& /*session_id*/, int64_t seq_cursor, int64_t timestamp_us,
+                       const std::vector<std::uint8_t>& payload) override
+    {
+        saved_snapshots.push_back({seq_cursor, timestamp_us, payload});
+    }
+
+    void append_chat_message(const std::string& /*session_id*/, const std::string& sender_id,
+                             const std::string& target_type,
+                             const std::optional<std::string>& target_id, const std::string& body,
+                             int64_t timestamp_us) override
+    {
+        chat_messages.push_back({sender_id, target_type, target_id, body, timestamp_us});
+    }
+
+    int64_t assign_operating_point(const std::string& /*session_id*/,
+                                   const std::string& operating_point_id,
+                                   const std::string& station_sid,
+                                   const std::string& client_id) override
+    {
+        op_assignments.push_back({operating_point_id, station_sid, client_id});
+        return static_cast<int64_t>(op_assignments.size());
+    }
+
+    void release_operating_point(const std::string& /*session_id*/,
+                                 const std::string& operating_point_id,
+                                 const std::string& client_id) override
+    {
+        op_releases.push_back({operating_point_id, client_id});
+    }
+
+    void upsert_timetable_template(const std::string& train_number, const std::string& station_sid,
+                                   const std::optional<std::string>& operating_point_id,
+                                   const std::optional<std::string>& scheduled_arrival_secs,
+                                   const std::string& scheduled_departure_secs,
+                                   const std::optional<std::string>& track_number,
+                                   const std::string& stop_type) override
+    {
+        timetable_upserts.push_back({train_number, station_sid, operating_point_id,
+                                     scheduled_arrival_secs, scheduled_departure_secs, track_number,
+                                     stop_type});
+    }
+
     struct PipUpsert
     {
         std::string section_gid;
@@ -150,12 +227,57 @@ public:
         std::uint64_t timestamp_us;
     };
 
+    struct SnapshotSave
+    {
+        int64_t seq_cursor;
+        int64_t timestamp_us;
+        std::vector<std::uint8_t> payload;
+    };
+
+    struct ChatMessage
+    {
+        std::string sender_id;
+        std::string target_type;
+        std::optional<std::string> target_id;
+        std::string body;
+        int64_t timestamp_us;
+    };
+
+    struct OpAssignment
+    {
+        std::string operating_point_id;
+        std::string station_sid;
+        std::string client_id;
+    };
+
+    struct OpRelease
+    {
+        std::string operating_point_id;
+        std::string client_id;
+    };
+
+    struct TimetableUpsert
+    {
+        std::string train_number;
+        std::string station_sid;
+        std::optional<std::string> operating_point_id;
+        std::optional<std::string> scheduled_arrival_secs;
+        std::string scheduled_departure_secs;
+        std::optional<std::string> track_number;
+        std::string stop_type;
+    };
+
     std::vector<TelegramRow> written_telegrams;
     std::vector<DomainEventRow> written_events;
     std::vector<EdrUpdate> edr_updates;
     std::vector<EdrUpdate> edr_departures;
     std::vector<EdrUpdate> edr_arrivals;
     std::vector<PipUpsert> pip_upserts;
+    std::vector<SnapshotSave> saved_snapshots;
+    std::vector<ChatMessage> chat_messages;
+    std::vector<OpAssignment> op_assignments;
+    std::vector<OpRelease> op_releases;
+    std::vector<TimetableUpsert> timetable_upserts;
 };
 
 }  // namespace server

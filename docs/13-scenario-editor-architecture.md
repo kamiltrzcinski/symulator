@@ -202,7 +202,7 @@ Produces / manages `fleet.timetable_templates` rows (as described in `11-databas
 
 | Mode | Action |
 |---|---|
-| **PLK import** | Triggered from the editor UI; the request is forwarded to the **Session Server**, which calls `IPLKImporter::import(config)` — fetches `GET /api/v1/schedules` for each station SID and maps results to template rows. The editor receives the result and the operator reviews and confirms. The editor itself never contacts PLK directly; a server connection is required for this mode. |
+| **PLK import** | Triggered from the editor UI; handled by a dedicated import tool (not the Session Server). The editor receives the result and the operator reviews and confirms. |
 | **Manual edit** | Create / edit template rows directly (useful for fictional or modified timetables). Works fully offline. |
 
 **Validation (live, Layer 3):**
@@ -335,5 +335,5 @@ MVP is 9 stations (Gdynia Chylonia → Gdańsk Orunia). Two possible extensions:
 |---|---|
 | Q-EDI-1 | Is the editor a standalone desktop app (Qt), a tab inside the client, or a web tool? Standalone is cleanest for Stage 1 (no server running required). |
 | Q-EDI-2 | Does the CLI `scenario-lint` ship as part of the server binary or a separate tool? Separate tool is preferable for CI pipelines. |
-| Q-EDI-3 | How are PLK `station_code` values mapped to our `station_sid` identifiers? Static lookup table in `IPLKImporter` config vs. auto-detection by name match. |
+| Q-EDI-3 | How are PLK `station_code` values mapped to our `station_sid` identifiers? Static lookup table vs. auto-detection by name match. |
 | Q-EDI-4 | Double-slip and diamond-crossing objects (Q-TOPo-1 / Q-TOPo-2 from `08-track-topology-model.md`) — required for Gdańsk Główny and Wejherowo; must be resolved before those station bundles can pass Layer 1. |

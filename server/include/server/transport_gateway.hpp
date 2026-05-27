@@ -77,7 +77,7 @@ private:
     void handle_snapshot_request(const DecodedFrame& frame);
     void handle_command(const DecodedFrame& frame);
     void handle_heartbeat(const DecodedFrame& frame);
-    void handle_bilateral(const DecodedFrame& frame);
+    void handle_dispatch_channel(const DecodedFrame& frame);
     void send_frame(uint8_t msg_type, uint8_t flags, const std::vector<uint8_t>& payload);
 
     asio::ip::tcp::socket socket_;
@@ -126,18 +126,21 @@ public:
     void broadcast_to_pair(const std::string& src_area_id, const std::string& dst_area_id,
                            std::vector<uint8_t> frame);
 
-    /// Register a handler for incoming msg_type 0x61 BILATERAL_MESSAGE frames.
+    /// Register a handler for incoming msg_type 0x61 DISPATCH_CHANNEL_MESSAGE frames.
     /// Called from IO_THREAD.  Must be set before start().
-    using BilateralHandler =
+    using DispatchChannelHandler =
         std::function<void(const std::vector<uint8_t>& payload, const std::string& sender_client_id,
                            const std::string& sender_area_id)>;
-    void set_bilateral_handler(BilateralHandler handler);
+    void set_dispatch_channel_handler(DispatchChannelHandler handler);
 
     // ── Called by ClientSession ──────────────────────────────────────────────
     void register_session(std::shared_ptr<ClientSession> session);
     void unregister_session(ClientSession* session);
 
-    const BilateralHandler& bilateral_handler() const noexcept { return bilateral_handler_; }
+    const DispatchChannelHandler& dispatch_channel_handler() const noexcept
+    {
+        return dispatch_channel_handler_;
+    }
     engine::core::PriorityCommandQueue<engine::core::EnvelopedCommand>& cmd_queue() noexcept
     {
         return cmd_queue_;
@@ -161,7 +164,7 @@ private:
     std::thread io_thread_;
     std::atomic<bool> running_{false};
 
-    BilateralHandler bilateral_handler_;
+    DispatchChannelHandler dispatch_channel_handler_;
 };
 
 }  // namespace server
