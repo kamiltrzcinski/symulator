@@ -108,9 +108,9 @@ DISPATCH_BUS → per-station broadcast sets      → IO_POOL (strands)
 
 **`EventQueue<T>`** is a single-producer single-consumer ring with a `std::mutex` + `std::condition_variable`. The consumer calls `wait_and_pop`; the producer calls `push` and notifies. No heap allocation on the hot path.
 
-### Posterunek ownership and command rejection
+### Operating point ownership and command rejection
 
-`OwnershipRegistry` is a `std::unordered_map<posterunek_id, player_id>` protected by a `std::shared_mutex`. Reads (ownership check during command validation on WORK_POOL) take a shared lock. Writes (TAKEOVER, session join/leave) take an exclusive lock. The engine itself never reads `OwnershipRegistry` — rejection happens on WORK_POOL before the command enters `PriorityCommandQueue`, so the engine thread is never involved in ownership bookkeeping.
+`OwnershipRegistry` is a `std::unordered_map<operating_point_id, player_id>` protected by a `std::shared_mutex`. Reads (ownership check during command validation on WORK_POOL) take a shared lock. Writes (TAKEOVER, session join/leave) take an exclusive lock. The engine itself never reads `OwnershipRegistry` — rejection happens on WORK_POOL before the command enters `PriorityCommandQueue`, so the engine thread is never involved in ownership bookkeeping.
 
 ### Shutdown sequence
 
@@ -233,10 +233,10 @@ The AI Dispatch Module is a separate server-side process that acts as a virtual 
 
 ### Role
 
-- Holds posterunek assignments via `OwnershipRegistry` (F-019, F-024).
+- Holds operating point assignments via `OwnershipRegistry` (F-019, F-024).
 - Subscribes to `DOMAIN_EVENT` broadcasts as a read-only observer.
 - Generates `COMMAND` payloads (set signal, set route, takeover, etc.) and submits them through `PriorityCommandQueue` at the appropriate priority level.
-- May hand off posterunki to a human player on demand; re-acquires them when the player leaves.
+- May hand off operating points to a human player on demand; re-acquires them when the player leaves.
 
 ### Inference hardware
 
@@ -246,8 +246,8 @@ Training and inference targets a local GPU (NVIDIA RTX 5070 Ti, 16 GB VRAM). The
 IDispatchAI
   + onDomainEvent(DomainEvent) → void       // observe state changes
   + pollCommands() → std::vector<Command>   // engine calls this each tick
-  + assignPosterunek(posterunek_id) → void
-  + revokePosterunek(posterunek_id) → void
+  + assignOperatingPoint(operating_point_id) → void
+  + revokePosterunek(operating_point_id) → void
 ```
 
 `pollCommands` is called by the ENGINE thread at the start of each tick. The implementation must be non-blocking (inference result is prepared asynchronously on a GPU thread and staged in a lock-free buffer; `pollCommands` only reads the buffer).

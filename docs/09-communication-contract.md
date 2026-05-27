@@ -99,7 +99,7 @@ In practice this already covers current and near-future scope. If a future famil
 ```
 Client                          Server
   │── HANDSHAKE ──────────────▶ │  version, player_id, auth_token
-  │◀─ HANDSHAKE_ACK ───────────  │  session_id, assigned_posterunki[], server_tick_hz
+  │◀─ HANDSHAKE_ACK ───────────  │  session_id, assigned_operating_points[], server_tick_hz
   │── SNAPSHOT_REQUEST ────────▶ │  (immediately after handshake)
   │◀─ SNAPSHOT_CHUNK (N) ───────  │  IS_LAST_CHUNK=0 on all but final
   │◀─ SNAPSHOT_CHUNK (last) ────  │  IS_LAST_CHUNK=1; seq_cursor included
@@ -163,7 +163,7 @@ Reason codes (uint8):
 0x05  NO_PATH        — BFS found no route between entry and exit signals
 0x06  SWITCH_MOVING  — switch is in MOVING state; cannot command it
 0x07  UNSUPPORTED    — command type not handled by the active SRK system
-0x08  UNAUTHORIZED   — client does not own the posterunek
+0x08  UNAUTHORIZED   — client does not own the operating point
 0x09  SESSION_PAUSED — session is not accepting commands
 ```
 
@@ -189,7 +189,7 @@ The `DOMAIN_EVENT` payload begins with a 1-byte `event_type` field, a 4-byte `ev
 | 0x09       | TrainMovement                | `train_gID`, `section_gID`, `direction`, `speed_kmh`             |
 | 0x0A       | AlarmRaised                  | `alarm_id`, `alarm_type`, `object_gID`, `message`                |
 | 0x0B       | AlarmCleared                 | `alarm_id`                                                       |
-| 0x0C       | PosterunekOwnershipChanged   | `posterunek_id`, `station_sID`, `new_owner_client_id`            |
+| 0x0C       | OperatingPointOwnershipChanged   | `operating_point_id`, `station_sID`, `new_owner_client_id`            |
 | 0x0D       | SessionStateChanged          | `new_state` (STARTED \| PAUSED \| RESUMED \| ENDED)              |
 | 0x0E       | TrainComposed                | `train_gID`, `vehicle_gIDs[]`, `total_length_m`, `total_axles`   |
 | 0x0F       | TrainDecomposed              | `train_gID`, `reason`                                            |
@@ -223,7 +223,7 @@ Snapshot {
   block_sections:   [BlockSectionState]  // includes direction (BlockDirectionState) for SHL-12 blocks
   active_routes:    [RouteState]
   active_alarms:    [AlarmState]
-  posterunek_assignments: [PosterunekOwnership]
+  operating_point_assignments: [OperatingPointOwnership]
   trains:                 [TrainState]
 }
 ```
@@ -243,22 +243,22 @@ For Gdynia Główna Osobowa scale (~60 switches, ~120 sections, ~80 signals) est
 
 ---
 
-## Multi-operator model (posterunki)
+## Multi-operator model (operating points)
 
-A **station** (`sID`, e.g., `GGO`) may contain multiple **posterunki** (sub-posts, e.g., `GGO_nastawnia_A`, `GGO_nastawnia_B`). Each posterunek defines the scope of objects (switches, signals) that the assigned operator may command. Multiple operators can work the same station simultaneously, each controlling their posterunek.
+A **station** (`sID`, e.g., `GGO`) may contain multiple **operating points** (sub-posts, e.g., `GGO_nastawnia_A`, `GGO_nastawnia_B`). Each operating point defines the scope of objects (switches, signals) that the assigned operator may command. Multiple operators can work the same station simultaneously, each controlling their operating point.
 
-`HANDSHAKE_ACK` returns `assigned_posterunki[]`, where each entry is:
+`HANDSHAKE_ACK` returns `assigned_operating_points[]`, where each entry is:
 
 ```
-PosterunekAssignment {
-  posterunek_id:  string   // e.g. "GGO_nastawnia_A"
+OperatingPointAssignment {
+  operating_point_id:  string   // e.g. "GGO_nastawnia_A"
   station_sID:   string   // parent station
   display_name:  string
   object_gIDs:   [string] // objects in scope for this sub-post
 }
 ```
 
-For MVP with simple scenarios, a station has exactly one posterunek and the model degenerates to the original per-station ownership. The data model is the same — no special-casing needed.
+For MVP with simple scenarios, a station has exactly one operating point and the model degenerates to the original per-station ownership. The data model is the same — no special-casing needed.
 
 ---
 
@@ -266,13 +266,13 @@ For MVP with simple scenarios, a station has exactly one posterunek and the mode
 
 ```
 Client                          Server
-  │── TAKEOVER_REQUEST ────────▶ │  posterunek_id, station_sID, reason_text
-  │◀─ TAKEOVER_RESPONSE ────────  │  granted: bool, posterunek_id, [reject_reason]
-  │                               │  if granted → DOMAIN_EVENT PosterunekOwnershipChanged
+  │── TAKEOVER_REQUEST ────────▶ │  operating_point_id, station_sID, reason_text
+  │◀─ TAKEOVER_RESPONSE ────────  │  granted: bool, operating_point_id, [reject_reason]
+  │                               │  if granted → DOMAIN_EVENT OperatingPointOwnershipChanged
   │                               │       broadcast to all clients
 ```
 
-The server grants the request if: the requesting client is connected, the posterunek is currently unowned or owned by the requesting client, and no active safety-critical route covers objects in that posterunek. Otherwise it denies with a `reject_reason` string.
+The server grants the request if: the requesting client is connected, the operating point is currently unowned or owned by the requesting client, and no active safety-critical route covers objects in that operating point. Otherwise it denies with a `reject_reason` string.
 
 ---
 
@@ -343,7 +343,7 @@ The additions in this revision (chat, voice signaling, multi-operator, vehicle m
 | CRC-32 | Detects transmission errors on trusted internal network. For external access TLS provides stronger integrity; CRC still useful as a quick framing sanity check. ✓ |
 | Voice audio | Does **not** use this frame — separate UDP channel. Frame overhead (16 B) is irrelevant for audio. ✓ |
 | Train snapshot growth | 50 vehicles × ~120 bytes = 6 kB per train; 10 trains = 60 kB — fits in one snapshot chunk. ✓ |
-| Multi-operator | Changes payload field names only (`assigned_posterunki[]`). Frame unchanged. ✓ |
+| Multi-operator | Changes payload field names only (`assigned_operating_points[]`). Frame unchanged. ✓ |
 
 **Conclusion: the 16-byte frame is sufficient for all planned extensions. No changes required.**
 
@@ -370,8 +370,8 @@ The generated C++ headers are built by CMake target `generate_proto_headers` int
 ## Open questions
 
 - Q-COM-1: Should `DOMAIN_EVENT` carry a diff-only payload (only changed fields) or always the full object state? Full state is simpler; diff is smaller. At Gdynia scale a full-state event for a switch is ~40 bytes — full state is fine for MVP.
-- Q-COM-2: ~~Per-station event subscription vs. broadcast?~~ **Resolved (this revision):** full broadcast for MVP; client filters by assigned posterunki. Voice channel architecture (separate UDP) makes selective game-state broadcast unnecessary.
+- Q-COM-2: ~~Per-station event subscription vs. broadcast?~~ **Resolved (this revision):** full broadcast for MVP; client filters by assigned operating points. Voice channel architecture (separate UDP) makes selective game-state broadcast unnecessary.
 - Q-COM-3: Is a `PING`/`PONG` latency probe needed separately from `HEARTBEAT`, or does the heartbeat timestamp difference suffice for N-001 monitoring?
 - Q-COM-4: Signal aspect enum: define a closed list per project now, or leave as a string for flexibility? Closed enum preferred for type safety; list needs to be agreed with the domain model.
-- Q-COM-5: Posterunek scope definition — should `object_gIDs[]` be an explicit allowlist per posterunek in the station config, or derived automatically from topology (e.g., all objects within a named zone polygon)?
+- Q-COM-5: Operating point scope definition — should `object_gIDs[]` be an explicit allowlist per operating point in the station config, or derived automatically from topology (e.g., all objects within a named zone polygon)?
 - Q-COM-6: ~~Chat retention — should chat messages be stored in the event log (same table as domain events) or in a separate chat log?~~ **Resolved:** use separate `session.chat_log` table to keep domain event replay independent from free-text communication payloads.

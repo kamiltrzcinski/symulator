@@ -112,8 +112,8 @@ class ISessionStore {
 public:
     virtual void appendEvent(const DomainEvent& event) = 0;
     virtual void saveSnapshot(const Snapshot& snapshot) = 0;
-    virtual void assignPosterunek(const PosterunekAssignment& assignment) = 0;
-    virtual void releasePosterunek(const std::string& posterunekID,
+    virtual void assignOperatingPoint(const OperatingPointAssignment& assignment) = 0;
+    virtual void releaseOperatingPoint(const std::string& operatingPointId,
                                    const std::string& clientID) = 0;
     virtual void appendChat(const ChatMessage& msg) = 0;
     virtual ~ISessionStore() = default;

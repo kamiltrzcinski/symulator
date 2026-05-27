@@ -5,6 +5,26 @@ All notable changes are documented here.
 ## [0.5.4] - 2026-05-25
 
 ### Added
+- **Unit tests — srk::common**: new test suite `tests/srk/test_srk_common_route_graph.cpp`
+  (11 tests) covering `find_route_path()` and `make_route_id()` in detail: straight/divergent
+  switch traversal, derailer collection, null-opt cases, ID determinism and uniqueness.
+- **Unit tests — srk::common device rules**: new test suite `tests/srk/test_srk_common_device_rules.cpp`
+  (24 tests) exercising R1–R4 and R7 check and execute helpers directly: switch position
+  (valid, occupied, moving, route-locked, already-in-position, not-found, instant and delayed throw),
+  signal aspect (valid, not-found, route-locked proceed vs stop), derailer (valid, not-found,
+  route-locked, guarded section occupied), block section (open valid, close with axles), and
+  alarm acknowledgement (exists, not-found, cleared change).
+- **Integration tests — EdrCoordinator**: new test suite `tests/integration/test_edr_coordinator.cpp`
+  (5 tests) verifying that `EdrCoordinator::on_telegram_accepted()` writes the correct
+  departure/arrival timestamp and status to `session.edr_entries` for S25/S26 in both SENT and
+  RECEIVED direction; unhandled form types leave the row untouched.
+- **Integration tests — pip.track_state**: new test suite `tests/integration/test_pip_track_state.cpp`
+  (5 tests) validating `PgDbWriter::upsert_pip_track_state()` against a live PostgreSQL instance:
+  initial INSERT, free-section empty-array write, ON CONFLICT DO UPDATE, multi-section isolation,
+  and `updated_at` persistence.
+- **DB schema**: `pip` schema and `pip.track_state` table added to `docker/init.sql`; previously the
+  table was written at runtime but absent from the init script, causing a startup failure on fresh
+  containers.
 - **PipWriter** (`server/include/server/pip_writer.hpp` + `server/src/pip_writer.cpp`): new class
   consuming `PipEvent` batches from the ENGINE thread and persisting them to `pip.track_state`.
   - `IDbWriter::upsert_pip_track_state(session_id, section_gid, trains_json)` added as a pure
@@ -23,6 +43,13 @@ All notable changes are documented here.
   and covered ignored sidecar JSON files.
 
 ### Changed
+- **Rename `posterunek` → `operating_point`** throughout the entire codebase:
+  - `docker/init.sql`: `session.posterunek_assignments` table renamed to
+    `session.operating_point_assignments`; column `posterunek_id` renamed to `operating_point_id`
+    in both `fleet.timetable_templates` and `session.edr_entries`; index renamed accordingly.
+  - All 10 documentation files updated: `posterunek_id` → `operating_point_id`,
+    `PosterunekOwnership` → `OperatingPointOwnership`, `assignPosterunek` → `assignOperatingPoint`,
+    `releasePosterunek` → `releaseOperatingPoint`, etc.
 - **Fleet data**: Reworked `data/vehicles` so each physical vehicle instance lives in its own
   directory with a canonical `vehicle.json`, aligned with the `data/vehicle_types` hierarchy.
 - **Fleet data**: Grouped vehicle type JSON files by model family/series under `data/vehicle_types`,
@@ -35,7 +62,7 @@ All notable changes are documented here.
 
 ### Fixed
 - **DB schema**: added `ON DELETE CASCADE` to all foreign keys referencing `session.sessions(id)` in
-  `docker/init.sql` (`events`, `snapshots`, `edr_entries`, `posterunek_assignments`, `chat_log`,
+  `docker/init.sql` (`events`, `snapshots`, `edr_entries`, `operating_point_assignments`, `chat_log`,
   `dispatch_telegrams`); integration test `TearDown` no longer hits FK constraint violations when
   deleting the session row.
 - **CI**: bumped `actions/checkout@v4` → `v6` and `actions/cache@v4` → `v5`; both now run on

@@ -50,7 +50,7 @@ A switch may be moved **only if all of the following hold**:
 |---|-----------|----------|
 | 1 | No train axle detected on the switch node (`occupied == false`). | `SAFETY_BLOCK` (0x02) |
 | 2 | The switch is **not locked by an active route** (`locked_by_route == false`). | `ROUTE_LOCKED` (0x04) |
-| 3 | The requesting client owns the posterunek that governs this switch. | `UNAUTHORIZED` (0x08) |
+| 3 | The requesting client owns the operating point that governs this switch. | `UNAUTHORIZED` (0x08) |
 | 4 | The switch is not already in the requested position. | `INVALID_STATE` (0x03) |
 | 5 | The switch is not currently moving (`position != MOVING`). | `SWITCH_MOVING` (0x06) |
 
@@ -60,7 +60,7 @@ A signal aspect may be set manually **only if**:
 
 | # | Condition | NAK code |
 |---|-----------|----------|
-| 1 | Client owns the posterunek governing this signal. | `UNAUTHORIZED` (0x08) |
+| 1 | Client owns the operating point governing this signal. | `UNAUTHORIZED` (0x08) |
 | 2 | Requested aspect is not more permissive than the current route permits. A signal with no route set may only receive `S1_STOP` or `MS1_STOP`. | `SAFETY_BLOCK` (0x02) |
 | 3 | Signal is not currently overridden by a locked route. | `SAFETY_BLOCK` (0x02) |
 
@@ -72,7 +72,7 @@ Unlocking a derailer is permitted **only if**:
 
 | # | Condition | NAK code |
 |---|-----------|----------|
-| 1 | Client owns the posterunek. | `UNAUTHORIZED` (0x08) |
+| 1 | Client owns the operating point. | `UNAUTHORIZED` (0x08) |
 | 2 | No active route passes through the derailer. | `ROUTE_LOCKED` (0x04) |
 | 3 | The section immediately beyond the derailer is free. | `SAFETY_BLOCK` (0x02) |
 
@@ -82,7 +82,7 @@ Opening a closed block section is permitted **only if**:
 
 | # | Condition | NAK code |
 |---|-----------|----------|
-| 1 | Client owns a posterunek at either boundary station. | `UNAUTHORIZED` (0x08) |
+| 1 | Client owns a operating point at either boundary station. | `UNAUTHORIZED` (0x08) |
 | 2 | No train currently occupies any section within the block. | `SAFETY_BLOCK` (0x02) |
 | 3 | Both boundary signals are at `S1_STOP` or `MS1_STOP`. | `SAFETY_BLOCK` (0x02) |
 
@@ -100,7 +100,7 @@ Route setting is the most safety-critical command.  The engine executes it atomi
 
 | # | Condition | NAK code |
 |---|-----------|----------|
-| 1 | Client owns all posterunki along the route path. | `UNAUTHORIZED` (0x08) |
+| 1 | Client owns all operating points along the route path. | `UNAUTHORIZED` (0x08) |
 | 2 | Every track section on the path is **free** (`occupied == false`). | `SAFETY_BLOCK` (0x02) |
 | 3 | Every switch on the path is **not locked by a different conflicting route**. | `ROUTE_LOCKED` (0x04) |
 | 4 | Every derailer on the path is in `UNLOCKED` position. | `SAFETY_BLOCK` (0x02) |
@@ -134,7 +134,7 @@ Executed only if all Phase 2 checks pass.  No partial mutation:
 | # | Condition | NAK code |
 |---|-----------|----------|
 | 1 | `route_id` exists. | `NOT_FOUND` (0x01) |
-| 2 | Client owns at least one posterunek on the route. | `UNAUTHORIZED` (0x08) |
+| 2 | Client owns at least one operating point on the route. | `UNAUTHORIZED` (0x08) |
 | 3 | No train axle is currently detected on any section of the route. If a train is present, the operator must wait for it to clear or use `force = true`. | `SAFETY_BLOCK` (0x02) |
 
 On success:

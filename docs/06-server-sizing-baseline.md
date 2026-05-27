@@ -15,7 +15,7 @@ Resolves P0 backlog item "Define MVP load profile".
 | Concurrent sessions | 1 | 1 | One shared simulation |
 | Stations in session | 1 reference | 9 | Gdynia Chylonia → Gdańsk Orunia |
 | Posterunki per station (avg) | 1 | 2–3 | Nastawnia A, B, etc. |
-| Operator clients (signaling) | 2 | 18–27 | One per posterunek |
+| Operator clients (signaling) | 2 | 18–27 | One per operating point |
 | Operator clients (EDR) | 1 | 9 | One per station |
 | **Total clients (peak)** | **3** | **~36** | |
 | Active trains in session | 2–5 | 20–30 | Rush-hour peak |

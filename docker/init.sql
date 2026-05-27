@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS fleet.timetable_templates (
     train_number         TEXT    NOT NULL,           -- e.g. IC 12345
     train_definition_gid TEXT    REFERENCES fleet.train_definitions(gid),
     station_sid          TEXT    NOT NULL,           -- e.g. GGO
-    posterunek_id        TEXT,                       -- NULL = whole station sees this train
+    operating_point_id   TEXT,                       -- NULL = whole station sees this train
     scheduled_arrival    INTERVAL,                   -- offset from session start; NULL for first origin
     scheduled_departure  INTERVAL NOT NULL,
     track_number         TEXT,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS session.edr_entries (
     session_id           UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     train_number         TEXT        NOT NULL,
     station_sid          TEXT        NOT NULL,
-    posterunek_id        TEXT,
+    operating_point_id   TEXT,
     scheduled_arrival    INTERVAL,
     actual_arrival       INTERVAL,
     scheduled_departure  INTERVAL    NOT NULL,
@@ -128,19 +128,19 @@ CREATE INDEX IF NOT EXISTS idx_edr_station
 CREATE INDEX IF NOT EXISTS idx_edr_train
     ON session.edr_entries (session_id, train_number);
 
--- Posterunek ownership — who controls which sub-post.
-CREATE TABLE IF NOT EXISTS session.posterunek_assignments (
-    id            BIGSERIAL   PRIMARY KEY,
-    session_id    UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
-    posterunek_id TEXT        NOT NULL,
-    station_sid   TEXT        NOT NULL,
+-- Operating point ownership — who controls which operating point.
+CREATE TABLE IF NOT EXISTS session.operating_point_assignments (
+    id                 BIGSERIAL   PRIMARY KEY,
+    session_id         UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
+    operating_point_id TEXT        NOT NULL,
+    station_sid        TEXT        NOT NULL,
     client_id     TEXT        NOT NULL,
     assigned_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     released_at   TIMESTAMPTZ          -- NULL = currently held
 );
 
-CREATE INDEX IF NOT EXISTS idx_posterunek_active
-    ON session.posterunek_assignments (session_id, posterunek_id, released_at)
+CREATE INDEX IF NOT EXISTS idx_operating_point_active
+    ON session.operating_point_assignments (session_id, operating_point_id, released_at)
     WHERE released_at IS NULL;
 
 -- Chat log — kept separate from domain events for independent retention and querying.
@@ -181,3 +181,17 @@ CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_train
     ON session.dispatch_telegrams (session_id, train_number);
 CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_areas
     ON session.dispatch_telegrams (session_id, from_sid, to_sid);
+
+-- ── Schema: pip ───────────────────────────────────────────────────────────────
+-- PIP (Pulse Interval Processing) track-state cache.
+-- Written by PipWriter on every engine tick; one row per session × section.
+
+CREATE SCHEMA IF NOT EXISTS pip;
+
+CREATE TABLE IF NOT EXISTS pip.track_state (
+    session_id  UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
+    section_gid TEXT        NOT NULL,
+    trains      JSONB       NOT NULL DEFAULT '[]'::jsonb,
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (session_id, section_gid)
+);

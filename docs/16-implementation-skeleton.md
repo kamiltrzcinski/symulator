@@ -72,7 +72,7 @@ The sections below describe the remaining wiring and interface contracts.
 |---|---|---|---|
 | `TransportGateway` | `IO_POOL` | frame ingress/egress, connection lifecycle | full protocol endpoint behavior |
 | `CommandIngress` | `WORK_POOL` | deserialize + envelope validation | full command parsing + schema upgrades |
-| `OwnershipGuard` | `WORK_POOL` | ownership check hook point | real posterunek authorization matrix |
+| `OwnershipGuard` | `WORK_POOL` | ownership check hook point | real operating point authorization matrix |
 | `EngineLoop` | `ENGINE` | tick scheduler + queue drain | device/interlocking mutation logic |
 | `DispatchBus` | dedicated `DISPATCH_BUS` thread | subscriber fan-out, backpressure boundary | routing policies per event family |
 | `SnapshotService` | `DISPATCH_BUS` + storage | snapshot request handling hook point | snapshot delta/full strategy |
@@ -154,7 +154,7 @@ public:
 
 1. `TransportGateway` receives frame.
 2. `CommandIngress` deserializes envelope; maps `cmd_type` byte to `Command` variant.
-3. `OwnershipGuard` checks `player_id` owns `posterunek_id` (NAK 0x08 on failure).
+3. `OwnershipGuard` checks `player_id` owns `operating_point_id` (NAK 0x08 on failure).
 4. Accepted command goes to `PriorityCommandQueue` for `EngineLoop`.
 5. **[TODO]** `EngineLoop` calls `IControlSystem::check_command(engine_state, cmd)` — NAK on violation.
 6. **[TODO]** `EngineLoop` calls `IControlSystem::execute_command(engine_state, cmd)` — applies each `DeviceStateChange` via `StateApplier`.
