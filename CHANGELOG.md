@@ -26,6 +26,14 @@ All notable changes are documented here.
 ## [0.5.4] - 2026-05-25
 
 ### Added
+- **FleetRegistry carrier test coverage**: added 6 unit tests in
+  `tests/engine/test_fleet_registry.cpp` covering `carriers.json` loading,
+  acceptance of known carriers, rejection of unknown carriers, null/missing
+  `carrier` handling, and invalid carrier dictionary formats.
+- **PgDbWriter negative-path integration coverage**: added 15 integration tests
+  in `tests/integration/test_pg_db_writer.cpp` for `operating_days` validation,
+  ISO weekday range checks, zero-row seed behavior, `ON CONFLICT` update
+  semantics, and EDR journal status/constraint handling.
 - **Dispatch channel split**: former dispatch-wire/domain handling was split into two server modules:
   - `DispatchChannel` (wire/protocol layer): FlatBuffers decode + sender verification + outbound result frame broadcast,
   - `DispatchCoordinator` (domain layer): S-form state transitions, `session.dispatch_telegrams` persistence, and EDR handoff.
@@ -96,6 +104,16 @@ All notable changes are documented here.
   and covered ignored sidecar JSON files.
 
 ### Changed
+- **Git pre-commit clang-format scope**: formatting enforcement now targets only
+  staged C/C++ source and header files (`.c`, `.cc`, `.cpp`, `.cxx`, `.h`,
+  `.hh`, `.hpp`, `.hxx`) and passes file paths as a safe array to
+  `git clang-format --diff`.
+- **Vehicle model documentation**: `docs/10-vehicle-model.md` now documents
+  optional train-consist field `carrier`, including dictionary source
+  `data/carriers.json` and null/missing behavior.
+- **FlatBuffers autogen refresh**: regenerated
+  `autogens/proto/common_generated.h` with project `flatc` (v25.12.19);
+  output change is formatting-only (no schema/wire semantic change).
 - **Warnings cleanup**: fixed clean-build warnings in the dispatch stack by handling all `DispatchFormType` enum values in `DispatchCoordinator::form_type_str()` and by consuming `[[nodiscard]]` results in `test_dispatch_coordinator.cpp`.
 - **Rename `posterunek` → `operating_point`** throughout the entire codebase:
   - `docker/init.sql`: `session.posterunek_assignments` table renamed to
@@ -113,6 +131,9 @@ All notable changes are documented here.
 - **Build**: Scoped compiler warning flags per compiler so MSVC builds use native warning options.
 
 ### Fixed
+- **Carrier validation load order**: `FleetRegistry::load()` now loads
+  `data/carriers.json` before loading train consists, so optional `carrier`
+  validation uses the populated dictionary instead of an empty in-memory list.
 - **Timetable template UPSERT compatibility**: `PgDbWriter::upsert_timetable_template(...)` now writes to schema-accurate `scheduled_arrival` / `scheduled_departure` `INTERVAL` columns (via `make_interval(secs => ...)`) instead of non-existent `*_secs` columns.
 - **Schema conflict target for UPSERT**: added unique index `uq_timetable_train_station` on `fleet.timetable_templates(train_number, station_sid)` so `ON CONFLICT (train_number, station_sid)` is valid and integration test `PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow` passes.
 

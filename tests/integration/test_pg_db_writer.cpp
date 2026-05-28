@@ -560,4 +560,212 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows)
     EXPECT_EQ(r[0][0].as<std::string>(), "WEE-200");
 }
 
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsEmptyOperatingDays)
+{
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-EMPTY", "SOP", std::nullopt, std::nullopt,
+                                                    "3600", std::nullopt, "COMMERCIAL", {}),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayZero)
+{
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-ZERO", "SOP", std::nullopt, std::nullopt,
+                                                    "3600", std::nullopt, "COMMERCIAL", {0}),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayEight)
+{
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-EIGHT", "SOP", std::nullopt, std::nullopt,
+                                                    "3600", std::nullopt, "COMMERCIAL", {8}),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayNegative)
+{
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-NEG", "SOP", std::nullopt, std::nullopt,
+                                                    "3600", std::nullopt, "COMMERCIAL", {-1}),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays)
+{
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-MIX", "SOP", std::nullopt, std::nullopt,
+                                                    "3600", std::nullopt, "COMMERCIAL", {1, 3, 8}),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_RejectsZero)
+{
+    EXPECT_THROW(writer_->seed_edr_entries_for_operating_day(session_uuid_, 0), std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_RejectsEight)
+{
+    EXPECT_THROW(writer_->seed_edr_entries_for_operating_day(session_uuid_, 8), std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_RejectsNegative)
+{
+    EXPECT_THROW(writer_->seed_edr_entries_for_operating_day(session_uuid_, -1),
+                 std::runtime_error);
+}
+
+TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_NoTemplatesForDay)
+{
+    writer_->upsert_timetable_template("WKD-300", "SOP", std::nullopt, std::nullopt, "3600",
+                                       std::string{"T1"}, "COMMERCIAL", {1, 2, 3});
+
+    const int64_t seeded = writer_->seed_edr_entries_for_operating_day(session_uuid_, 7);
+    EXPECT_EQ(seeded, 0LL);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT COUNT(*) "
+        "FROM session.edr_entries "
+        "WHERE session_id = $1::uuid",
+        pqxx::params{session_uuid_});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<int64_t>(), 0LL);
+}
+
+TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_OnConflictUpdatesAllFields)
+{
+    writer_->upsert_timetable_template("UPS-100", "SOP", std::nullopt, "1000", "1100",
+                                       std::string{"T1"}, "COMMERCIAL", {1, 2});
+    writer_->upsert_timetable_template("UPS-100", "SOP", std::string{"OP-SOP-1"}, std::nullopt,
+                                       "2200", std::string{"T2"}, "TECHNICAL", {6, 7});
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT operating_point_id, "
+        "       scheduled_arrival IS NULL AS arr_is_null, "
+        "       EXTRACT(EPOCH FROM scheduled_departure)::bigint AS dep_secs, "
+        "       track_number, stop_type, operating_days "
+        "FROM fleet.timetable_templates "
+        "WHERE train_number = $1 AND station_sid = $2",
+        pqxx::params{"UPS-100", "SOP"});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "OP-SOP-1");
+    EXPECT_TRUE(r[0][1].as<bool>());
+    EXPECT_EQ(r[0][2].as<int64_t>(), 2200LL);
+    EXPECT_EQ(r[0][3].as<std::string>(), "T2");
+    EXPECT_EQ(r[0][4].as<std::string>(), "TECHNICAL");
+    EXPECT_EQ(r[0][5].as<std::string>(), "{6,7}");
+}
+
+TEST_F(PgDbWriterFixture, AppendEdrJournalEntry_RejectsInvalidEntryType)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "INVALID";
+    row.body = "Invalid entry type should be rejected";
+    row.timestamp_us = 12'345'678ULL;
+
+    EXPECT_THROW(writer_->append_edr_journal_entry(session_uuid_, row), pqxx::sql_error);
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_RejectsInvalidStatus)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "NOTE";
+    row.body = "Status rejection test";
+    row.timestamp_us = 12'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+
+    EXPECT_THROW(
+        writer_->update_edr_journal_entry_status(session_uuid_, id, "INVALID", std::nullopt),
+        pqxx::sql_error);
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "NOTE";
+    row.body = "Cross out test";
+    row.timestamp_us = 13'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+    writer_->update_edr_journal_entry_status(session_uuid_, id, "CROSSED_OUT", std::nullopt);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT status FROM session.edr_journal_entries "
+        "WHERE session_id = $1::uuid AND id = $2",
+        pqxx::params{session_uuid_, id});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "CROSSED_OUT");
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_CanTransitionToCancelled)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "NOTE";
+    row.body = "Cancel test";
+    row.timestamp_us = 14'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+    writer_->update_edr_journal_entry_status(session_uuid_, id, "CANCELLED", std::nullopt);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT status FROM session.edr_journal_entries "
+        "WHERE session_id = $1::uuid AND id = $2",
+        pqxx::params{session_uuid_, id});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "CANCELLED");
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_NullNotesPreservesExisting)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "NOTE";
+    row.body = "Preserve notes test";
+    row.notes = std::string{"initial-note"};
+    row.timestamp_us = 15'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+    writer_->update_edr_journal_entry_status(session_uuid_, id, "CORRECTED", std::nullopt);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT status, notes "
+        "FROM session.edr_journal_entries "
+        "WHERE session_id = $1::uuid AND id = $2",
+        pqxx::params{session_uuid_, id});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "CORRECTED");
+    EXPECT_EQ(r[0][1].as<std::string>(), "initial-note");
+}
+
 }  // namespace

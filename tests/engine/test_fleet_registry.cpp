@@ -683,3 +683,212 @@ TEST(FleetRegistry, ThrowsOnTrainCategoryFolderMismatch)
     FleetRegistry registry;
     EXPECT_THROW(registry.load(root), FleetLoadError);
 }
+
+TEST(FleetRegistry, LoadsCarriersFromFile)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+    create_minimal_tree(root);
+
+    write_text(root / "carriers.json", R"json([
+  "CARRIER-A",
+  "CARRIER-B",
+  "CARRIER-C"
+])json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& carriers = registry.all_carriers();
+    ASSERT_EQ(carriers.size(), 3u);
+    EXPECT_EQ(carriers[0], "CARRIER-A");
+    EXPECT_EQ(carriers[1], "CARRIER-B");
+    EXPECT_EQ(carriers[2], "CARRIER-C");
+}
+
+TEST(FleetRegistry, AcceptsValidCarrierInTrain)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "carriers.json", R"json([
+  "PKP Cargo",
+  "CARGO Master - tow."
+])json");
+
+    write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
+  "typeID": "VT-GLB-SM42-0000001",
+  "typeName": "SM42",
+  "pkpSeries": "SM42",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 14.24,
+  "axleCount": 4,
+  "massEmptyT": 70.0,
+  "massGrossT": 70.0,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 100,
+  "powerKW": 588.0,
+  "tractionForceKN": 196.0,
+  "family": "sm42"
+})json");
+
+    write_text(root / "vehicles/locomotive/diesel/sm42/sm42-001/vehicle.json", R"json({
+  "gID": "VEH-TRJ-SM42-001-0000001",
+  "pID": "SM42-001",
+  "typeID": "VT-GLB-SM42-0000001",
+  "displayName": "SM42-001"
+})json");
+
+    write_text(root / "trains/freight/test_carrier.json", R"json({
+  "gID": "TRN-TRJ-TEST-CARR-0000001",
+  "pID": "TestCarrier",
+  "displayName": "Test Carrier Train",
+  "trainCategory": "FREIGHT",
+  "carrier": "PKP Cargo",
+  "vehicles": ["VEH-TRJ-SM42-001-0000001"]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& consist = registry.get_consist(GID{"TRN-TRJ-TEST-CARR-0000001"});
+    ASSERT_TRUE(consist.carrier.has_value());
+    EXPECT_EQ(*consist.carrier, "PKP Cargo");
+}
+
+TEST(FleetRegistry, ThrowsOnUnknownCarrier)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "carriers.json", R"json([
+  "KNOWN-CARRIER"
+])json");
+
+    write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
+  "typeID": "VT-GLB-SM42-0000001",
+  "typeName": "SM42",
+  "pkpSeries": "SM42",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 14.24,
+  "axleCount": 4,
+  "massEmptyT": 70.0,
+  "massGrossT": 70.0,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 100,
+  "powerKW": 588.0,
+  "tractionForceKN": 196.0,
+  "family": "sm42"
+})json");
+
+    write_text(root / "vehicles/locomotive/diesel/sm42/sm42-001/vehicle.json", R"json({
+  "gID": "VEH-TRJ-SM42-001-0000001",
+  "pID": "SM42-001",
+  "typeID": "VT-GLB-SM42-0000001",
+  "displayName": "SM42-001"
+})json");
+
+    write_text(root / "trains/freight/bad_carrier.json", R"json({
+  "gID": "TRN-TRJ-BAD-CARR-0000001",
+  "pID": "BadCarrier",
+  "displayName": "Bad Carrier Train",
+  "trainCategory": "FREIGHT",
+  "carrier": "UNKNOWN-CARRIER",
+  "vehicles": ["VEH-TRJ-SM42-001-0000001"]
+})json");
+
+    FleetRegistry registry;
+    EXPECT_THROW(registry.load(root), FleetLoadError);
+}
+
+TEST(FleetRegistry, AllowsNullOrMissingCarrierField)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+
+    write_text(root / "carriers.json", R"json([
+  "KNOWN-CARRIER"
+])json");
+
+    write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
+  "typeID": "VT-GLB-SM42-0000001",
+  "typeName": "SM42",
+  "pkpSeries": "SM42",
+  "vehicleType": "LOCOMOTIVE",
+  "vehicleSubtype": "DIESEL",
+  "lengthM": 14.24,
+  "axleCount": 4,
+  "massEmptyT": 70.0,
+  "massGrossT": 70.0,
+  "maxSpeedKmh": 90,
+  "brakingLambdaPct": 100,
+  "powerKW": 588.0,
+  "tractionForceKN": 196.0,
+  "family": "sm42"
+})json");
+
+    write_text(root / "vehicles/locomotive/diesel/sm42/sm42-001/vehicle.json", R"json({
+  "gID": "VEH-TRJ-SM42-001-0000001",
+  "pID": "SM42-001",
+  "typeID": "VT-GLB-SM42-0000001",
+  "displayName": "SM42-001"
+})json");
+
+    write_text(root / "trains/freight/null_carrier.json", R"json({
+  "gID": "TRN-TRJ-NULL-CARR-0000001",
+  "pID": "NullCarrier",
+  "displayName": "Null Carrier Train",
+  "trainCategory": "FREIGHT",
+  "carrier": null,
+  "vehicles": ["VEH-TRJ-SM42-001-0000001"]
+})json");
+
+    write_text(root / "trains/freight/missing_carrier.json", R"json({
+  "gID": "TRN-TRJ-MISS-CARR-0000001",
+  "pID": "MissingCarrier",
+  "displayName": "Missing Carrier Train",
+  "trainCategory": "FREIGHT",
+  "vehicles": ["VEH-TRJ-SM42-001-0000001"]
+})json");
+
+    FleetRegistry registry;
+    ASSERT_NO_THROW(registry.load(root));
+
+    const auto& null_consist = registry.get_consist(GID{"TRN-TRJ-NULL-CARR-0000001"});
+    EXPECT_FALSE(null_consist.carrier.has_value());
+
+    const auto& missing_consist = registry.get_consist(GID{"TRN-TRJ-MISS-CARR-0000001"});
+    EXPECT_FALSE(missing_consist.carrier.has_value());
+}
+
+TEST(FleetRegistry, ThrowsOnInvalidCarriersJsonFormat)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+    create_minimal_tree(root);
+
+    write_text(root / "carriers.json", R"json({
+  "carriers": ["CARRIER-A"]
+})json");
+
+    FleetRegistry registry;
+    EXPECT_THROW(registry.load(root), FleetLoadError);
+}
+
+TEST(FleetRegistry, ThrowsOnNonStringCarrierEntry)
+{
+    TempDir tmp;
+    const auto root = tmp.path() / "data";
+    create_minimal_tree(root);
+
+    write_text(root / "carriers.json", R"json([
+  "CARRIER-A",
+  12345,
+  "CARRIER-B"
+])json");
+
+    FleetRegistry registry;
+    EXPECT_THROW(registry.load(root), FleetLoadError);
+}

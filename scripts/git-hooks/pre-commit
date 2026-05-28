@@ -7,7 +7,7 @@
 #
 # What this hook checks:
 #   1. CHANGELOG.md must be among the staged files.
-#   2. Every staged .cpp / .hpp / .h file must comply with clang-format
+#   2. Every staged C/C++ source/header file must comply with clang-format
 #      (checked via `git clang-format --diff`).
 #
 # To skip for a draft/WIP commit:  git commit --no-verify
@@ -43,11 +43,20 @@ if ! git diff --cached --name-only | grep -q '^CHANGELOG\.md$'; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CHECK 2 — Staged C++ files must be clang-format compliant
+# CHECK 2 — Staged C/C++ files must be clang-format compliant
 # ─────────────────────────────────────────────────────────────────────────────
-STAGED_CPP=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp|h)$' || true)
+mapfile -t STAGED_CPP < <(
+    git diff --cached --name-only --diff-filter=ACM \
+        | grep -E '\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$' || true
+)
 
-if [ -n "$STAGED_CPP" ]; then
+# Generated and external code should not be reformatted by product hooks.
+mapfile -t STAGED_CPP < <(
+    printf '%s\n' "${STAGED_CPP[@]}" \
+        | grep -Ev '^(autogens/|3rdParty/|vcpkg_installed/|build/)' || true
+)
+
+if [[ ${#STAGED_CPP[@]} -gt 0 ]]; then
     if ! command -v clang-format &>/dev/null; then
         err ""
         err "${YLW}[pre-commit] WARNING: clang-format not found — formatting check skipped.${RST}"
@@ -58,7 +67,7 @@ if [ -n "$STAGED_CPP" ]; then
     else
         # git clang-format --diff prints the diff that would result from running
         # clang-format on the staged files.  A real diff contains '---' / '+++'.
-        FORMAT_DIFF=$(git clang-format --diff HEAD -- $STAGED_CPP 2>&1 || true)
+        FORMAT_DIFF=$(git clang-format --diff HEAD -- "${STAGED_CPP[@]}" 2>&1 || true)
 
         if printf '%s\n' "$FORMAT_DIFF" | grep -qE '^(---|\+\+\+|@@)'; then
             err ""
@@ -70,7 +79,7 @@ if [ -n "$STAGED_CPP" ]; then
             err "    git commit ..."
             err ""
             err "  Files that need formatting:"
-            printf '%s\n' "$STAGED_CPP" | sed 's/^/    /' >&2
+            printf '%s\n' "${STAGED_CPP[@]}" | sed 's/^/    /' >&2
             err ""
             FAIL=1
         fi

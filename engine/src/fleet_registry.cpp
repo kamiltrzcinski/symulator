@@ -326,8 +326,8 @@ void FleetRegistry::load(const std::filesystem::path& data_root)
 
     load_types_(data_root / "vehicle_types");
     load_vehicles_(data_root / "vehicles");
-    load_consists_(data_root / "trains");
     load_carriers_(data_root / "carriers.json");
+    load_consists_(data_root / "trains");
 }
 
 const VehicleType& FleetRegistry::get_type(const GID& type_id) const
@@ -532,7 +532,7 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
         if (j.contains("carrier") && !j.at("carrier").is_null())
         {
             const std::string carrier_name = j.at("carrier").get<std::string>();
-            
+
             // Validate carrier against loaded carriers list
             bool found = false;
             for (const auto& c : carriers_)
@@ -629,9 +629,10 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             else
             {
                 const Vehicle& first = *operational_locomotives.front();
-                const bool same_type = std::all_of(
-                    operational_locomotives.begin(), operational_locomotives.end(),
-                    [&first](const Vehicle* vehicle) { return vehicle->type_id == first.type_id; });
+                const bool same_type =
+                    std::all_of(operational_locomotives.begin(), operational_locomotives.end(),
+                                [&first](const Vehicle* vehicle)
+                                { return vehicle->type_id.value == first.type_id.value; });
                 const bool coupling_allowed =
                     same_type && first.multiple_coupling_capable.value_or(false);
 
@@ -682,7 +683,7 @@ void FleetRegistry::load_carriers_(const std::filesystem::path& carriers_file)
 {
     if (!std::filesystem::exists(carriers_file))
     {
-        return; // Optional file
+        return;  // Optional file
     }
 
     const json j = parse_json_file(carriers_file);
