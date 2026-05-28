@@ -443,14 +443,14 @@ TEST_F(PgDbWriterFixture, ReleaseOperatingPoint_Idempotent)
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
 {
     writer_->upsert_timetable_template("IC-1234", "SOP", std::nullopt, "3600", "3660",
-                                       std::string{"T1"}, "COMMERCIAL");
+                                       std::string{"T1"}, "COMMERCIAL", {1, 2, 3, 4, 5});
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT train_number, station_sid, stop_type, "
         "       EXTRACT(EPOCH FROM scheduled_departure)::bigint AS scheduled_departure_secs, "
-        "       track_number "
+        "       track_number, operating_days "
         "FROM fleet.timetable_templates "
         "WHERE train_number = $1 AND station_sid = $2",
         pqxx::params{"IC-1234", "SOP"});
@@ -462,6 +462,31 @@ TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
     EXPECT_EQ(r[0][2].as<std::string>(), "COMMERCIAL");
     EXPECT_EQ(r[0][3].as<int64_t>(), 3660LL);
     EXPECT_EQ(r[0][4].as<std::string>(), "T1");
+    EXPECT_EQ(r[0][5].as<std::string>(), "{1,2,3,4,5}");
+}
+
+TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows)
+{
+    writer_->upsert_timetable_template("WKD-100", "SOP", std::nullopt, std::nullopt, "3600",
+                                       std::string{"T1"}, "COMMERCIAL", {1, 2, 3, 4, 5});
+    writer_->upsert_timetable_template("WEE-200", "SOP", std::nullopt, std::nullopt, "7200",
+                                       std::string{"T2"}, "COMMERCIAL", {6, 7});
+
+    const int64_t seeded = writer_->seed_edr_entries_for_operating_day(session_uuid_, 6);
+    EXPECT_EQ(seeded, 1LL);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT train_number "
+        "FROM session.edr_entries "
+        "WHERE session_id = $1::uuid AND station_sid = $2 "
+        "ORDER BY train_number",
+        pqxx::params{session_uuid_, "SOP"});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "WEE-200");
 }
 
 }  // namespace

@@ -78,11 +78,39 @@ CREATE TABLE fleet.timetable_templates (
     scheduled_arrival    INTERVAL,                     -- offset from session start (NULL for first origin)
     scheduled_departure  INTERVAL  NOT NULL,
     track_number    TEXT,                              -- planned platform/track
-    stop_type       TEXT        NOT NULL DEFAULT 'COMMERCIAL'  -- COMMERCIAL | TECHNICAL | PASS_THROUGH
+    stop_type       TEXT        NOT NULL DEFAULT 'COMMERCIAL', -- COMMERCIAL | TECHNICAL | PASS_THROUGH
+    operating_days  SMALLINT[]  NOT NULL DEFAULT ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
+                                -- ISO weekday numbers: 1=Monday ... 7=Sunday.
+                                -- Examples: {1,2,3,4,5}=Mon-Fri, {6,7}=weekend.
+    CHECK (array_length(operating_days, 1) > 0
+           AND operating_days <@ ARRAY[1,2,3,4,5,6,7]::SMALLINT[])
 );
 
 CREATE INDEX ON fleet.timetable_templates (station_sid, scheduled_departure);
+CREATE INDEX ON fleet.timetable_templates USING GIN (operating_days);
 ```
+
+### Timetable Operating Days Legend
+
+`fleet.timetable_templates.operating_days` stores the days when a timetable row is active. The server reads the current local date at startup, converts it to an ISO weekday number, and seeds `session.edr_entries` only from templates containing that number.
+
+| Value | Day |
+|---:|---|
+| 1 | Monday |
+| 2 | Tuesday |
+| 3 | Wednesday |
+| 4 | Thursday |
+| 5 | Friday |
+| 6 | Saturday |
+| 7 | Sunday |
+
+Common shorthand:
+
+| Notation | Meaning |
+|---|---|
+| `1-7` / `{1,2,3,4,5,6,7}` | every day, Monday through Sunday |
+| `1-5` / `{1,2,3,4,5}` | weekdays, Monday through Friday |
+| `6,7` / `{6,7}` | weekend, Saturday and Sunday |
 
 ---
 

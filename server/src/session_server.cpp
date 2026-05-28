@@ -16,6 +16,8 @@
 
 #include <signal.h>
 
+#include <chrono>
+#include <ctime>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -24,6 +26,19 @@
 
 namespace server
 {
+
+static int current_iso_weekday()
+{
+    const auto now = std::chrono::system_clock::now();
+    const auto time = std::chrono::system_clock::to_time_t(now);
+    std::tm local{};
+#ifdef _WIN32
+    localtime_s(&local, &time);
+#else
+    localtime_r(&time, &local);
+#endif
+    return local.tm_wday == 0 ? 7 : local.tm_wday;
+}
 
 // ── from_args ─────────────────────────────────────────────────────────────────
 
@@ -146,6 +161,10 @@ void SessionServer::start()
     // 1a. Register session in DB; get UUID for all subsequent DB writes.
     const auto session_uuid = db_writer_->init_session(meta.station_sid, 1);
     std::cout << "[server] Session UUID: " << session_uuid << "\n";
+    const int iso_weekday = current_iso_weekday();
+    const auto seeded_rows = db_writer_->seed_edr_entries_for_operating_day(session_uuid, iso_weekday);
+    std::cout << "[server] EDR seeded for ISO weekday " << iso_weekday << ": " << seeded_rows
+              << " timetable rows.\n";
 
     // 2. Load fleet data (vehicle types, instances, consists).
     fleet_.load(config_.data_dir);

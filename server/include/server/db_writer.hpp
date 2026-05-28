@@ -55,6 +55,11 @@ public:
     /// The returned UUID is used as the session_id for all subsequent DB writes.
     virtual std::string init_session(const std::string& display_name, int schema_version) = 0;
 
+    /// Seed session.edr_entries from fleet.timetable_templates for the selected ISO weekday.
+    /// iso_weekday uses 1=Monday ... 7=Sunday.
+    virtual int64_t seed_edr_entries_for_operating_day(const std::string& session_id,
+                                                       int iso_weekday) = 0;
+
     /// Append one domain event to session.events.
     /// Called from the ENGINE thread for every DeviceStateChange that produces a
     /// DOMAIN_EVENT frame; the event_id and payload must match the wire frame.
@@ -123,7 +128,8 @@ public:
                                            const std::optional<std::string>& scheduled_arrival_secs,
                                            const std::string& scheduled_departure_secs,
                                            const std::optional<std::string>& track_number,
-                                           const std::string& stop_type) = 0;
+                                           const std::string& stop_type,
+                                           const std::vector<int>& operating_days) = 0;
 };
 
 /// No-op implementation for unit tests.
@@ -134,6 +140,13 @@ public:
     std::string init_session(const std::string& /*display_name*/, int /*schema_version*/) override
     {
         return "00000000-0000-0000-0000-000000000001";
+    }
+
+    int64_t seed_edr_entries_for_operating_day(const std::string& /*session_id*/,
+                                               int iso_weekday) override
+    {
+        seeded_operating_days.push_back(iso_weekday);
+        return 0;
     }
 
     void write_dispatch_telegram(const std::string& /*session_id*/, TelegramRow row) override
@@ -207,11 +220,12 @@ public:
                                    const std::optional<std::string>& scheduled_arrival_secs,
                                    const std::string& scheduled_departure_secs,
                                    const std::optional<std::string>& track_number,
-                                   const std::string& stop_type) override
+                                   const std::string& stop_type,
+                                   const std::vector<int>& operating_days) override
     {
         timetable_upserts.push_back({train_number, station_sid, operating_point_id,
                                      scheduled_arrival_secs, scheduled_departure_secs, track_number,
-                                     stop_type});
+                                     stop_type, operating_days});
     }
 
     struct PipUpsert
@@ -265,8 +279,10 @@ public:
         std::string scheduled_departure_secs;
         std::optional<std::string> track_number;
         std::string stop_type;
+        std::vector<int> operating_days;
     };
 
+    std::vector<int> seeded_operating_days;
     std::vector<TelegramRow> written_telegrams;
     std::vector<DomainEventRow> written_events;
     std::vector<EdrUpdate> edr_updates;

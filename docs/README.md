@@ -25,6 +25,7 @@ This folder contains the agreed scope and implementation plan.
 - `19-ml8-description.md` - ESTW ML8 as a separate control system: command catalog, protocol command, and engine handling notes.
 - `18-etcs-rbc-ertms-description.md` - ETCS/RBC supervisory system specification (area, session, commands, text messages, communication supervision).
 - `devlog.md` - chronological implementation log and session decisions.
+- `20-timetable-operating-days.md` - timetable operating-days legend (`1`=Monday ... `7`=Sunday).
 ## Update rules
 
 - Every major project decision should be captured in the relevant document.

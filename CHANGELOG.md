@@ -2,6 +2,22 @@
 
 All notable changes are documented here.
 
+## [0.5.5] - 2026-05-28
+
+### Added
+- **Timetable operating days**: `fleet.timetable_templates` now stores ISO weekday-based
+  `operating_days` (`1`=Monday ... `7`=Sunday), with server startup seeding `session.edr_entries`
+  only for timetable rows active on the current local day.
+- **Operating-days documentation**: added `docs/20-timetable-operating-days.md` with the
+  `1-7`, `1-5`, and `6,7` notation legend.
+- **Train scenarios**: added TME 551462 (`ST48`) and MPE 5600 (`EU160`) scenario train JSON files.
+
+### Changed
+- **Scenario train routes**: expanded ROJ 50622 and TDE 592599 route definitions with additional
+  technical operating points (`R`, `PZS`, transit groups) using parent-station times.
+- **TME 551462 timings**: filled freight-train route times from Gdańsk Osowa at 12:32 using
+  80 km/h and PLK line kilometre marks for lines 201/202; Lębork remains marked `PT`.
+
 ## [0.5.4] - 2026-05-25
 
 ### Added

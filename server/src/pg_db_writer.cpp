@@ -8,6 +8,19 @@
 namespace server
 {
 
+static std::string pg_smallint_array_literal(const std::vector<int>& values)
+{
+    std::string literal = "{";
+    for (std::size_t i = 0; i < values.size(); ++i)
+    {
+        if (i > 0)
+            literal += ',';
+        literal += std::to_string(values[i]);
+    }
+    literal += '}';
+    return literal;
+}
+
 // ── Constructor ───────────────────────────────────────────────────────────────
 
 PgDbWriter::PgDbWriter(const std::string& connection_string) : conn_{connection_string} {}
@@ -30,6 +43,32 @@ std::string PgDbWriter::init_session(const std::string& display_name, int schema
 
     session_uuid_ = r[0][0].as<std::string>();
     return session_uuid_;
+}
+
+// ── seed_edr_entries_for_operating_day ────────────────────────────────────────
+
+int64_t PgDbWriter::seed_edr_entries_for_operating_day(const std::string& /*session_id*/,
+                                                       int iso_weekday)
+{
+    if (iso_weekday < 1 || iso_weekday > 7)
+        throw std::runtime_error("[PgDbWriter] invalid ISO weekday; expected 1..7");
+
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    const auto r = tx.exec(
+        "INSERT INTO session.edr_entries "
+        "  (session_id, train_number, station_sid, operating_point_id, "
+        "   scheduled_arrival, scheduled_departure, track_number, stop_type, status) "
+        "SELECT $1::uuid, train_number, station_sid, operating_point_id, "
+        "       scheduled_arrival, scheduled_departure, track_number, stop_type, 'PENDING' "
+        "FROM fleet.timetable_templates "
+        "WHERE $2::smallint = ANY(operating_days) "
+        "RETURNING id",
+        pqxx::params{session_uuid_, iso_weekday});
+    tx.commit();
+
+    return static_cast<int64_t>(r.size());
 }
 
 // ── write_domain_event ────────────────────────────────────────────────────────
@@ -270,28 +309,39 @@ void PgDbWriter::upsert_timetable_template(const std::string& train_number,
                                            const std::optional<std::string>& scheduled_arrival_secs,
                                            const std::string& scheduled_departure_secs,
                                            const std::optional<std::string>& track_number,
-                                           const std::string& stop_type)
+                                           const std::string& stop_type,
+                                           const std::vector<int>& operating_days)
 {
+    if (operating_days.empty())
+        throw std::runtime_error("[PgDbWriter] operating_days must not be empty");
+    for (const int day : operating_days)
+    {
+        if (day < 1 || day > 7)
+            throw std::runtime_error("[PgDbWriter] operating_days values must be in range 1..7");
+    }
+    const auto operating_days_literal = pg_smallint_array_literal(operating_days);
+
     std::lock_guard<std::mutex> lock{mu_};
 
     pqxx::work tx{conn_};
     tx.exec(
         "INSERT INTO fleet.timetable_templates "
         "  (train_number, station_sid, operating_point_id, "
-        "   scheduled_arrival, scheduled_departure, track_number, stop_type) "
+        "   scheduled_arrival, scheduled_departure, track_number, stop_type, operating_days) "
         "VALUES ($1, $2, $3, "
         "        CASE WHEN $4::text IS NULL THEN NULL "
         "             ELSE make_interval(secs => $4::double precision) END, "
         "        make_interval(secs => $5::double precision), "
-        "        $6, $7) "
+        "        $6, $7, $8::smallint[]) "
         "ON CONFLICT (train_number, station_sid) DO UPDATE "
         "  SET operating_point_id        = EXCLUDED.operating_point_id, "
         "      scheduled_arrival         = EXCLUDED.scheduled_arrival, "
         "      scheduled_departure       = EXCLUDED.scheduled_departure, "
         "      track_number              = EXCLUDED.track_number, "
-        "      stop_type                 = EXCLUDED.stop_type",
+        "      stop_type                 = EXCLUDED.stop_type, "
+        "      operating_days            = EXCLUDED.operating_days",
         pqxx::params{train_number, station_sid, operating_point_id, scheduled_arrival_secs,
-                     scheduled_departure_secs, track_number, stop_type});
+                     scheduled_departure_secs, track_number, stop_type, operating_days_literal});
     tx.commit();
 }
 

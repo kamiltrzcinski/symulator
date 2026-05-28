@@ -55,14 +55,39 @@ CREATE TABLE IF NOT EXISTS fleet.timetable_templates (
     scheduled_arrival    INTERVAL,                   -- offset from session start; NULL for first origin
     scheduled_departure  INTERVAL NOT NULL,
     track_number         TEXT,
-    stop_type            TEXT    NOT NULL DEFAULT 'COMMERCIAL'  -- COMMERCIAL | TECHNICAL | PASS_THROUGH
+    stop_type            TEXT    NOT NULL DEFAULT 'COMMERCIAL',  -- COMMERCIAL | TECHNICAL | PASS_THROUGH
+    operating_days       SMALLINT[] NOT NULL DEFAULT ARRAY[1,2,3,4,5,6,7]::SMALLINT[],
+    CONSTRAINT ck_timetable_operating_days_valid
+        CHECK (array_length(operating_days, 1) > 0
+               AND operating_days <@ ARRAY[1,2,3,4,5,6,7]::SMALLINT[])
 );
+
+ALTER TABLE fleet.timetable_templates
+    ADD COLUMN IF NOT EXISTS operating_days SMALLINT[]
+    NOT NULL DEFAULT ARRAY[1,2,3,4,5,6,7]::SMALLINT[];
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'ck_timetable_operating_days_valid'
+          AND conrelid = 'fleet.timetable_templates'::regclass
+    ) THEN
+        ALTER TABLE fleet.timetable_templates
+            ADD CONSTRAINT ck_timetable_operating_days_valid
+            CHECK (array_length(operating_days, 1) > 0
+                   AND operating_days <@ ARRAY[1,2,3,4,5,6,7]::SMALLINT[]);
+    END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_timetable_train_station
     ON fleet.timetable_templates (train_number, station_sid);
 
 CREATE INDEX IF NOT EXISTS idx_timetable_station_dep
     ON fleet.timetable_templates (station_sid, scheduled_departure);
+CREATE INDEX IF NOT EXISTS idx_timetable_operating_days
+    ON fleet.timetable_templates USING GIN (operating_days);
 
 -- ── Schema: session ───────────────────────────────────────────────────────────
 -- Live operational data.  Written during simulation.  One row in sessions per run.

@@ -31,6 +31,10 @@ public:
     /// Stores the UUID internally; subsequent write methods use it.
     std::string init_session(const std::string& display_name, int schema_version) override;
 
+    /// INSERT active timetable rows into session.edr_entries for one ISO weekday.
+    int64_t seed_edr_entries_for_operating_day(const std::string& session_id,
+                                               int iso_weekday) override;
+
     /// INSERT INTO session.events.
     void write_domain_event(const std::string& session_id, DomainEventRow row) override;
 
@@ -81,7 +85,8 @@ public:
                                    const std::optional<std::string>& scheduled_arrival_secs,
                                    const std::string& scheduled_departure_secs,
                                    const std::optional<std::string>& track_number,
-                                   const std::string& stop_type) override;
+                                   const std::string& stop_type,
+                                   const std::vector<int>& operating_days) override;
 
 private:
     pqxx::connection conn_;
