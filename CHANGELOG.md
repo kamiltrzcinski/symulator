@@ -11,6 +11,9 @@ All notable changes are documented here.
 - **Operating-days documentation**: added `docs/20-timetable-operating-days.md` with the
   `1-7`, `1-5`, and `6,7` notation legend.
 - **Train scenarios**: added TME 551462 (`ST48`) and MPE 5600 (`EU160`) scenario train JSON files.
+- **EDR journal persistence**: added backend-only `session.edr_journal_entries` storage for
+  operator-visible registrations, corrections, cancellations, telephonegram notes, track occupancy
+  notes, and crossing notifications, independent of PIP/ZPR.
 
 ### Changed
 - **Scenario train routes**: expanded ROJ 50622 and TDE 592599 route definitions with additional
