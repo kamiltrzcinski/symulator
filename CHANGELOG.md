@@ -14,6 +14,7 @@ All notable changes are documented here.
 - **EDR journal persistence**: added backend-only `session.edr_journal_entries` storage for
   operator-visible registrations, corrections, cancellations, telephonegram notes, track occupancy
   notes, and crossing notifications, independent of PIP/ZPR.
+- **Carrier database**: implemented a flat JSON array `data/carriers.json` storing 145 carrier names, loaded by `FleetRegistry` on startup.
 
 ### Changed
 - **Scenario train routes**: expanded ROJ 50622 and TDE 592599 route definitions with additional

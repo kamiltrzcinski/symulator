@@ -4,7 +4,6 @@
 #include <cctype>
 #include <fstream>
 #include <limits>
-#include <sstream>
 
 #include <nlohmann/json.hpp>
 
@@ -323,10 +322,12 @@ void FleetRegistry::load(const std::filesystem::path& data_root)
     types_.clear();
     vehicles_.clear();
     consists_.clear();
+    carriers_.clear();
 
     load_types_(data_root / "vehicle_types");
     load_vehicles_(data_root / "vehicles");
     load_consists_(data_root / "trains");
+    load_carriers_(data_root / "carriers.json");
 }
 
 const VehicleType& FleetRegistry::get_type(const GID& type_id) const
@@ -653,6 +654,29 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             throw FleetLoadError("Duplicate consist gID: " + it->first.value + " in " +
                                  path.string());
         }
+    }
+}
+
+void FleetRegistry::load_carriers_(const std::filesystem::path& carriers_file)
+{
+    if (!std::filesystem::exists(carriers_file))
+    {
+        return; // Optional file
+    }
+
+    const json j = parse_json_file(carriers_file);
+    if (!j.is_array())
+    {
+        throw FleetLoadError("carriers.json must be a JSON array");
+    }
+
+    for (const auto& item : j)
+    {
+        if (!item.is_string())
+        {
+            throw FleetLoadError("Carrier entries must be strings in " + carriers_file.string());
+        }
+        carriers_.push_back(item.get<std::string>());
     }
 }
 

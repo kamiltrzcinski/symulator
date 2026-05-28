@@ -149,6 +149,7 @@ class FleetRegistry
     std::unordered_map<GID, VehicleType, std::hash<GID>> types_;
     std::unordered_map<GID, Vehicle, std::hash<GID>> vehicles_;
     std::unordered_map<GID, TrainConsist, std::hash<GID>> consists_;
+    std::vector<std::string> carriers_;
 
 public:
     // Load all three levels from the given data root directory.
@@ -166,11 +167,13 @@ public:
 
     // Iteration support for snapshot building.
     const auto& all_consists() const { return consists_; }
+    const auto& all_carriers() const { return carriers_; }
 
 private:
     void load_types_(const std::filesystem::path& types_dir);
     void load_vehicles_(const std::filesystem::path& vehicles_dir);
     void load_consists_(const std::filesystem::path& consists_dir);
+    void load_carriers_(const std::filesystem::path& carriers_file);
 
     static DavisCoefficients davis_defaults_(const std::string& vehicle_type,
                                              const std::string& vehicle_subtype, int max_speed_kmh);
