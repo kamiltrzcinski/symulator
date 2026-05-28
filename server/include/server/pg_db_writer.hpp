@@ -54,6 +54,15 @@ public:
     void update_edr_arrival(const std::string& session_id, const std::string& train_number,
                             const std::string& station_sid, std::uint64_t timestamp_us) override;
 
+    /// INSERT INTO session.edr_journal_entries.
+    int64_t append_edr_journal_entry(const std::string& session_id,
+                                     EdrJournalEntryRow row) override;
+
+    /// UPDATE session.edr_journal_entries status/notes.
+    void update_edr_journal_entry_status(const std::string& session_id, int64_t entry_id,
+                                         const std::string& status,
+                                         const std::optional<std::string>& notes) override;
+
     /// UPSERT pip.track_state for one track section.
     void upsert_pip_track_state(const std::string& session_id, const std::string& section_gid,
                                 const std::string& trains_json) override;

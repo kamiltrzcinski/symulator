@@ -332,6 +332,77 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
 
 // ── save_snapshot ─────────────────────────────────────────────────────────────
 
+TEST_F(PgDbWriterFixture, AppendEdrJournalEntry_InsertsOperatorVisibleRow)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-GDN-1";
+    row.station_sid = "GDN";
+    row.journal_page = "9:GDN-SOP";
+    row.entry_type = "TRAIN";
+    row.train_number = "IC 5600";
+    row.direction = "DEPARTURE";
+    row.track_number = "4";
+    row.scheduled_departure_secs = "64800";
+    row.actual_departure_secs = "64830";
+    row.body = "IC 5600 departed toward Sopot";
+    row.timestamp_us = 64'830'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+    EXPECT_GT(id, 0);
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT operating_point_id, journal_page, entry_type, train_number, direction, "
+        "       track_number, EXTRACT(EPOCH FROM actual_departure)::bigint, body, status "
+        "FROM session.edr_journal_entries "
+        "WHERE session_id = $1::uuid AND id = $2",
+        pqxx::params{session_uuid_, id});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "OP-GDN-1");
+    EXPECT_EQ(r[0][1].as<std::string>(), "9:GDN-SOP");
+    EXPECT_EQ(r[0][2].as<std::string>(), "TRAIN");
+    EXPECT_EQ(r[0][3].as<std::string>(), "IC 5600");
+    EXPECT_EQ(r[0][4].as<std::string>(), "DEPARTURE");
+    EXPECT_EQ(r[0][5].as<std::string>(), "4");
+    EXPECT_EQ(r[0][6].as<int64_t>(), 64830LL);
+    EXPECT_EQ(r[0][7].as<std::string>(), "IC 5600 departed toward Sopot");
+    EXPECT_EQ(r[0][8].as<std::string>(), "ACTIVE");
+}
+
+TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting)
+{
+    server::EdrJournalEntryRow row;
+    row.operating_point_id = "OP-SOP-1";
+    row.station_sid = "SOP";
+    row.journal_page = "9:SOP-GDN";
+    row.entry_type = "TELEGRAM";
+    row.direction = "RECEIVED";
+    row.body = "Received crossing notification";
+    row.timestamp_us = 12'000'000ULL;
+
+    const int64_t id = writer_->append_edr_journal_entry(session_uuid_, row);
+
+    writer_->update_edr_journal_entry_status(session_uuid_, id, "CORRECTED",
+                                             std::string{"Corrected by dispatcher"});
+
+    pqxx::connection c{conn_str_};
+    pqxx::work tx{c};
+    const auto r = tx.exec(
+        "SELECT status, notes, body "
+        "FROM session.edr_journal_entries "
+        "WHERE session_id = $1::uuid AND id = $2",
+        pqxx::params{session_uuid_, id});
+    tx.commit();
+
+    ASSERT_EQ(r.size(), 1u);
+    EXPECT_EQ(r[0][0].as<std::string>(), "CORRECTED");
+    EXPECT_EQ(r[0][1].as<std::string>(), "Corrected by dispatcher");
+    EXPECT_EQ(r[0][2].as<std::string>(), "Received crossing notification");
+}
+
 TEST_F(PgDbWriterFixture, SaveSnapshot_InsertsRow)
 {
     const std::vector<std::uint8_t> payload{0x01, 0x02, 0x03, 0x04};

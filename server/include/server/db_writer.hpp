@@ -45,6 +45,25 @@ struct DomainEventRow
     std::vector<uint8_t> payload;           ///< raw FlatBuffers body (without the 13-byte prefix)
 };
 
+/// One operator-visible EDR journal row.
+struct EdrJournalEntryRow
+{
+    std::string operating_point_id;
+    std::string station_sid;
+    std::string journal_page;  // route/line page visible in EDR, e.g. "201:GDN-SOP"
+    std::string entry_type;    // TRAIN | TELEGRAM | NOTE | TRACK_OCCUPANCY | CROSSING_NOTICE
+    std::optional<std::string> train_number;
+    std::optional<std::string> direction;     // ARRIVAL | DEPARTURE | PASS_THROUGH | SENT | RECEIVED
+    std::optional<std::string> track_number;
+    std::optional<std::string> scheduled_arrival_secs;
+    std::optional<std::string> scheduled_departure_secs;
+    std::optional<std::string> actual_arrival_secs;
+    std::optional<std::string> actual_departure_secs;
+    std::string body;
+    std::optional<std::string> notes;
+    std::uint64_t timestamp_us{0};
+};
+
 class IDbWriter
 {
 public:
@@ -86,6 +105,15 @@ public:
     /// Called when an S26 (arrival confirmation) telegram is accepted.
     virtual void update_edr_arrival(const std::string& session_id, const std::string& train_number,
                                     const std::string& station_sid, std::uint64_t timestamp_us) = 0;
+
+    /// Append an operator-visible EDR journal row and return its database id.
+    virtual int64_t append_edr_journal_entry(const std::string& session_id,
+                                             EdrJournalEntryRow row) = 0;
+
+    /// Mark a journal row as CROSSED_OUT, CORRECTED, CANCELLED, or ACTIVE.
+    virtual void update_edr_journal_entry_status(const std::string& session_id, int64_t entry_id,
+                                                 const std::string& status,
+                                                 const std::optional<std::string>& notes) = 0;
 
     /// UPSERT pip.track_state for one track section.
     /// trains_json is a JSON array string, e.g. "[]" or
@@ -177,6 +205,20 @@ public:
                             const std::string& station_sid, std::uint64_t timestamp_us) override
     {
         edr_arrivals.push_back({train_number, station_sid, timestamp_us});
+    }
+
+    int64_t append_edr_journal_entry(const std::string& /*session_id*/,
+                                     EdrJournalEntryRow row) override
+    {
+        edr_journal_entries.push_back(std::move(row));
+        return static_cast<int64_t>(edr_journal_entries.size());
+    }
+
+    void update_edr_journal_entry_status(const std::string& /*session_id*/, int64_t entry_id,
+                                         const std::string& status,
+                                         const std::optional<std::string>& notes) override
+    {
+        edr_journal_status_updates.push_back({entry_id, status, notes});
     }
 
     void upsert_pip_track_state(const std::string& /*session_id*/, const std::string& section_gid,
@@ -282,6 +324,13 @@ public:
         std::vector<int> operating_days;
     };
 
+    struct EdrJournalStatusUpdate
+    {
+        int64_t entry_id;
+        std::string status;
+        std::optional<std::string> notes;
+    };
+
     std::vector<int> seeded_operating_days;
     std::vector<TelegramRow> written_telegrams;
     std::vector<DomainEventRow> written_events;
@@ -294,6 +343,8 @@ public:
     std::vector<OpAssignment> op_assignments;
     std::vector<OpRelease> op_releases;
     std::vector<TimetableUpsert> timetable_upserts;
+    std::vector<EdrJournalEntryRow> edr_journal_entries;
+    std::vector<EdrJournalStatusUpdate> edr_journal_status_updates;
 };
 
 }  // namespace server

@@ -156,6 +156,41 @@ CREATE INDEX IF NOT EXISTS idx_edr_station
 CREATE INDEX IF NOT EXISTS idx_edr_train
     ON session.edr_entries (session_id, train_number);
 
+-- EDR journal: operator-visible register rows independent of PIP/ZPR.
+CREATE TABLE IF NOT EXISTS session.edr_journal_entries (
+    id                    BIGSERIAL   PRIMARY KEY,
+    session_id            UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
+    operating_point_id    TEXT        NOT NULL,
+    station_sid           TEXT        NOT NULL,
+    journal_page          TEXT        NOT NULL,
+    entry_type            TEXT        NOT NULL,
+                                      -- TRAIN | TELEGRAM | NOTE | TRACK_OCCUPANCY | CROSSING_NOTICE
+    train_number          TEXT,
+    direction             TEXT,
+                                      -- ARRIVAL | DEPARTURE | PASS_THROUGH | SENT | RECEIVED
+    track_number          TEXT,
+    scheduled_arrival     INTERVAL,
+    scheduled_departure   INTERVAL,
+    actual_arrival        INTERVAL,
+    actual_departure      INTERVAL,
+    body                  TEXT        NOT NULL,
+    notes                 TEXT,
+    status                TEXT        NOT NULL DEFAULT 'ACTIVE',
+                                      -- ACTIVE | CROSSED_OUT | CORRECTED | CANCELLED
+    timestamp_us          BIGINT      NOT NULL,
+    created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ck_edr_journal_entry_type
+        CHECK (entry_type IN ('TRAIN', 'TELEGRAM', 'NOTE', 'TRACK_OCCUPANCY', 'CROSSING_NOTICE')),
+    CONSTRAINT ck_edr_journal_status
+        CHECK (status IN ('ACTIVE', 'CROSSED_OUT', 'CORRECTED', 'CANCELLED'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_edr_journal_page
+    ON session.edr_journal_entries (session_id, operating_point_id, journal_page, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_edr_journal_train
+    ON session.edr_journal_entries (session_id, train_number) WHERE train_number IS NOT NULL;
+
 -- Operating point ownership — who controls which operating point.
 CREATE TABLE IF NOT EXISTS session.operating_point_assignments (
     id                 BIGSERIAL   PRIMARY KEY,

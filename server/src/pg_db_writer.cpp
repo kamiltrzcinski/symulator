@@ -208,6 +208,59 @@ void PgDbWriter::update_edr_arrival(const std::string& /*session_id*/,
     tx.commit();
 }
 
+// ── EDR journal ────────────────────────────────────────────────────────────────
+
+int64_t PgDbWriter::append_edr_journal_entry(const std::string& /*session_id*/,
+                                             EdrJournalEntryRow row)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    const auto result = tx.exec(
+        "INSERT INTO session.edr_journal_entries "
+        "  (session_id, operating_point_id, station_sid, journal_page, entry_type, "
+        "   train_number, direction, track_number, scheduled_arrival, scheduled_departure, "
+        "   actual_arrival, actual_departure, body, notes, timestamp_us) "
+        "VALUES ($1::uuid, $2, $3, $4, $5, "
+        "        $6, $7, $8, "
+        "        CASE WHEN $9::text IS NULL THEN NULL "
+        "             ELSE make_interval(secs => $9::double precision) END, "
+        "        CASE WHEN $10::text IS NULL THEN NULL "
+        "             ELSE make_interval(secs => $10::double precision) END, "
+        "        CASE WHEN $11::text IS NULL THEN NULL "
+        "             ELSE make_interval(secs => $11::double precision) END, "
+        "        CASE WHEN $12::text IS NULL THEN NULL "
+        "             ELSE make_interval(secs => $12::double precision) END, "
+        "        $13, $14, $15) "
+        "RETURNING id",
+        pqxx::params{session_uuid_, row.operating_point_id, row.station_sid, row.journal_page,
+                     row.entry_type, row.train_number, row.direction, row.track_number,
+                     row.scheduled_arrival_secs, row.scheduled_departure_secs,
+                     row.actual_arrival_secs, row.actual_departure_secs, row.body, row.notes,
+                     static_cast<int64_t>(row.timestamp_us)});
+    tx.commit();
+
+    return result.at(0, 0).as<int64_t>();
+}
+
+void PgDbWriter::update_edr_journal_entry_status(const std::string& /*session_id*/,
+                                                 int64_t entry_id, const std::string& status,
+                                                 const std::optional<std::string>& notes)
+{
+    std::lock_guard<std::mutex> lock{mu_};
+
+    pqxx::work tx{conn_};
+    tx.exec(
+        "UPDATE session.edr_journal_entries "
+        "SET status = $3, "
+        "    notes = COALESCE($4::text, notes), "
+        "    updated_at = now() "
+        "WHERE session_id = $1::uuid "
+        "  AND id = $2",
+        pqxx::params{session_uuid_, entry_id, status, notes});
+    tx.commit();
+}
+
 // ── upsert_pip_track_state ─────────────────────────────────────────────────────────────────────
 
 void PgDbWriter::upsert_pip_track_state(const std::string& /*session_id*/,

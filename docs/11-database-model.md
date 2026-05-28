@@ -14,7 +14,7 @@ Resolves open questions OQ-7 and OQ-8 from `02-system-requirements.md`.
 
 **Why a separate `pip` schema and not a table in `session`:** The `pip` schema is written by a dedicated PIP_WRITER thread that must not share a write path with the append-only `session.events` log. Keeping it in its own schema enforces ownership — only PIP_WRITER touches `pip.*` — and makes a future migration to a separate PostgreSQL instance a connection-string change, not a refactor.
 
-**EDR integration:** A new native C++ component will be written (not adapted from the C# prototype). It owns the `fleet.timetable_templates` table and the `session.edr_entries` table. It communicates with the engine via direct in-process call or Unix socket (Channel 2, same as defined in `09-communication-contract.md`).
+**EDR integration:** A new native C++ component will be written (not adapted from the C# prototype). It owns the `fleet.timetable_templates`, `session.edr_entries`, and `session.edr_journal_entries` tables. It communicates with the engine via direct in-process call or Unix socket (Channel 2, same as defined in `09-communication-contract.md`).
 
 ---
 
@@ -187,6 +187,41 @@ CREATE TABLE session.edr_entries (
 CREATE INDEX ON session.edr_entries (session_id, station_sid, scheduled_departure);
 CREATE INDEX ON session.edr_entries (session_id, train_number);
 
+-- EDR journal: operator-visible register rows, independent of PIP/ZPR.
+-- Used for train registrations, telephonegram notes, track occupancy notes,
+-- crossing notifications, corrections and cancellations.
+CREATE TABLE session.edr_journal_entries (
+    id              BIGSERIAL   PRIMARY KEY,
+    session_id      UUID        NOT NULL REFERENCES session.sessions(id),
+    operating_point_id TEXT     NOT NULL,
+    station_sid     TEXT        NOT NULL,
+    journal_page    TEXT        NOT NULL,              -- visible EDR page/route identifier
+    entry_type      TEXT        NOT NULL,
+                                -- TRAIN | TELEGRAM | NOTE | TRACK_OCCUPANCY | CROSSING_NOTICE
+    train_number    TEXT,
+    direction       TEXT,                              -- ARRIVAL | DEPARTURE | PASS_THROUGH |
+                                                       -- SENT | RECEIVED
+    track_number    TEXT,
+    scheduled_arrival   INTERVAL,
+    scheduled_departure INTERVAL,
+    actual_arrival      INTERVAL,
+    actual_departure    INTERVAL,
+    body            TEXT        NOT NULL,
+    notes           TEXT,
+    status          TEXT        NOT NULL DEFAULT 'ACTIVE',
+                                -- ACTIVE | CROSSED_OUT | CORRECTED | CANCELLED
+    timestamp_us    BIGINT      NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (entry_type IN ('TRAIN', 'TELEGRAM', 'NOTE', 'TRACK_OCCUPANCY', 'CROSSING_NOTICE')),
+    CHECK (status IN ('ACTIVE', 'CROSSED_OUT', 'CORRECTED', 'CANCELLED'))
+);
+
+CREATE INDEX ON session.edr_journal_entries
+    (session_id, operating_point_id, journal_page, created_at, id);
+CREATE INDEX ON session.edr_journal_entries (session_id, train_number)
+    WHERE train_number IS NOT NULL;
+
 -- Dispatch telegram log (S-form exchange between neighbouring LCS).
 -- One row per telegram in a dispatch exchange.
 -- The full S-form state machine is documented in docs/15-dispatch-forms.md.
@@ -324,6 +359,7 @@ A full Trójmiasto session generates ~1 000 EDR rows. This fits entirely in Post
 | `session.events`    | Keep all rows for active + last 10 completed sessions. Archive or delete older. |
 | `session.snapshots` | Keep only the 3 most recent snapshots per session (older ones are superseded). |
 | `session.edr_entries` | Retain for the lifetime of the session + 30 days.  |
+| `session.edr_journal_entries` | Retain for the lifetime of the session + 30 days. Required for EDR registration/correction audit trail. |
 | `session.dispatch_telegrams` | Retain for the lifetime of the session + 30 days. Required for audit trail of S-form exchanges. |
 | `session.chat_log`  | Retain for the lifetime of the session + 30 days.   |
 | `pip.track_state`   | Delete all rows for a session when the session ends. No archiving needed — state is reconstructable from `session.events`. |
