@@ -613,19 +613,20 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_RejectsNegative)
 
 TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_NoTemplatesForDay)
 {
-    writer_->upsert_timetable_template("WKD-300", "SOP", std::nullopt, std::nullopt, "3600",
+    const std::string train_number = "WKD-300-" + session_uuid_.substr(0, 8);
+
+    writer_->upsert_timetable_template(train_number, "SOP", std::nullopt, std::nullopt, "3600",
                                        std::string{"T1"}, "COMMERCIAL", {1, 2, 3});
 
-    const int64_t seeded = writer_->seed_edr_entries_for_operating_day(session_uuid_, 7);
-    EXPECT_EQ(seeded, 0LL);
+    writer_->seed_edr_entries_for_operating_day(session_uuid_, 7);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT COUNT(*) "
         "FROM session.edr_entries "
-        "WHERE session_id = $1::uuid",
-        pqxx::params{session_uuid_});
+        "WHERE session_id = $1::uuid AND train_number = $2",
+        pqxx::params{session_uuid_, train_number});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);

@@ -23,6 +23,11 @@ All notable changes are documented here.
 - **TME 551462 timings**: filled freight-train route times from Gdańsk Osowa at 12:32 using
   80 km/h and PLK line kilometre marks for lines 201/202; Lębork remains marked `PT`.
 
+### Fixed
+- **Integration test isolation**: `PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay`
+  now verifies absence of seeded rows for a test-specific train number in the current session,
+  removing a brittle dependency on globally persisted `fleet.timetable_templates` rows across tests.
+
 ## [0.5.4] - 2026-05-25
 
 ### Added
