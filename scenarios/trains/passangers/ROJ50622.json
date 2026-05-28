@@ -59,8 +59,8 @@
     { "stationName": "Stare Pole",         "arrival": "23:27,0", "departure": "23:28,0", "platform": 2, "track": 1, "stopType": "PH" },
     { "stationName": "Fiszewo",            "arrival": "23:30,0", "departure": "23:31,0", "platform": 1, "track": 1, "stopType": "PH" },
     { "stationName": "Gronowo Elbląskie",  "arrival": "23:34,0", "departure": "23:35,0", "platform": 1, "track": 1, "stopType": "PH" },
-    { "stationName": "Tropy",              "arrival": "23:43,0", "departure": "23:43,0", "platform": 3, "track": 1, "stopType": "PH" },
-    { "stationName": "Tropy Roz.7",        "arrival": "23:43,0", "departure": "23:43,0", "platform": 3, "track": 1, "stopType": "PH" },
+    { "stationName": "Tropy",              "arrival": "23:43,0", "departure": "23:43,0", "platform": 3, "track": 1, "stopType": null },
+    { "stationName": "Tropy Roz.7",        "arrival": "23:43,0", "departure": "23:43,0", "platform": 3, "track": 1, "stopType": null },
     { "stationName": "Elbląg",             "arrival": "23:43,0", "departure": null,       "platform": 3, "track": 1, "stopType": "PH" }
   ]
 }
