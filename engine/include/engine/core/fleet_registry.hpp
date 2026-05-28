@@ -120,6 +120,7 @@ struct TrainConsist
     std::string pid;
     std::string display_name;
     TrainCategory train_category;
+    std::optional<std::string> carrier;
     std::vector<GID> vehicle_gids;  // front → rear
 
     // ── Derived (computed at load time) ────────────────────────────────────────

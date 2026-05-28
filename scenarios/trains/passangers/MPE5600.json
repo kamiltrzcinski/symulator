@@ -10,6 +10,7 @@
   },
   "trainType": "PASSENGER",
   "trainCategory": "MPE",
+  "carrier": "PKP Intercity",
   "route": [
     { "stationName": "Gdynia Postojowa",       "arrival": null,      "departure": "18:05,0", "platform": null, "track": null, "stopType": null },
     { "stationName": "Gdynia Gł. Roz.84",      "arrival": "18:05,0", "departure": "18:05,0", "platform": null, "track": null, "stopType": null },

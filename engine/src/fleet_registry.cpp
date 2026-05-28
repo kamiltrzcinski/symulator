@@ -529,6 +529,27 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
         consist.train_category =
             parse_train_category(require_string(j, "trainCategory", path), path);
 
+        if (j.contains("carrier") && !j.at("carrier").is_null())
+        {
+            const std::string carrier_name = j.at("carrier").get<std::string>();
+            
+            // Validate carrier against loaded carriers list
+            bool found = false;
+            for (const auto& c : carriers_)
+            {
+                if (c == carrier_name)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                throw FleetLoadError("Unknown carrier '" + carrier_name + "' in " + path.string());
+            }
+            consist.carrier = carrier_name;
+        }
+
         if (!j.contains("vehicles") || !j.at("vehicles").is_array())
         {
             throw FleetLoadError("Missing or invalid array field 'vehicles' in " + path.string());

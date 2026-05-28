@@ -10,6 +10,7 @@
   },
   "trainType": "FREIGHT",
   "trainCategory": "TME",
+  "carrier": "CARGO Master - tow.",
   "route": [
     { "stationName": "Gdańsk Osowa",          "arrival": null,      "departure": "12:32,0", "platform": null, "track": null, "stopType": null },
     { "stationName": "Gdańsk Osowa R23",      "arrival": "12:32,0", "departure": "12:32,0", "platform": null, "track": null, "stopType": null },

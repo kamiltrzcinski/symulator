@@ -15,6 +15,7 @@ All notable changes are documented here.
   operator-visible registrations, corrections, cancellations, telephonegram notes, track occupancy
   notes, and crossing notifications, independent of PIP/ZPR.
 - **Carrier database**: implemented a flat JSON array `data/carriers.json` storing 145 carrier names, loaded by `FleetRegistry` on startup.
+- **Carrier assignment**: `TrainConsist` structure and JSON schemas now support an optional `carrier` field, verified against the database.
 
 ### Changed
 - **Scenario train routes**: expanded ROJ 50622 and TDE 592599 route definitions with additional
