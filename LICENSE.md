@@ -2,7 +2,6 @@
 
 Copyright © 2026 Kamil Trzciński <kamil.trzcinski@gmail.com>  
 Copyright © 2026 Tymon Kochański <tymonkochanski5@gmail.com>  
-Copyright © 2026 Tomasz Błaszczyk <blaszczykt584@gmail.com>  
 
 Wszelkie prawa zastrzeżone.
 
@@ -42,15 +41,13 @@ W celu uzyskania licencji lub zgody prosimy o kontakt:
 
 - kamil.trzcinski@gmail.com
 - tymonkochanski5@gmail.com
-- blaszczykt584@gmail.com
 
 ---
 
 # ENGLISH
 
 Copyright © 2026 Kamil Trzciński <kamil.trzcinski@gmail.com>  
-Copyright © 2026 Tymon Kochański <tymonkochanski5@gmail.com>  
-Copyright © 2026 Tomasz Błaszczyk <blaszczykt584@gmail.com>  
+Copyright © 2026 Tymon Kochański <tymonkochanski5@gmail.com>   
 
 All Rights Reserved
 
@@ -90,4 +87,3 @@ To request a license or permission, contact:
 
 - kamil.trzcinski@gmail.com
 - tymonkochanski5@gmail.com
-- blaszczykt584@gmail.com
