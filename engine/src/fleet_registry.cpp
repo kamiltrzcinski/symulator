@@ -122,6 +122,23 @@ namespace
     return j.at(key).get<int>();
 }
 
+[[nodiscard]] UID require_uid(const json& j, const char* key, const std::filesystem::path& path)
+{
+    if (!j.contains(key) || !j.at(key).is_number_unsigned())
+    {
+        throw FleetLoadError("Missing or invalid UID field '" + std::string(key) + "' in " +
+                             path.string());
+    }
+
+    const UID uid{j.at(key).get<std::uint64_t>()};
+    if (!uid_is_safe_json_integer(uid))
+    {
+        throw FleetLoadError("UID field '" + std::string(key) +
+                             "' exceeds the JSON-safe integer range in " + path.string());
+    }
+    return uid;
+}
+
 [[nodiscard]] float require_float(const json& j, const char* key, const std::filesystem::path& path)
 {
     if (!j.contains(key) || !j.at(key).is_number())
@@ -531,23 +548,24 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
 
         if (j.contains("carrier") && !j.at("carrier").is_null())
         {
-            const std::string carrier_name = j.at("carrier").get<std::string>();
+            throw FleetLoadError("Field 'carrier' is deprecated; use numeric 'carrierId' in " +
+                                 path.string());
+        }
 
-            // Validate carrier against loaded carriers list
-            bool found = false;
-            for (const auto& c : carriers_)
+        if (j.contains("carrierId") && !j.at("carrierId").is_null())
+        {
+            const UID carrier_id = require_uid(j, "carrierId", path);
+            if (!uid_has_kind(carrier_id, UIDDomain::ROLLING_STOCK, UIDKind::CARRIER))
             {
-                if (c == carrier_name)
-                {
-                    found = true;
-                    break;
-                }
+                throw FleetLoadError("carrierId has an invalid UID domain/kind in " +
+                                     path.string());
             }
-            if (!found)
+            if (carriers_.count(carrier_id) == 0)
             {
-                throw FleetLoadError("Unknown carrier '" + carrier_name + "' in " + path.string());
+                throw FleetLoadError("Unknown carrierId '" + std::to_string(carrier_id.value) +
+                                     "' in " + path.string());
             }
-            consist.carrier = carrier_name;
+            consist.carrier_id = carrier_id;
         }
 
         if (!j.contains("vehicles") || !j.at("vehicles").is_array())
@@ -687,18 +705,77 @@ void FleetRegistry::load_carriers_(const std::filesystem::path& carriers_file)
     }
 
     const json j = parse_json_file(carriers_file);
-    if (!j.is_array())
+    if (!j.is_object() || !j.contains("carriers") || !j.at("carriers").is_array())
     {
-        throw FleetLoadError("carriers.json must be a JSON array");
+        throw FleetLoadError("carriers.json must contain a 'carriers' array");
     }
 
-    for (const auto& item : j)
+    std::vector<std::string> carrier_names;
+    for (const auto& item : j.at("carriers"))
     {
-        if (!item.is_string())
+        if (!item.is_object())
         {
-            throw FleetLoadError("Carrier entries must be strings in " + carriers_file.string());
+            throw FleetLoadError("Carrier entries must be objects in " + carriers_file.string());
         }
-        carriers_.push_back(item.get<std::string>());
+
+        Carrier carrier{};
+        carrier.id = require_uid(item, "id", carriers_file);
+        if (!uid_has_kind(carrier.id, UIDDomain::ROLLING_STOCK, UIDKind::CARRIER))
+        {
+            throw FleetLoadError("Carrier id has an invalid UID domain/kind in " +
+                                 carriers_file.string());
+        }
+
+        carrier.name = require_string(item, "name", carriers_file);
+        if (std::find(carrier_names.begin(), carrier_names.end(), carrier.name) !=
+            carrier_names.end())
+        {
+            throw FleetLoadError("Duplicate carrier name '" + carrier.name + "' in " +
+                                 carriers_file.string());
+        }
+        carrier_names.push_back(carrier.name);
+
+        if (!item.contains("type") || !item.at("type").is_array() || item.at("type").empty())
+        {
+            throw FleetLoadError("Carrier entries must contain a non-empty 'type' array in " +
+                                 carriers_file.string());
+        }
+        for (const auto& service_type_json : item.at("type"))
+        {
+            if (!service_type_json.is_string())
+            {
+                throw FleetLoadError("Carrier type entries must be strings in " +
+                                     carriers_file.string());
+            }
+            const std::string service_type = service_type_json.get<std::string>();
+            if (service_type != "passenger" && service_type != "freight")
+            {
+                throw FleetLoadError("Invalid carrier type '" + service_type + "' in " +
+                                     carriers_file.string());
+            }
+            if (std::find(carrier.service_types.begin(), carrier.service_types.end(),
+                          service_type) == carrier.service_types.end())
+            {
+                carrier.service_types.push_back(service_type);
+            }
+        }
+
+        if (item.contains("logo") && !item.at("logo").is_null())
+        {
+            if (!item.at("logo").is_string())
+            {
+                throw FleetLoadError("Carrier logo must be a string or null in " +
+                                     carriers_file.string());
+            }
+            carrier.logo = item.at("logo").get<std::string>();
+        }
+
+        const auto [it, inserted] = carriers_.emplace(carrier.id, std::move(carrier));
+        if (!inserted)
+        {
+            throw FleetLoadError("Duplicate carrier id: " + std::to_string(it->first.value) +
+                                 " in " + carriers_file.string());
+        }
     }
 }
 

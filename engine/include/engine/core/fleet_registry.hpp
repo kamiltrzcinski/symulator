@@ -110,6 +110,14 @@ struct Vehicle
     DavisCoefficients davis;
 };
 
+struct Carrier
+{
+    UID id;
+    std::string name;
+    std::vector<std::string> service_types;  // passenger | freight
+    std::optional<std::string> logo;
+};
+
 // ── TrainConsist ──────────────────────────────────────────────────────────────
 // An ordered sequence of Vehicle instances forming a complete trainset.
 // Derived properties are computed once at load time (doc 10 formulae).
@@ -120,7 +128,7 @@ struct TrainConsist
     std::string pid;
     std::string display_name;
     TrainCategory train_category;
-    std::optional<std::string> carrier;
+    std::optional<UID> carrier_id;
     std::vector<GID> vehicle_gids;  // front → rear
 
     // ── Derived (computed at load time) ────────────────────────────────────────
@@ -150,7 +158,7 @@ class FleetRegistry
     std::unordered_map<GID, VehicleType, std::hash<GID>> types_;
     std::unordered_map<GID, Vehicle, std::hash<GID>> vehicles_;
     std::unordered_map<GID, TrainConsist, std::hash<GID>> consists_;
-    std::vector<std::string> carriers_;
+    std::unordered_map<UID, Carrier, std::hash<UID>> carriers_;
 
 public:
     // Load all three levels from the given data root directory.
@@ -165,6 +173,7 @@ public:
 
     bool has_vehicle(const GID& gid) const { return vehicles_.count(gid) > 0; }
     bool has_consist(const GID& gid) const { return consists_.count(gid) > 0; }
+    bool has_carrier(UID id) const { return carriers_.count(id) > 0; }
 
     // Iteration support for snapshot building.
     const auto& all_consists() const { return consists_; }

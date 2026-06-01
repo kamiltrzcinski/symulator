@@ -307,7 +307,7 @@ A consist file lists vehicle `gID`s in order from **front to rear**. The engine 
     "gID":         "TRN-TRJ-IC12345-0000100",
     "pID":         "IC 12345",
   "trainCategory": "PASSENGER",
-    "carrier":     "PKP Intercity",
+    "carrierId":   1116691497069,
     "displayName": "IC 12345 Kraków — Gdynia",
     "vehicles": [
         "VEH-TRJ-ET22-001-0000001",
@@ -321,8 +321,9 @@ A consist file lists vehicle `gID`s in order from **front to rear**. The engine 
 
 `trainCategory` is required and must be one of `PASSENGER`, `FREIGHT`, `MAINTENANCE`. The loader validates that the folder path and field value are consistent.
 
-`carrier` is optional. When present, it must match one of the names from `data/carriers.json`.
-If the field is missing or `null`, the consist is loaded without an assigned carrier.
+`carrierId` is optional. When present, it must be a numeric UID from `data/carriers.json`.
+Names are display metadata only and are not used for validation. If the field is missing or
+`null`, the consist is loaded without an assigned carrier.
 
 The engine computes derived properties at load time:
 

@@ -49,6 +49,68 @@ struct ControlSystemID
     auto operator<=>(const ControlSystemID&) const = default;
 };
 
+struct UID
+{
+    std::uint64_t value = 0;
+    auto operator<=>(const UID&) const = default;
+};
+
+enum class UIDDomain : std::uint8_t
+{
+    ROLLING_STOCK = 0x01,
+    INFRASTRUCTURE = 0x02,
+    OPERATIONS = 0x03,
+};
+
+enum class UIDKind : std::uint8_t
+{
+    VEHICLE_TYPE = 0x01,
+    VEHICLE = 0x02,
+    TRAIN_CONSIST = 0x03,
+    CARRIER = 0x04,
+};
+
+constexpr std::uint64_t UID_MAX_SAFE_JSON_INTEGER = (1ULL << 53) - 1ULL;
+
+[[nodiscard]] constexpr UID make_uid(UIDDomain domain, UIDKind kind, std::uint16_t type_code,
+                                     std::uint16_t item_number) noexcept
+{
+    return UID{(static_cast<std::uint64_t>(domain) << 40) |
+               (static_cast<std::uint64_t>(kind) << 32) |
+               (static_cast<std::uint64_t>(type_code) << 16) |
+               static_cast<std::uint64_t>(item_number)};
+}
+
+[[nodiscard]] constexpr UIDDomain uid_domain(UID uid) noexcept
+{
+    return static_cast<UIDDomain>((uid.value >> 40) & 0xFFU);
+}
+
+[[nodiscard]] constexpr UIDKind uid_kind(UID uid) noexcept
+{
+    return static_cast<UIDKind>((uid.value >> 32) & 0xFFU);
+}
+
+[[nodiscard]] constexpr std::uint16_t uid_type_code(UID uid) noexcept
+{
+    return static_cast<std::uint16_t>((uid.value >> 16) & 0xFFFFU);
+}
+
+[[nodiscard]] constexpr std::uint16_t uid_item_number(UID uid) noexcept
+{
+    return static_cast<std::uint16_t>(uid.value & 0xFFFFU);
+}
+
+[[nodiscard]] constexpr bool uid_is_safe_json_integer(UID uid) noexcept
+{
+    return uid.value <= UID_MAX_SAFE_JSON_INTEGER;
+}
+
+[[nodiscard]] constexpr bool uid_has_kind(UID uid, UIDDomain domain, UIDKind kind) noexcept
+{
+    return uid_is_safe_json_integer(uid) && uid_domain(uid) == domain && uid_kind(uid) == kind;
+}
+
 // ── Command priority ─────────────────────────────────────────────────────────
 // Determines the bucket order inside PriorityCommandQueue.
 // Lower numeric value = higher priority; ordering is intentional.
@@ -316,5 +378,14 @@ struct std::hash<engine::core::ControlSystemID>
     std::size_t operator()(const engine::core::ControlSystemID& id) const noexcept
     {
         return std::hash<std::string>{}(id.value);
+    }
+};
+
+template<>
+struct std::hash<engine::core::UID>
+{
+    std::size_t operator()(const engine::core::UID& id) const noexcept
+    {
+        return std::hash<std::uint64_t>{}(id.value);
     }
 };

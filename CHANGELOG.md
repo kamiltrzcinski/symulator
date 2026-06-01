@@ -5,7 +5,12 @@ All notable changes are documented here.
 ## [0.5.6] - 2026-06-01
 
 ### Changed
-- **Carrier database**: Preserved the flat JSON array structure of `data/carriers.json` where each carrier is a plain string, and kept passenger and freight divisions separate without merges.
+- **Carrier database**: changed `data/carriers.json` from a flat name list into a `carriers`
+  catalog of carrier objects with numeric semantic `id`, `name`, `type`, and `logo`, merging
+  passenger/freight variants where they represent the same carrier.
+- **Fleet carrier assignment**: train consists now reference carriers with numeric `carrierId`
+  UIDs instead of validating the human-readable carrier name string.
+- **UID model**: added a 48-bit, JSON-safe `UID` helper layout for numeric domain identifiers.
 
 ## [0.5.5] - 2026-05-28
 

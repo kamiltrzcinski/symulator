@@ -47,6 +47,19 @@ void create_minimal_tree(const std::filesystem::path& root)
 
 }  // namespace
 
+TEST(UID, EncodesDomainKindTypeAndItem)
+{
+    constexpr UID en57_1120 =
+        make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0x0001, 1120);
+
+    EXPECT_EQ(en57_1120.value, 0x010200010460ULL);
+    EXPECT_EQ(uid_domain(en57_1120), UIDDomain::ROLLING_STOCK);
+    EXPECT_EQ(uid_kind(en57_1120), UIDKind::VEHICLE);
+    EXPECT_EQ(uid_type_code(en57_1120), 0x0001);
+    EXPECT_EQ(uid_item_number(en57_1120), 1120);
+    EXPECT_TRUE(uid_is_safe_json_integer(en57_1120));
+}
+
 TEST(FleetRegistry, LoadsRecursiveAndBuildsDerivedConsist)
 {
     TempDir tmp;
@@ -690,20 +703,41 @@ TEST(FleetRegistry, LoadsCarriersFromFile)
     const auto root = tmp.path() / "data";
     create_minimal_tree(root);
 
-    write_text(root / "carriers.json", R"json([
-  "CARRIER-A",
-  "CARRIER-B",
-  "CARRIER-C"
-])json");
+    write_text(root / "carriers.json", R"json({
+  "carriers": [
+    {
+      "id": 1116691496961,
+      "name": "CARRIER-A",
+      "type": ["freight"],
+      "logo": null
+    },
+    {
+      "id": 1116691496962,
+      "name": "CARRIER-B",
+      "type": ["passenger"],
+      "logo": null
+    },
+    {
+      "id": 1116691496963,
+      "name": "CARRIER-C",
+      "type": ["passenger", "freight"],
+      "logo": "logos/carrier-c.svg"
+    }
+  ]
+})json");
 
     FleetRegistry registry;
     ASSERT_NO_THROW(registry.load(root));
 
     const auto& carriers = registry.all_carriers();
     ASSERT_EQ(carriers.size(), 3u);
-    EXPECT_EQ(carriers[0], "CARRIER-A");
-    EXPECT_EQ(carriers[1], "CARRIER-B");
-    EXPECT_EQ(carriers[2], "CARRIER-C");
+    ASSERT_TRUE(registry.has_carrier(UID{1116691496961}));
+    ASSERT_TRUE(registry.has_carrier(UID{1116691496962}));
+    ASSERT_TRUE(registry.has_carrier(UID{1116691496963}));
+    EXPECT_EQ(carriers.at(UID{1116691496961}).name, "CARRIER-A");
+    EXPECT_EQ(carriers.at(UID{1116691496962}).service_types[0], "passenger");
+    ASSERT_TRUE(carriers.at(UID{1116691496963}).logo.has_value());
+    EXPECT_EQ(*carriers.at(UID{1116691496963}).logo, "logos/carrier-c.svg");
 }
 
 TEST(FleetRegistry, AcceptsValidCarrierInTrain)
@@ -711,10 +745,22 @@ TEST(FleetRegistry, AcceptsValidCarrierInTrain)
     TempDir tmp;
     const auto root = tmp.path() / "data";
 
-    write_text(root / "carriers.json", R"json([
-  "PKP Cargo",
-  "CARGO Master - tow."
-])json");
+    write_text(root / "carriers.json", R"json({
+  "carriers": [
+    {
+      "id": 1116691496961,
+      "name": "PKP Cargo",
+      "type": ["freight"],
+      "logo": null
+    },
+    {
+      "id": 1116691496962,
+      "name": "CARGO Master",
+      "type": ["passenger", "freight"],
+      "logo": null
+    }
+  ]
+})json");
 
     write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
   "typeID": "VT-GLB-SM42-0000001",
@@ -745,7 +791,7 @@ TEST(FleetRegistry, AcceptsValidCarrierInTrain)
   "pID": "TestCarrier",
   "displayName": "Test Carrier Train",
   "trainCategory": "FREIGHT",
-  "carrier": "PKP Cargo",
+  "carrierId": 1116691496961,
   "vehicles": ["VEH-TRJ-SM42-001-0000001"]
 })json");
 
@@ -753,8 +799,8 @@ TEST(FleetRegistry, AcceptsValidCarrierInTrain)
     ASSERT_NO_THROW(registry.load(root));
 
     const auto& consist = registry.get_consist(GID{"TRN-TRJ-TEST-CARR-0000001"});
-    ASSERT_TRUE(consist.carrier.has_value());
-    EXPECT_EQ(*consist.carrier, "PKP Cargo");
+    ASSERT_TRUE(consist.carrier_id.has_value());
+    EXPECT_EQ(consist.carrier_id->value, 1116691496961ULL);
 }
 
 TEST(FleetRegistry, ThrowsOnUnknownCarrier)
@@ -762,9 +808,16 @@ TEST(FleetRegistry, ThrowsOnUnknownCarrier)
     TempDir tmp;
     const auto root = tmp.path() / "data";
 
-    write_text(root / "carriers.json", R"json([
-  "KNOWN-CARRIER"
-])json");
+    write_text(root / "carriers.json", R"json({
+  "carriers": [
+    {
+      "id": 1116691496961,
+      "name": "KNOWN-CARRIER",
+      "type": ["freight"],
+      "logo": null
+    }
+  ]
+})json");
 
     write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
   "typeID": "VT-GLB-SM42-0000001",
@@ -795,7 +848,7 @@ TEST(FleetRegistry, ThrowsOnUnknownCarrier)
   "pID": "BadCarrier",
   "displayName": "Bad Carrier Train",
   "trainCategory": "FREIGHT",
-  "carrier": "UNKNOWN-CARRIER",
+  "carrierId": 1116691496962,
   "vehicles": ["VEH-TRJ-SM42-001-0000001"]
 })json");
 
@@ -808,9 +861,16 @@ TEST(FleetRegistry, AllowsNullOrMissingCarrierField)
     TempDir tmp;
     const auto root = tmp.path() / "data";
 
-    write_text(root / "carriers.json", R"json([
-  "KNOWN-CARRIER"
-])json");
+    write_text(root / "carriers.json", R"json({
+  "carriers": [
+    {
+      "id": 1116691496961,
+      "name": "KNOWN-CARRIER",
+      "type": ["freight"],
+      "logo": null
+    }
+  ]
+})json");
 
     write_text(root / "vehicle_types/locomotive/diesel/sm42.json", R"json({
   "typeID": "VT-GLB-SM42-0000001",
@@ -841,7 +901,7 @@ TEST(FleetRegistry, AllowsNullOrMissingCarrierField)
   "pID": "NullCarrier",
   "displayName": "Null Carrier Train",
   "trainCategory": "FREIGHT",
-  "carrier": null,
+  "carrierId": null,
   "vehicles": ["VEH-TRJ-SM42-001-0000001"]
 })json");
 
@@ -857,10 +917,10 @@ TEST(FleetRegistry, AllowsNullOrMissingCarrierField)
     ASSERT_NO_THROW(registry.load(root));
 
     const auto& null_consist = registry.get_consist(GID{"TRN-TRJ-NULL-CARR-0000001"});
-    EXPECT_FALSE(null_consist.carrier.has_value());
+    EXPECT_FALSE(null_consist.carrier_id.has_value());
 
     const auto& missing_consist = registry.get_consist(GID{"TRN-TRJ-MISS-CARR-0000001"});
-    EXPECT_FALSE(missing_consist.carrier.has_value());
+    EXPECT_FALSE(missing_consist.carrier_id.has_value());
 }
 
 TEST(FleetRegistry, ThrowsOnInvalidCarriersJsonFormat)
@@ -869,9 +929,9 @@ TEST(FleetRegistry, ThrowsOnInvalidCarriersJsonFormat)
     const auto root = tmp.path() / "data";
     create_minimal_tree(root);
 
-    write_text(root / "carriers.json", R"json({
-  "carriers": ["CARRIER-A"]
-})json");
+    write_text(root / "carriers.json", R"json([
+  "CARRIER-A"
+])json");
 
     FleetRegistry registry;
     EXPECT_THROW(registry.load(root), FleetLoadError);
@@ -883,11 +943,17 @@ TEST(FleetRegistry, ThrowsOnNonStringCarrierEntry)
     const auto root = tmp.path() / "data";
     create_minimal_tree(root);
 
-    write_text(root / "carriers.json", R"json([
-  "CARRIER-A",
-  12345,
-  "CARRIER-B"
-])json");
+    write_text(root / "carriers.json", R"json({
+  "carriers": [
+    {
+      "id": 1116691496961,
+      "name": "CARRIER-A",
+      "type": ["freight"],
+      "logo": null
+    },
+    12345
+  ]
+})json");
 
     FleetRegistry registry;
     EXPECT_THROW(registry.load(root), FleetLoadError);
