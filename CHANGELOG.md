@@ -2,6 +2,11 @@
 
 All notable changes are documented here.
 
+## [0.5.6] - 2026-06-01
+
+### Changed
+- **Carrier database**: Preserved the flat JSON array structure of `data/carriers.json` where each carrier is a plain string, and kept passenger and freight divisions separate without merges.
+
 ## [0.5.5] - 2026-05-28
 
 ### Added
