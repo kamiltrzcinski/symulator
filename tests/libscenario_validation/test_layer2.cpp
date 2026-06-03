@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <fstream>
 #include <string>
 
@@ -33,6 +34,18 @@ static bool has_code(const ValidationResult& r, const std::string& code)
     return false;
 }
 
+// Construct INFRA UID: domain=0x02, given kind, scope=station, instance=n
+static constexpr uint64_t infra_uid(uint8_t kind, int station, uint16_t n)
+{
+    return (uint64_t{0x02} << 40) | (uint64_t{kind} << 32) | (uint64_t{station} << 16) |
+           uint64_t{n};
+}
+
+static constexpr uint8_t BOUNDARY_NODE = 0x18;
+static constexpr uint8_t TRACK_SECTION = 0x13;
+static constexpr uint8_t SWITCH_KIND = 0x14;
+static constexpr uint8_t SIGNAL_KIND = 0x15;
+
 // ── Happy path ────────────────────────────────────────────────────────────────
 
 class Layer2GdyniaOrlowo : public ::testing::Test
@@ -48,110 +61,113 @@ protected:
 
     json topo_;
     json objs_;
-    const std::string kSid = "GOr";
+    static constexpr int kGOrInstance = 1;  // GOr = station instance 1
 };
 
 TEST_F(Layer2GdyniaOrlowo, ValidScenario_NoErrors)
 {
     Layer2Validator v;
-    const auto result = v.validate(kSid, topo_, objs_);
+    const auto result = v.validate(kGOrInstance, topo_, objs_);
     EXPECT_TRUE(result.ok()) << "Expected 0 errors on valid gdynia_orlowo scenario";
     for (const auto& i : result.issues)
         if (i.severity == ValidationIssue::Severity::ERROR)
             ADD_FAILURE() << "[" << i.code << "] " << i.message;
 }
 
-// ── L2-001: sID mismatch ────────────────────────────────────────────────────
+// ── L2-001: SCOPE mismatch ────────────────────────────────────────────────────
 
-TEST(Layer2Validator, SidMismatch_ReportsL2001)
+TEST(Layer2Validator, ScopeMismatch_ReportsL2001)
 {
-    json topo = {
-        {"boundary_nodes", {{{"gID", "BND-A"}, {"pID", "p1"}, {"sID", "WRONG_SID"}}}},  // wrong sID
-        {"track_sections", json::array()},
-        {"switches", json::array()}};
+    // station_instance=1 but UID has SCOPE=2 (wrong station)
+    const uint64_t wrongUid = infra_uid(BOUNDARY_NODE, 2, 1);
+    json topo = {{"boundary_nodes", {{{"uid", wrongUid}, {"pID", "p1"}}}},
+                 {"track_sections", json::array()},
+                 {"switches", json::array()}};
     json objs = {{"signals", json::array()}};
 
     Layer2Validator v;
-    const auto result = v.validate("GOr", topo, objs);
+    const auto result = v.validate(1, topo, objs);
     EXPECT_TRUE(has_code(result, "L2-001"));
 }
 
-// ── L2-002: OT references unknown ZWR ──────────────────────────────────────
+// ── L2-002: track section references unknown switch ───────────────────────────
 
-TEST(Layer2Validator, OtReferencesUnknownZwr_ReportsL2002)
+TEST(Layer2Validator, OtReferencesUnknownSwitch_ReportsL2002)
 {
+    const uint64_t kSec = infra_uid(TRACK_SECTION, 1, 1);
+    const uint64_t kBnd = infra_uid(BOUNDARY_NODE, 1, 1);
+    const uint64_t kGhostSw = infra_uid(SWITCH_KIND, 1, 99);  // not in switches
+
     json topo = {{"boundary_nodes", json::array()},
                  {"track_sections",
-                  {{{"gID", "OT-T1"},
+                  {{{"uid", kSec},
                     {"pID", "t1"},
-                    {"sID", "S1"},
-                    {"sideA", {{"neighborID", "BND-A"}}},
-                    {"sideB", {{"neighborID", "ZWR-NONEXISTENT"}}}}}},  // no such ZWR
+                    {"sideA", {{"neighborUID", kBnd}}},
+                    {"sideB", {{"neighborUID", kGhostSw}}}}}},
                  {"switches", json::array()}};
     json objs = {{"signals", json::array()}};
 
     Layer2Validator v;
-    const auto result = v.validate("S1", topo, objs);
+    const auto result = v.validate(1, topo, objs);
     EXPECT_TRUE(has_code(result, "L2-002"));
 }
 
-// ── L2-003: OT references unknown BND ──────────────────────────────────────
+// ── L2-003: track section references unknown boundary_node ───────────────────
 
-TEST(Layer2Validator, OtReferencesUnknownBnd_ReportsL2003)
+TEST(Layer2Validator, OtReferencesUnknownBoundaryNode_ReportsL2003)
 {
-    json topo = {{"boundary_nodes", json::array()},  // no BND-A defined
+    const uint64_t kSec = infra_uid(TRACK_SECTION, 1, 1);
+    const uint64_t kGhostBnd = infra_uid(BOUNDARY_NODE, 1, 99);  // not in boundary_nodes
+
+    json topo = {{"boundary_nodes", json::array()},  // empty — kGhostBnd not defined
                  {"track_sections",
-                  {{{"gID", "OT-T1"},
+                  {{{"uid", kSec},
                     {"pID", "t1"},
-                    {"sID", "S1"},
-                    {"sideA", {{"neighborID", "BND-A"}}},  // not in boundary_nodes
-                    {"sideB", {{"neighborID", "BND-B"}}}}}},
+                    {"sideA", {{"neighborUID", kGhostBnd}}},
+                    {"sideB", {{"neighborUID", kGhostBnd}}}}}},
                  {"switches", json::array()}};
     json objs = {{"signals", json::array()}};
 
     Layer2Validator v;
-    const auto result = v.validate("S1", topo, objs);
+    const auto result = v.validate(1, topo, objs);
     EXPECT_TRUE(has_code(result, "L2-003"));
 }
 
-// ── L2-004: ZWR leg references unknown OT ──────────────────────────────────
+// ── L2-004: switch leg references unknown track section ───────────────────────
 
-TEST(Layer2Validator, ZwrLegReferencesUnknownOt_ReportsL2004)
+TEST(Layer2Validator, SwitchLegReferencesUnknownSection_ReportsL2004)
 {
-    json topo = {{"boundary_nodes", json::array()},
-                 {"track_sections", json::array()},  // no OTs defined
-                 {"switches",
-                  {{{"gID", "ZWR-A"},
-                    {"pID", "p1"},
-                    {"sID", "S1"},
-                    {"trunk", {{"neighborID", "OT-GHOST"}, {"izID", "IZ-X"}}}}}}};
+    const uint64_t kSw = infra_uid(SWITCH_KIND, 1, 1);
+    const uint64_t kGhostSec = infra_uid(TRACK_SECTION, 1, 99);  // not in track_sections
+
+    json topo = {
+        {"boundary_nodes", json::array()},
+        {"track_sections", json::array()},
+        {"switches", {{{"uid", kSw}, {"pID", "p1"}, {"trunk", {{"neighborUID", kGhostSec}}}}}}};
     json objs = {{"signals", json::array()}};
 
     Layer2Validator v;
-    const auto result = v.validate("S1", topo, objs);
+    const auto result = v.validate(1, topo, objs);
     EXPECT_TRUE(has_code(result, "L2-004"));
 }
 
-// ── L2-005: signal governs OT from different station ────────────────────────
+// ── L2-005: signal governs unknown track section ─────────────────────────────
 
-TEST(Layer2Validator, SignalCrossStationRef_ReportsL2005)
+TEST(Layer2Validator, SignalGovernsMissingSection_ReportsL2005)
 {
+    const uint64_t kSig = infra_uid(SIGNAL_KIND, 1, 1);
+    const uint64_t kGhostSec = infra_uid(TRACK_SECTION, 1, 99);
+
     json topo = {{"boundary_nodes", json::array()},
-                 {"track_sections",
-                  {{{"gID", "OT-T1"},
-                    {"pID", "t1"},
-                    {"sID", "STATION_B"},  // different station
-                    {"sideA", {{"neighborID", "BND-A"}}},
-                    {"sideB", {{"neighborID", "BND-B"}}}}}},
+                 {"track_sections", json::array()},
                  {"switches", json::array()}};
     json objs = {{"signals",
-                  {{{"gID", "SEM-1"},
+                  {{{"uid", kSig},
                     {"pID", "p1"},
-                    {"sID", "STATION_A"},
-                    {"governs_track_section", "OT-T1"},
+                    {"governs_section", kGhostSec},
                     {"initial_aspect", "STOP"}}}}};
 
     Layer2Validator v;
-    const auto result = v.validate("STATION_A", topo, objs);
+    const auto result = v.validate(1, topo, objs);
     EXPECT_TRUE(has_code(result, "L2-005"));
 }

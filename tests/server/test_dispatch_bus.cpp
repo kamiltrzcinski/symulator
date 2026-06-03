@@ -14,20 +14,12 @@
 #include <cstdint>
 #include <vector>
 
-// We need a TransportGateway reference in DispatchBus ctor but we never call
-// broadcast in these tests, so we use a stub trick: create a bus via inheritance
-// or just test make_event_frame directly which only uses internal state.
-//
-// The cleanest approach: subclass DispatchBus and override broadcast, or simply
-// build a minimal real TransportGateway (no start() called).
-
 #include "server/ownership_guard.hpp"
 #include "server/transport_gateway.hpp"
 
 namespace
 {
 
-// Minimal stub: PriorityCommandQueue requires no_discard — just make it die at queue pop.
 struct BusTestFixture
 {
     engine::core::PriorityCommandQueue<engine::core::EnvelopedCommand> cmd_queue;
@@ -38,7 +30,6 @@ struct BusTestFixture
     server::DispatchBus bus{gateway, null_db, "00000000-0000-0000-0000-000000000001"};
 };
 
-// Decode a DOMAIN_EVENT frame back and check prefix.
 struct ParsedEvent
 {
     bool valid = false;
@@ -76,11 +67,24 @@ static ParsedEvent parse_event_frame(const std::vector<uint8_t>& wire)
 
 using namespace engine::core;
 
+// Convenience UID factories
+static constexpr UID kSig1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+static constexpr UID kSig2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
+static constexpr UID kSw5 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 5);
+static constexpr UID kBlk2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 2);
+static constexpr UID kBlk3 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 3);
+static constexpr UID kBlk1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+static constexpr UID kDer1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
+static constexpr UID kRoute = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
+static constexpr UID kSec1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+static constexpr UID kSec2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 2);
+static constexpr UID kAlarm = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 1);
+
 TEST(DispatchBus, SignalAspectChanged)
 {
     BusTestFixture f;
     SignalAspectChange ch;
-    ch.gid = GID{"SIG-01"};
+    ch.uid = kSig1;
     ch.new_aspect = SignalAspect::S2_PROCEED;
     ch.cause = ChangeCause::COMMAND;
 
@@ -97,7 +101,7 @@ TEST(DispatchBus, SwitchPositionChanged)
 {
     BusTestFixture f;
     SwitchPositionChange ch;
-    ch.gid = GID{"SW-05"};
+    ch.uid = kSw5;
     ch.new_position = SwitchPosition::DIVERGENT;
     ch.cause = ChangeCause::COMMAND;
 
@@ -111,7 +115,7 @@ TEST(DispatchBus, BlockSectionStateChanged)
 {
     BusTestFixture f;
     BlockSectionStateChange ch;
-    ch.gid = GID{"BLK-02"};
+    ch.uid = kBlk2;
     ch.new_state = BlockSectionState::OPEN;
 
     const auto frame = f.bus.make_event_frame(ch, 1u);
@@ -124,7 +128,7 @@ TEST(DispatchBus, BlockDirectionChanged)
 {
     BusTestFixture f;
     BlockDirectionChange ch;
-    ch.gid = GID{"BLK-03"};
+    ch.uid = kBlk3;
     ch.new_direction = BlockDirectionState::OUTBOUND;
 
     const auto frame = f.bus.make_event_frame(ch, 0u);
@@ -137,7 +141,7 @@ TEST(DispatchBus, DerailerStateChanged)
 {
     BusTestFixture f;
     DerailerStateChange ch;
-    ch.gid = GID{"DR-01"};
+    ch.uid = kDer1;
     ch.new_state = DerailerState::UNLOCKED;
     ch.cause = ChangeCause::COMMAND;
 
@@ -151,10 +155,10 @@ TEST(DispatchBus, RouteSet)
 {
     BusTestFixture f;
     RouteAdded ch;
-    ch.route.route_id = GID{"RTE-01"};
-    ch.route.from_signal_gid = GID{"SIG-A"};
-    ch.route.to_signal_gid = GID{"SIG-B"};
-    ch.route.section_gids = {GID{"SEC-1"}, GID{"SEC-2"}};
+    ch.route.uid = kRoute;
+    ch.route.from_signal_uid = kSig1;
+    ch.route.to_signal_uid = kSig2;
+    ch.route.section_uids = {kSec1, kSec2};
 
     const auto frame = f.bus.make_event_frame(ch, 0u);
     ASSERT_TRUE(frame.has_value());
@@ -166,7 +170,7 @@ TEST(DispatchBus, RouteReleased)
 {
     BusTestFixture f;
     RouteRemoved ch;
-    ch.route_id = GID{"RTE-01"};
+    ch.route_uid = kRoute;
     ch.reason = "TRAIN_CLEARED";
 
     const auto frame = f.bus.make_event_frame(ch, 0u);
@@ -179,9 +183,9 @@ TEST(DispatchBus, AlarmRaised)
 {
     BusTestFixture f;
     engine::core::AlarmRaised ch;
-    ch.alarm.alarm_id = GID{"ALM-01"};
+    ch.alarm.uid = kAlarm;
     ch.alarm.kind = "SWITCH_FAILURE";
-    ch.alarm.object_gid = GID{"SW-03"};
+    ch.alarm.object_uid = kSw5;
     ch.alarm.message = "Switch stuck";
 
     const auto frame = f.bus.make_event_frame(ch, 0u);
@@ -194,7 +198,7 @@ TEST(DispatchBus, AlarmCleared)
 {
     BusTestFixture f;
     engine::core::AlarmCleared ch;
-    ch.alarm_id = GID{"ALM-01"};
+    ch.alarm_uid = kAlarm;
 
     const auto frame = f.bus.make_event_frame(ch, 0u);
     ASSERT_TRUE(frame.has_value());
@@ -206,7 +210,7 @@ TEST(DispatchBus, EventIdMonotonicallyIncreasing)
 {
     BusTestFixture f;
     SignalAspectChange ch;
-    ch.gid = GID{"SIG-01"};
+    ch.uid = kSig1;
     ch.new_aspect = SignalAspect::S1_STOP;
     ch.cause = ChangeCause::COMMAND;
 
@@ -219,7 +223,7 @@ TEST(DispatchBus, OperatorCommandStateChanged)
 {
     BusTestFixture f;
     OperatorCommandStateChange ch;
-    ch.gid = GID{"SIG-01"};
+    ch.uid = kSig1;
     ch.target_kind = OperatorTargetKind::SIGNAL;
     ch.code = OperatorCommandCode::SES;
     ch.active = true;
@@ -235,7 +239,7 @@ TEST(DispatchBus, Ml8CommandStateChanged)
 {
     BusTestFixture f;
     Ml8CommandStateChange ch;
-    ch.gid = GID{"BLK-01"};
+    ch.uid = kBlk1;
     ch.target_kind = OperatorTargetKind::BLOCK_SECTION;
     ch.code = Ml8CommandCode::AK;
     ch.active = true;

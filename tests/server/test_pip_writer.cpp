@@ -14,23 +14,32 @@ using namespace engine::core;
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-static PipEvent make_free_event(const char* section_gid, const char* station_sid)
+static UID section(std::uint16_t n)
+{
+    return make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, n);
+}
+
+static UID station_1()
+{
+    return make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+}
+
+static PipEvent make_free_event(UID sec_uid)
 {
     PipEvent ev;
-    ev.section_gid = GID{section_gid};
-    ev.station_sid = SID{station_sid};
+    ev.section_uid = sec_uid;
+    ev.station_uid = station_1();
     ev.occupancy = TrackOccupancy::FREE;
     ev.slot = std::nullopt;
     ev.lcs_boundary_crossing = false;
     return ev;
 }
 
-static PipEvent make_occupied_event(const char* section_gid, const char* station_sid,
-                                    TrainSlot slot, bool boundary = false)
+static PipEvent make_occupied_event(UID sec_uid, TrainSlot slot, bool boundary = false)
 {
     PipEvent ev;
-    ev.section_gid = GID{section_gid};
-    ev.station_sid = SID{station_sid};
+    ev.section_uid = sec_uid;
+    ev.station_uid = station_1();
     ev.occupancy = TrackOccupancy::OCCUPIED;
     ev.slot = std::move(slot);
     ev.lcs_boundary_crossing = boundary;
@@ -43,11 +52,12 @@ TEST(PipWriter, FreeSection_UpsertWithEmptyTrains)
 {
     NullDbWriter db;
     PipWriter writer{db, "sess-001"};
+    const UID sec = section(1);
 
-    writer.on_pip_events({make_free_event("gid-sec-01", "SOP")});
+    writer.on_pip_events({make_free_event(sec)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, "gid-sec-01");
+    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
     EXPECT_EQ(db.pip_upserts[0].trains_json, "[]");
 }
 
@@ -57,14 +67,14 @@ TEST(PipWriter, OccupiedSection_UpsertWithTrainSlot)
 {
     NullDbWriter db;
     PipWriter writer{db, "sess-002"};
+    const UID sec = section(2);
 
     TrainSlot slot{"IC123", true, false, EntrySide::RIGHT};
-    writer.on_pip_events({make_occupied_event("gid-sec-02", "GDO", slot)});
+    writer.on_pip_events({make_occupied_event(sec, slot)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, "gid-sec-02");
+    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
 
-    // Parse JSON and verify fields rather than doing a fragile string compare.
     auto j = nlohmann::json::parse(db.pip_upserts[0].trains_json);
     ASSERT_EQ(j.size(), 1u);
     EXPECT_EQ(j[0]["number"].get<std::string>(), "IC123");
@@ -79,12 +89,13 @@ TEST(PipWriter, LcsBoundaryCrossing_UpsertTargetSection)
 {
     NullDbWriter db;
     PipWriter writer{db, "sess-003"};
+    const UID sec = section(3);
 
     TrainSlot slot{"TLK7", false, true, EntrySide::LEFT};
-    writer.on_pip_events({make_occupied_event("gid-boundary-sec", "SOP", slot, /*boundary=*/true)});
+    writer.on_pip_events({make_occupied_event(sec, slot, /*boundary=*/true)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, "gid-boundary-sec");
+    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
 
     auto j = nlohmann::json::parse(db.pip_upserts[0].trains_json);
     ASSERT_EQ(j.size(), 1u);
@@ -99,18 +110,21 @@ TEST(PipWriter, MultipleBatch_UpsertAllSections)
 {
     NullDbWriter db;
     PipWriter writer{db, "sess-004"};
+    const UID secA = section(10);
+    const UID secB = section(11);
+    const UID secC = section(12);
 
     writer.on_pip_events({
-        make_free_event("sec-A", "STA"),
-        make_occupied_event("sec-B", "STB", TrainSlot{"REG55", false, false, EntrySide::LEFT}),
-        make_free_event("sec-C", "STC"),
+        make_free_event(secA),
+        make_occupied_event(secB, TrainSlot{"REG55", false, false, EntrySide::LEFT}),
+        make_free_event(secC),
     });
 
     ASSERT_EQ(db.pip_upserts.size(), 3u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, "sec-A");
+    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(secA.value));
     EXPECT_EQ(db.pip_upserts[0].trains_json, "[]");
-    EXPECT_EQ(db.pip_upserts[1].section_gid, "sec-B");
+    EXPECT_EQ(db.pip_upserts[1].section_gid, std::to_string(secB.value));
     EXPECT_NE(db.pip_upserts[1].trains_json, "[]");
-    EXPECT_EQ(db.pip_upserts[2].section_gid, "sec-C");
+    EXPECT_EQ(db.pip_upserts[2].section_gid, std::to_string(secC.value));
     EXPECT_EQ(db.pip_upserts[2].trains_json, "[]");
 }

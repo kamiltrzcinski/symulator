@@ -15,8 +15,10 @@ namespace
 
 using namespace engine::core;
 
-static const GID BL1 = GID{"BL-SHL12-001"};
-static const GID SIG1 = GID{"SIG-ML8-A"};
+constexpr UID BL1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+constexpr UID SIG1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+constexpr UID STA1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+constexpr UID STA_NGR = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 2, 1);
 
 EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState::NEUTRAL,
                                   BlockSectionState state = BlockSectionState::CLOSED,
@@ -27,10 +29,10 @@ EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState:
     st.set_current_tick(1);
 
     BlockSection bs;
-    bs.gid = BL1;
+    bs.uid = BL1;
     bs.pid = "bl1";
-    bs.sid = SID{"TST"};
-    bs.neighbor_sid = SID{"NGR"};
+    bs.station_uid = STA1;
+    bs.neighbor_station_uid = STA_NGR;
     bs.direction = dir;
     bs.state = state;
     bs.axle_count = axle_count;
@@ -46,9 +48,9 @@ EngineState make_state_with_signal()
     st.set_current_tick(1);
 
     Signal sig;
-    sig.gid = SIG1;
+    sig.uid = SIG1;
     sig.pid = "A";
-    sig.sid = SID{"TST"};
+    sig.station_uid = STA1;
     sig.type = Signal::Type::ENTRY;
     sig.current_aspect = SignalAspect::S1_STOP;
     st.insert_signal(sig);
@@ -391,7 +393,7 @@ TEST(Ml8OperatorCommands, STOJStopsSignal)
     for (const auto& change : changes)
     {
         if (const auto* sig = std::get_if<SignalAspectChange>(&change))
-            stopped = sig->gid == SIG1 && sig->new_aspect == SignalAspect::S1_STOP;
+            stopped = sig->uid == SIG1 && sig->new_aspect == SignalAspect::S1_STOP;
     }
     EXPECT_TRUE(stopped);
 }
@@ -414,6 +416,5 @@ TEST(Ml8OperatorCommands, WBLRequestsBlockDirection)
 
 TEST(ControlSystemRegistry, Ml8Registered)
 {
-    EXPECT_TRUE(engine::core::ControlSystemRegistry::instance().has(
-        engine::core::ControlSystemID{"estw_ml8"}));
+    EXPECT_TRUE(engine::core::ControlSystemRegistry::instance().has("estw_ml8"));
 }

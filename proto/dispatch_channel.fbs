@@ -1,5 +1,5 @@
 // proto/dispatch_channel.fbs — Dispatch channel (msg_type 0x61 DISPATCH_CHANNEL_MESSAGE)
-// Scoped to (src_area_id, dst_area_id) pair — neighbouring dispatch areas only.
+// Scoped to (src_area_uid, dst_area_uid) pair — neighbouring dispatch areas only.
 //
 // Compile with:
 //   flatc --cpp --gen-object-api -o autogens/proto/ proto/dispatch_channel.fbs proto/common.fbs
@@ -33,20 +33,20 @@ union DispatchChannelMessageBody {
 }
 
 table DispatchChannelMessage {
-    /// Dispatch area id of the initiating side (always filled by sender).
-    src_area_id:      string (required);
-    /// Dispatch area id of the receiving side (always filled by sender).
-    dst_area_id:      string (required);
+    /// Dispatch area UID of the initiating side (always filled by sender).
+    src_area_uid:  uint64;
+    /// Dispatch area UID of the receiving side (always filled by sender).
+    dst_area_uid:  uint64;
 
-    direction:        TelegramDirection;
-    kind:             DispatchChannelMessageKind;
-    body:             DispatchChannelMessageBody;
+    direction:     TelegramDirection;
+    kind:          DispatchChannelMessageKind;
+    body:          DispatchChannelMessageBody;
 
     // Fields below are filled by the server on outbound frames; clients send them empty:
-    exchange_id:      string;       // e.g. "exch-0000001"
-    exchange_status:  ExchangeStatus;
-    timestamp_us:     uint64 = 0;   // microseconds since Unix epoch
-    sender_id:        string;       // client_id of the sender
+    exchange_uid:  uint64;
+    exchange_status: ExchangeStatus;
+    timestamp_us:  uint64 = 0;   // microseconds since Unix epoch
+    sender_id:     string;       // client_id of the sender
 }
 
 root_type DispatchChannelMessage;

@@ -33,7 +33,7 @@ public:
     // Default: 4.5 s → 90 ticks.
     explicit EbiLockSystem(int eea4_throw_ticks = 90);
 
-    engine::core::ControlSystemID system_id() const override;
+    std::string system_id() const override;
 
     std::optional<engine::core::InterlockingViolation> check_command(
         const engine::core::IStateView& state, const engine::core::Command& cmd) const override;
@@ -49,9 +49,9 @@ public:
 private:
     int eea4_throw_ticks_;
 
-    // Maps switch GID → intended target position when a switch is MOVING.
-    std::unordered_map<engine::core::GID, engine::core::SwitchPosition,
-                       std::hash<engine::core::GID>>
+    // Maps switch UID → intended target position when a switch is MOVING.
+    std::unordered_map<engine::core::UID, engine::core::SwitchPosition,
+                       std::hash<engine::core::UID>>
         pending_targets_;
 };
 

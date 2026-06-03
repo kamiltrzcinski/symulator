@@ -14,9 +14,9 @@
 // Structs are intentionally value-types (copyable) so that EngineSnapshot can
 // hold a deep copy of the whole topology at a given tick without pointer chasing.
 //
-// Static fields (gid, pid, sid, type_id, …) are populated once during scenario
-// load and never change.  Runtime fields (occupancy, position, aspect, …) are
-// mutated by the engine on each tick.
+// Static fields (uid, pid, station_uid, type_id, …) are populated once during
+// scenario load and never change.  Runtime fields (occupancy, position,
+// aspect, …) are mutated by the engine on each tick.
 
 namespace engine::core
 {
@@ -42,23 +42,23 @@ struct OperatorCommandRuntimeState
 // sections adjacent to a switch).  The other field is left empty.
 struct TrackPort
 {
-    GID neighbor_gid;  // GID of the adjacent node (TrackSection, Switch, or BoundaryNode)
-    GID counter_gid;   // IT (boundary counter) or IZ (switch counter) — one must be present
+    UID neighbor_uid;  // UID of the adjacent node (TrackSection, Switch, or BoundaryNode)
+    UID counter_uid;   // IT (boundary counter) or IZ (switch counter) — one must be present
     enum class CounterKind : std::uint8_t
     {
         IT,
         IZ
     } counter_kind = CounterKind::IT;
-    std::vector<GID> signal_gids;  // signals facing trains entering from this side
+    std::vector<UID> signal_uids;  // signals facing trains entering from this side
 };
 
 // ── Track section (tor szlakowy / tor stacyjny) ───────────────────────────────
 struct TrackSection
 {
     // ── Static ──
-    GID gid;
+    UID uid;
     std::string pid;   // local pretty-ID used in UI and dispatch forms
-    SID sid;           // LCS that owns / supervises this section
+    UID station_uid;   // LCS that owns / supervises this section
     TrackPort side_a;  // one end
     TrackPort side_b;  // other end
     float length_m = 0.0f;
@@ -68,25 +68,25 @@ struct TrackSection
     // ── Runtime ──
     TrackOccupancy occupancy = TrackOccupancy::FREE;
     int axle_count = 0;            // live axle-counter reading
-    std::optional<GID> train_gid;  // GID of the train currently on this section (if known)
+    std::optional<UID> train_uid;  // UID of the train currently on this section (if known)
     OperatorCommandRuntimeState operator_state;
 };
 
 // ── Switch leg (connection port on a switch) ─────────────────────────────────
 struct SwitchLeg
 {
-    GID neighbor_gid;              // adjacent track section or boundary node
-    GID iz_gid;                    // IZ counter on this connection
-    std::vector<GID> signal_gids;  // signals facing trains entering from this leg
+    UID neighbor_uid;              // adjacent track section or boundary node
+    UID iz_uid;                    // IZ counter on this connection
+    std::vector<UID> signal_uids;  // signals facing trains entering from this leg
 };
 
 // ── Switch (rozjazd) ─────────────────────────────────────────────────────────
 struct Switch
 {
     // ── Static ──
-    GID gid;
+    UID uid;
     std::string pid;
-    SID sid;
+    UID station_uid;
     std::string type_id;  // references data/device_types/*.json
     SwitchLeg trunk;      // stock rail end (pień)
     SwitchLeg straight;   // straight through leg
@@ -99,8 +99,8 @@ struct Switch
     SwitchPosition position = SwitchPosition::STRAIGHT;
     TrackOccupancy occupancy = TrackOccupancy::FREE;
     int axle_count = 0;
-    std::optional<GID> locked_by_route;  // non-empty when a route locks this switch
-    int moving_ticks_remaining = 0;      // countdown while position == MOVING
+    std::optional<UID> locked_by_route_uid;  // non-empty when a route locks this switch
+    int moving_ticks_remaining = 0;          // countdown while position == MOVING
     OperatorCommandRuntimeState operator_state;
 };
 
@@ -116,16 +116,16 @@ struct Signal
     };
 
     // ── Static ──
-    GID gid;
+    UID uid;
     std::string pid;
-    SID sid;
+    UID station_uid;
     std::string type_id;
     Type type = Type::BLOCK;
-    GID governs_track_section_gid;  // the section behind this signal face
+    UID governs_section_uid;  // the section behind this signal face
 
     // ── Runtime ──
     SignalAspect current_aspect = SignalAspect::S1_STOP;
-    std::optional<GID> locked_by_route;  // non-empty when route display is active
+    std::optional<UID> locked_by_route_uid;  // non-empty when route display is active
     OperatorCommandRuntimeState operator_state;
 };
 
@@ -133,15 +133,15 @@ struct Signal
 struct Derailer
 {
     // ── Static ──
-    GID gid;
+    UID uid;
     std::string pid;
-    SID sid;
+    UID station_uid;
     std::string type_id;
-    GID guards_track_section_gid;  // the section this derailer protects
+    UID guards_section_uid;  // the section this derailer protects
 
     // ── Runtime ──
     DerailerState state = DerailerState::LOCKED;
-    std::optional<GID> locked_by_route;
+    std::optional<UID> locked_by_route_uid;
     OperatorCommandRuntimeState operator_state;
 };
 
@@ -151,14 +151,14 @@ struct Derailer
 struct BlockSection
 {
     // ── Static ──
-    GID gid;
+    UID uid;
     std::string pid;
-    SID sid;           // this station's SID
-    SID neighbor_sid;  // the neighbouring station
+    UID station_uid;           // this station's UID
+    UID neighbor_station_uid;  // the neighbouring station
     int line_number = 0;
-    GID departure_signal_gid;             // outbound signal at this end
-    GID entry_signal_gid;                 // inbound signal facing arriving trains
-    std::vector<GID> szlak_section_gids;  // track sections forming the block
+    UID departure_signal_uid;             // outbound signal at this end
+    UID entry_signal_uid;                 // inbound signal facing arriving trains
+    std::vector<UID> szlak_section_uids;  // track sections forming the block
 
     // ── Runtime ──
     BlockSectionState state = BlockSectionState::CLOSED;
@@ -172,12 +172,12 @@ struct BlockSection
 // Created by RequestRoute and removed by CancelRoute or automatic release.
 struct RouteState
 {
-    GID route_id;                   // synthetic unique ID (e.g. "RTE-{from}-{to}-{tick}")
-    GID from_signal_gid;            // entry signal
-    GID to_signal_gid;              // exit signal
-    std::vector<GID> section_gids;  // ordered list of locked track sections
-    std::vector<GID> switch_gids;   // ordered list of locked switches
-    std::vector<GID> derailer_gids;
+    UID uid;                        // synthetic unique ID
+    UID from_signal_uid;            // entry signal
+    UID to_signal_uid;              // exit signal
+    std::vector<UID> section_uids;  // ordered list of locked track sections
+    std::vector<UID> switch_uids;   // ordered list of locked switches
+    std::vector<UID> derailer_uids;
     uint64_t created_tick = 0;
     bool train_entered = false;  // true once axle counter detects entry; triggers automatic release
 };
@@ -185,9 +185,9 @@ struct RouteState
 // ── Active alarm ─────────────────────────────────────────────────────────────
 struct AlarmState
 {
-    GID alarm_id;      // unique ID for this alarm instance
+    UID uid;           // unique ID for this alarm instance
     std::string kind;  // e.g. "SWITCH_FAILURE", "SIGNAL_FAILURE", "AXLE_COUNTER_FAIL"
-    GID object_gid;    // the device that raised the alarm
+    UID object_uid;    // the device that raised the alarm
     std::string message;
     uint64_t timestamp_us = 0;
 };
@@ -198,9 +198,9 @@ struct AlarmState
 // a BoundaryNode as its neighbor.
 struct BoundaryNode
 {
-    GID gid;
+    UID uid;
     std::string pid;
-    SID sid;
+    UID station_uid;
     std::string description;  // e.g. "boundary to Sopot (south)"
 };
 

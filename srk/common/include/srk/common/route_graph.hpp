@@ -35,27 +35,27 @@ struct RoutePathNode
         TRACK_SECTION,
         SWITCH
     } kind;
-    GID gid;
+    UID uid;
     // Only meaningful when kind == SWITCH.
     SwitchPosition required_position = SwitchPosition::STRAIGHT;
 };
 
 struct RoutePath
 {
-    GID from_signal_gid;
-    GID to_signal_gid;
+    UID from_signal_uid;
+    UID to_signal_uid;
     std::vector<RoutePathNode> nodes;
-    std::vector<GID> section_gids;   // pre-extracted for convenience
-    std::vector<GID> switch_gids;    // pre-extracted for convenience
-    std::vector<GID> derailer_gids;  // derailers guarding sections on the path
+    std::vector<UID> section_uids;   // pre-extracted for convenience
+    std::vector<UID> switch_uids;    // pre-extracted for convenience
+    std::vector<UID> derailer_uids;  // derailers guarding sections on the path
 };
 
 // Find a route path from the entry signal to the exit signal.
 // Returns nullopt if no path exists in the topology.
-std::optional<RoutePath> find_route_path(const IStateView& state, const GID& from_signal_gid,
-                                         const GID& to_signal_gid);
+std::optional<RoutePath> find_route_path(const IStateView& state, UID from_signal_uid,
+                                         UID to_signal_uid);
 
-// Generate a stable route ID from the two signal GIDs and the tick.
-GID make_route_id(const GID& from_signal_gid, const GID& to_signal_gid, uint64_t tick);
+// Generate a stable route UID from the two signal UIDs and the tick.
+UID make_route_uid(UID from_signal_uid, UID to_signal_uid, uint64_t tick);
 
 }  // namespace srk::common

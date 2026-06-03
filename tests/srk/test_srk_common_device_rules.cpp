@@ -4,7 +4,7 @@
 // These exercise the check_* and execute_* helpers directly,
 // independently of any concrete IControlSystem implementation.
 //
-// Layout (same as test_srk_common_route_graph.cpp):
+// Layout:
 //   BND-N ── [tor_a] ── [zwr1(STRAIGHT)] ── [tor_b] ── BND-S
 // Signals: SEM-W (governs tor_a), SEM-E (governs tor_b)
 // Derailer: WK1 (guards tor_a)
@@ -25,17 +25,33 @@ namespace
 using namespace engine::core;
 using namespace srk::common;
 
-static const GID BND_N = GID{"BND-N"};
-static const GID BND_S = GID{"BND-S"};
-static const GID TOR_A = GID{"OT-tor_a"};
-static const GID TOR_B = GID{"OT-tor_b"};
-static const GID ZWR1 = GID{"ZWR-zwr1"};
-static const GID SEM_W = GID{"SEM-W"};
-static const GID SEM_E = GID{"SEM-E"};
-static const GID WK1 = GID{"WK-wk1"};
-static const GID BL1 = GID{"BL-001"};
-static const GID ALARM1 = GID{"ALM-001"};
-static const GID ROUTE1 = GID{"RTE-001"};
+constexpr UID BND_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 1);
+constexpr UID BND_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 2);
+constexpr UID TOR_A = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+constexpr UID TOR_B = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 2);
+constexpr UID ZWR1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
+constexpr UID SEM_W = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+constexpr UID SEM_E = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
+constexpr UID WK1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
+constexpr UID BL1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+constexpr UID ALARM1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 1);
+constexpr UID ROUTE1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
+constexpr UID STA1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+constexpr UID STA_NGR = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 2, 1);
+
+// Axle counter UIDs
+constexpr UID IT_A_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 1);
+constexpr UID IZ_A_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 2);
+constexpr UID IZ_B_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 3);
+constexpr UID IT_B_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 4);
+constexpr UID IZ_DIV = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 5);
+
+// Non-existent UIDs for "not found" test cases
+constexpr UID ZWR_MISSING = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 99);
+constexpr UID SEM_MISSING = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 99);
+constexpr UID WK_MISSING = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 99);
+constexpr UID BL_MISSING = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 99);
+constexpr UID ALM_MISSING = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 99);
 
 EngineState make_state()
 {
@@ -44,87 +60,91 @@ EngineState make_state()
     st.set_current_tick(1);
 
     BoundaryNode bn_n;
-    bn_n.gid = BND_N;
+    bn_n.uid = BND_N;
     bn_n.pid = "BND-N";
+    bn_n.station_uid = STA1;
     BoundaryNode bn_s;
-    bn_s.gid = BND_S;
+    bn_s.uid = BND_S;
     bn_s.pid = "BND-S";
+    bn_s.station_uid = STA1;
     st.insert_boundary_node(bn_n);
     st.insert_boundary_node(bn_s);
 
-    Signal sw;
-    sw.gid = SEM_W;
-    sw.pid = "Wp1";
-    sw.type = Signal::Type::ENTRY;
-    sw.governs_track_section_gid = TOR_A;
-    sw.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sw);
+    Signal sem_w;
+    sem_w.uid = SEM_W;
+    sem_w.pid = "Wp1";
+    sem_w.station_uid = STA1;
+    sem_w.type = Signal::Type::ENTRY;
+    sem_w.governs_section_uid = TOR_A;
+    sem_w.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_w);
 
-    Signal se;
-    se.gid = SEM_E;
-    se.pid = "Wy1";
-    se.type = Signal::Type::DEPARTURE;
-    se.governs_track_section_gid = TOR_B;
-    se.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(se);
+    Signal sem_e;
+    sem_e.uid = SEM_E;
+    sem_e.pid = "Wy1";
+    sem_e.station_uid = STA1;
+    sem_e.type = Signal::Type::DEPARTURE;
+    sem_e.governs_section_uid = TOR_B;
+    sem_e.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_e);
 
     TrackSection ta;
-    ta.gid = TOR_A;
+    ta.uid = TOR_A;
     ta.pid = "tor_a";
-    ta.sid = SID{"TST"};
-    ta.side_a.neighbor_gid = BND_N;
-    ta.side_a.counter_gid = GID{"IT-a-N"};
+    ta.station_uid = STA1;
+    ta.side_a.neighbor_uid = BND_N;
+    ta.side_a.counter_uid = IT_A_N;
     ta.side_a.counter_kind = TrackPort::CounterKind::IT;
-    ta.side_a.signal_gids = {SEM_W};
-    ta.side_b.neighbor_gid = ZWR1;
-    ta.side_b.counter_gid = GID{"IZ-a-S"};
+    ta.side_a.signal_uids = {SEM_W};
+    ta.side_b.neighbor_uid = ZWR1;
+    ta.side_b.counter_uid = IZ_A_S;
     ta.side_b.counter_kind = TrackPort::CounterKind::IZ;
     ta.occupancy = TrackOccupancy::FREE;
     st.insert_track_section(ta);
 
     TrackSection tb;
-    tb.gid = TOR_B;
+    tb.uid = TOR_B;
     tb.pid = "tor_b";
-    tb.sid = SID{"TST"};
-    tb.side_a.neighbor_gid = ZWR1;
-    tb.side_a.counter_gid = GID{"IZ-b-N"};
+    tb.station_uid = STA1;
+    tb.side_a.neighbor_uid = ZWR1;
+    tb.side_a.counter_uid = IZ_B_N;
     tb.side_a.counter_kind = TrackPort::CounterKind::IZ;
-    tb.side_b.neighbor_gid = BND_S;
-    tb.side_b.counter_gid = GID{"IT-b-S"};
+    tb.side_b.neighbor_uid = BND_S;
+    tb.side_b.counter_uid = IT_B_S;
     tb.side_b.counter_kind = TrackPort::CounterKind::IT;
-    tb.side_b.signal_gids = {SEM_E};
+    tb.side_b.signal_uids = {SEM_E};
     tb.occupancy = TrackOccupancy::FREE;
     st.insert_track_section(tb);
 
     Switch sw1;
-    sw1.gid = ZWR1;
+    sw1.uid = ZWR1;
     sw1.pid = "zwr1";
-    sw1.sid = SID{"TST"};
+    sw1.station_uid = STA1;
     sw1.type_id = "DVT-GLB-ZWR-EEA4-0000002";
-    sw1.trunk.neighbor_gid = TOR_A;
-    sw1.trunk.iz_gid = GID{"IZ-a-S"};
-    sw1.straight.neighbor_gid = TOR_B;
-    sw1.straight.iz_gid = GID{"IZ-b-N"};
-    sw1.divergent.neighbor_gid = BND_S;
-    sw1.divergent.iz_gid = GID{"IZ-div"};
+    sw1.trunk.neighbor_uid = TOR_A;
+    sw1.trunk.iz_uid = IZ_A_S;
+    sw1.straight.neighbor_uid = TOR_B;
+    sw1.straight.iz_uid = IZ_B_N;
+    sw1.divergent.neighbor_uid = BND_S;
+    sw1.divergent.iz_uid = IZ_DIV;
     sw1.position = SwitchPosition::STRAIGHT;
     sw1.occupancy = TrackOccupancy::FREE;
     st.insert_switch(sw1);
 
     Derailer wk;
-    wk.gid = WK1;
+    wk.uid = WK1;
     wk.pid = "wk1";
-    wk.sid = SID{"TST"};
+    wk.station_uid = STA1;
     wk.type_id = "DVT-GLB-WK-0000004";
-    wk.guards_track_section_gid = TOR_A;
+    wk.guards_section_uid = TOR_A;
     wk.state = DerailerState::LOCKED;
     st.insert_derailer(wk);
 
     BlockSection bs;
-    bs.gid = BL1;
+    bs.uid = BL1;
     bs.pid = "bl1";
-    bs.sid = SID{"TST"};
-    bs.neighbor_sid = SID{"NGR"};
+    bs.station_uid = STA1;
+    bs.neighbor_station_uid = STA_NGR;
     bs.direction = BlockDirectionState::NEUTRAL;
     bs.state = BlockSectionState::CLOSED;
     bs.axle_count = 0;
@@ -153,7 +173,7 @@ TEST(SrkCommonDeviceRules, R1_Check_OccupiedSwitch_ReturnsSafetyBlock)
     const auto v = check_set_switch_position(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_SAFETY_BLOCK);
-    EXPECT_EQ(v->offending_gid, ZWR1);
+    EXPECT_EQ(v->offending_uid, ZWR1);
 }
 
 TEST(SrkCommonDeviceRules, R1_Check_MovingSwitch_ReturnsSwitchMoving)
@@ -180,7 +200,7 @@ TEST(SrkCommonDeviceRules, R1_Check_RouteLocked_ReturnsRouteLocked)
 
 TEST(SrkCommonDeviceRules, R1_Check_AlreadyInPosition_ReturnsInvalidState)
 {
-    const auto st = make_state();  // switch already STRAIGHT
+    const auto st = make_state();
     const SetSwitchPositionCmd cmd{ZWR1, SwitchPosition::STRAIGHT};
     const auto v = check_set_switch_position(st, cmd);
     ASSERT_TRUE(v.has_value());
@@ -190,7 +210,7 @@ TEST(SrkCommonDeviceRules, R1_Check_AlreadyInPosition_ReturnsInvalidState)
 TEST(SrkCommonDeviceRules, R1_Check_SwitchNotFound_ReturnsNotFound)
 {
     const auto st = make_state();
-    const SetSwitchPositionCmd cmd{GID{"ZWR-MISSING"}, SwitchPosition::DIVERGENT};
+    const SetSwitchPositionCmd cmd{ZWR_MISSING, SwitchPosition::DIVERGENT};
     const auto v = check_set_switch_position(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_NOT_FOUND);
@@ -205,7 +225,7 @@ TEST(SrkCommonDeviceRules, R1_Execute_InstantThrow_ReturnsSinglePositionChange)
     ASSERT_EQ(changes.size(), 1u);
     const auto* chg = std::get_if<SwitchPositionChange>(&changes[0]);
     ASSERT_NE(chg, nullptr);
-    EXPECT_EQ(chg->gid, ZWR1);
+    EXPECT_EQ(chg->uid, ZWR1);
     EXPECT_EQ(chg->new_position, SwitchPosition::DIVERGENT);
 }
 
@@ -234,7 +254,7 @@ TEST(SrkCommonDeviceRules, R2_Check_Valid_ReturnsNullopt)
 TEST(SrkCommonDeviceRules, R2_Check_SignalNotFound_ReturnsNotFound)
 {
     const auto st = make_state();
-    const SetSignalAspectCmd cmd{GID{"SEM-MISSING"}, SignalAspect::S2_PROCEED};
+    const SetSignalAspectCmd cmd{SEM_MISSING, SignalAspect::S2_PROCEED};
     const auto v = check_set_signal_aspect(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_NOT_FOUND);
@@ -256,7 +276,6 @@ TEST(SrkCommonDeviceRules, R2_Check_RouteLocked_StopAspect_ReturnsNullopt)
     auto st = make_state();
     st.apply_signal_lock(SEM_W, ROUTE1);
 
-    // STOP is allowed even on a route-locked signal.
     const SetSignalAspectCmd cmd{SEM_W, SignalAspect::S1_STOP};
     EXPECT_FALSE(check_set_signal_aspect(st, cmd).has_value());
 }
@@ -270,7 +289,7 @@ TEST(SrkCommonDeviceRules, R2_Execute_ReturnsAspectChange)
     ASSERT_EQ(changes.size(), 1u);
     const auto* chg = std::get_if<SignalAspectChange>(&changes[0]);
     ASSERT_NE(chg, nullptr);
-    EXPECT_EQ(chg->gid, SEM_W);
+    EXPECT_EQ(chg->uid, SEM_W);
     EXPECT_EQ(chg->new_aspect, SignalAspect::S2_PROCEED);
 }
 
@@ -286,7 +305,7 @@ TEST(SrkCommonDeviceRules, R3_Check_Valid_Unlock_ReturnsNullopt)
 TEST(SrkCommonDeviceRules, R3_Check_DerailerNotFound_ReturnsNotFound)
 {
     const auto st = make_state();
-    const SetDerailerPositionCmd cmd{GID{"WK-MISSING"}, DerailerState::UNLOCKED};
+    const SetDerailerPositionCmd cmd{WK_MISSING, DerailerState::UNLOCKED};
     const auto v = check_set_derailer_position(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_NOT_FOUND);
@@ -323,7 +342,7 @@ TEST(SrkCommonDeviceRules, R3_Execute_ReturnsDerailerStateChange)
     ASSERT_EQ(changes.size(), 1u);
     const auto* chg = std::get_if<DerailerStateChange>(&changes[0]);
     ASSERT_NE(chg, nullptr);
-    EXPECT_EQ(chg->gid, WK1);
+    EXPECT_EQ(chg->uid, WK1);
     EXPECT_EQ(chg->new_state, DerailerState::UNLOCKED);
 }
 
@@ -350,7 +369,7 @@ TEST(SrkCommonDeviceRules, R4_Check_CloseBlockSection_WithAxles_ReturnsSafetyBlo
 TEST(SrkCommonDeviceRules, R4_Check_BlockSectionNotFound_ReturnsNotFound)
 {
     const auto st = make_state();
-    const SetBlockSectionCmd cmd{GID{"BL-MISSING"}, BlockSectionState::OPEN};
+    const SetBlockSectionCmd cmd{BL_MISSING, BlockSectionState::OPEN};
     const auto v = check_set_block_section(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_NOT_FOUND);
@@ -362,8 +381,8 @@ TEST(SrkCommonDeviceRules, R7_Check_AlarmExists_ReturnsNullopt)
 {
     auto st = make_state();
     AlarmState alarm;
-    alarm.alarm_id = ALARM1;
-    alarm.object_gid = ZWR1;
+    alarm.uid = ALARM1;
+    alarm.object_uid = ZWR1;
     st.add_alarm(alarm);
 
     const AcknowledgeAlarmCmd cmd{ALARM1};
@@ -373,7 +392,7 @@ TEST(SrkCommonDeviceRules, R7_Check_AlarmExists_ReturnsNullopt)
 TEST(SrkCommonDeviceRules, R7_Check_AlarmNotFound_ReturnsNotFound)
 {
     const auto st = make_state();
-    const AcknowledgeAlarmCmd cmd{GID{"ALM-MISSING"}};
+    const AcknowledgeAlarmCmd cmd{ALM_MISSING};
     const auto v = check_acknowledge_alarm(st, cmd);
     ASSERT_TRUE(v.has_value());
     EXPECT_EQ(v->reason_code, NAK_NOT_FOUND);
@@ -383,8 +402,8 @@ TEST(SrkCommonDeviceRules, R7_Execute_ReturnsAlarmCleared)
 {
     auto st = make_state();
     AlarmState alarm;
-    alarm.alarm_id = ALARM1;
-    alarm.object_gid = ZWR1;
+    alarm.uid = ALARM1;
+    alarm.object_uid = ZWR1;
     st.add_alarm(alarm);
 
     const AcknowledgeAlarmCmd cmd{ALARM1};
@@ -393,5 +412,5 @@ TEST(SrkCommonDeviceRules, R7_Execute_ReturnsAlarmCleared)
     ASSERT_EQ(changes.size(), 1u);
     const auto* chg = std::get_if<AlarmCleared>(&changes[0]);
     ASSERT_NE(chg, nullptr);
-    EXPECT_EQ(chg->alarm_id, ALARM1);
+    EXPECT_EQ(chg->alarm_uid, ALARM1);
 }

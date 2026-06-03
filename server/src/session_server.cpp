@@ -172,9 +172,9 @@ void SessionServer::start()
 
     // 3. Resolve IControlSystem from self-registered SRK libraries.
     auto& reg = engine::core::ControlSystemRegistry::instance();
-    if (!reg.has(engine::core::ControlSystemID{meta.control_system_id}))
+    if (!reg.has(meta.control_system_id))
         throw std::runtime_error("[server] Unknown control_system: " + meta.control_system_id);
-    control_ = reg.create(engine::core::ControlSystemID{meta.control_system_id});
+    control_ = reg.create(meta.control_system_id);
     std::cout << "[server] IControlSystem: " << meta.control_system_id << "\n";
 
     // 4. Construct network layer.

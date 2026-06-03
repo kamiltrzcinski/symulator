@@ -25,43 +25,43 @@ namespace engine::core
 
 struct SetSwitchPositionCmd
 {
-    GID gid;
+    UID uid;
     SwitchPosition position;  // only STRAIGHT or DIVERGENT — not MOVING
 };
 
 struct SetSignalAspectCmd
 {
-    GID gid;
+    UID uid;
     SignalAspect aspect;
 };
 
 struct SetDerailerPositionCmd
 {
-    GID gid;
+    UID uid;
     DerailerState position;
 };
 
 struct SetBlockSectionCmd
 {
-    GID gid;
+    UID uid;
     BlockSectionState state;  // OPEN / CLOSED (EbiLock block sections)
 };
 
 struct RequestRouteCmd
 {
-    GID from_signal_gid;
-    GID to_signal_gid;
+    UID from_signal_uid;
+    UID to_signal_uid;
 };
 
 struct CancelRouteCmd
 {
-    GID route_id;
+    UID route_uid;
     bool force = false;  // force-cancel even when a train is on the route
 };
 
 struct AcknowledgeAlarmCmd
 {
-    GID alarm_id;
+    UID alarm_uid;
 };
 
 // ── SHL-12 block direction commands (ML8 only) ────────────────────────────────
@@ -81,18 +81,18 @@ enum class Shl12Op : std::uint8_t
 
 struct SetBlockDirectionCmd
 {
-    GID block_section_gid;
+    UID block_section_uid;
     Shl12Op operation;
 };
 
 struct InitAxleCounterResetCmd  // SLI
 {
-    GID block_section_gid;
+    UID block_section_uid;
 };
 
 struct ResetAxleCounterCmd  // SLK
 {
-    GID block_section_gid;
+    UID block_section_uid;
 };
 
 enum class OperatorTargetKind : std::uint8_t
@@ -190,7 +190,7 @@ enum class OperatorCommandCode : std::uint8_t
 
 struct OperatorCommandCmd
 {
-    GID target_gid;
+    UID target_uid;
     OperatorTargetKind target_kind;
     OperatorCommandCode code;
 };
@@ -272,7 +272,7 @@ enum class Ml8CommandCode : std::uint8_t
 
 struct Ml8CommandCmd
 {
-    GID target_gid;
+    UID target_uid;
     OperatorTargetKind target_kind;
     Ml8CommandCode code;
 };
@@ -294,7 +294,7 @@ struct CommandMeta
     std::uint32_t seq_id = 0;
     CommandPriority priority = CommandPriority::NORMAL;
     PlayerID player_id;
-    DispatchAreaID dispatch_area_id;
+    UID dispatch_area_uid;
     std::uint64_t timestamp_us = 0;
 };
 

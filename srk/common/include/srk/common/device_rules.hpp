@@ -82,7 +82,7 @@ std::vector<DeviceStateChange> execute_cancel_route(const IStateView& state,
                                                     const CancelRouteCmd& cmd);
 
 // ── R7: AcknowledgeAlarm ─────────────────────────────────────────────────────
-// Rejects if: alarm_id does not exist in active alarms.
+// Rejects if: alarm_uid does not exist in active alarms.
 
 std::optional<InterlockingViolation> check_acknowledge_alarm(const IStateView& state,
                                                              const AcknowledgeAlarmCmd& cmd);
@@ -130,12 +130,12 @@ std::vector<DeviceStateChange> execute_reset_axle_counter(const IStateView& stat
 // Called from IControlSystem::on_tick.
 
 // Advance EEA-4 switch machine timers; land switches when the throw-time
-// expires.  pending_targets maps switch GID → intended final position and is
+// expires.  pending_targets maps switch UID → intended final position and is
 // maintained by the calling system (populated in execute_command, erased here
 // when the switch lands).
 std::vector<DeviceStateChange> tick_switch_machines(
     const IStateView& state,
-    std::unordered_map<GID, SwitchPosition, std::hash<GID>>& pending_targets);
+    std::unordered_map<UID, SwitchPosition, std::hash<UID>>& pending_targets);
 
 // Auto-release routes whose trains have fully cleared.
 std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state);

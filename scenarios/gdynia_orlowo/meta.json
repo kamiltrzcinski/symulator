@@ -2,7 +2,10 @@
     "station_sid": "GOr",
     "display_name": "Gdynia Orłowo",
     "area": "TRJ",
-    "line_numbers": [202, 250],
+    "line_numbers": [
+        202,
+        250
+    ],
     "control_system": "ebilock_x4",
     "notes": "L202 km 15.896; L250 km 15.749 (mijanka i przystanek osobowy). L202 and L250 are independent (no physical connection). North L202 connects to Gdynia Główna; north L250 connects to Gdynia Redłowo.",
     "schema_version": 1

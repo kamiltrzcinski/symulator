@@ -3,16 +3,21 @@
 #include <srk/common/route_graph.hpp>
 
 #include <algorithm>
-#include <format>
+#include <string>
 
 namespace srk::common
 {
 
 // ── Violation helpers ─────────────────────────────────────────────────────────
 
-static InterlockingViolation violation(uint8_t code, std::string text, const GID& gid = GID{})
+static InterlockingViolation violation(uint8_t code, std::string text, UID uid = UID{})
 {
-    return InterlockingViolation{code, std::move(text), gid};
+    return InterlockingViolation{code, std::move(text), uid};
+}
+
+static std::string uid_str(UID uid)
+{
+    return std::to_string(uid.value);
 }
 
 // ── R1: SetSwitchPosition ─────────────────────────────────────────────────────
@@ -20,24 +25,26 @@ static InterlockingViolation violation(uint8_t code, std::string text, const GID
 std::optional<InterlockingViolation> check_set_switch_position(const IStateView& state,
                                                                const SetSwitchPositionCmd& cmd)
 {
-    const Switch* sw = state.find_switch(cmd.gid);
+    const Switch* sw = state.find_switch(cmd.uid);
     if (!sw)
-        return violation(NAK_NOT_FOUND, "Switch not found: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_NOT_FOUND, "Switch not found: " + uid_str(cmd.uid), cmd.uid);
 
     if (sw->position == SwitchPosition::MOVING)
-        return violation(NAK_SWITCH_MOVING, "Switch is already moving: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_SWITCH_MOVING, "Switch is already moving: " + uid_str(cmd.uid),
+                         cmd.uid);
 
     if (sw->occupancy == TrackOccupancy::OCCUPIED)
-        return violation(NAK_SAFETY_BLOCK, "Switch is occupied: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_SAFETY_BLOCK, "Switch is occupied: " + uid_str(cmd.uid), cmd.uid);
 
-    if (sw->locked_by_route.has_value())
+    if (sw->locked_by_route_uid.has_value())
         return violation(
             NAK_ROUTE_LOCKED,
-            "Switch locked by route " + sw->locked_by_route->value + ": " + cmd.gid.value, cmd.gid);
+            "Switch locked by route " + uid_str(*sw->locked_by_route_uid) + ": " + uid_str(cmd.uid),
+            cmd.uid);
 
     if (sw->position == cmd.position)
         return violation(NAK_INVALID_STATE,
-                         "Switch already in requested position: " + cmd.gid.value, cmd.gid);
+                         "Switch already in requested position: " + uid_str(cmd.uid), cmd.uid);
 
     return std::nullopt;
 }
@@ -51,18 +58,14 @@ std::vector<DeviceStateChange> execute_set_switch_position(const IStateView& sta
     if (throw_time_ticks > 0)
     {
         // Transition through MOVING state; on_tick decrements the counter.
-        changes.push_back(SwitchPositionChange{cmd.gid, SwitchPosition::MOVING,
+        changes.push_back(SwitchPositionChange{cmd.uid, SwitchPosition::MOVING,
                                                ChangeCause::COMMAND, throw_time_ticks});
     }
     else
     {
         // Instantaneous switch (for testing / simplified devices).
-        changes.push_back(SwitchPositionChange{cmd.gid, cmd.position, ChangeCause::COMMAND, 0});
+        changes.push_back(SwitchPositionChange{cmd.uid, cmd.position, ChangeCause::COMMAND, 0});
     }
-    // Store the target so on_tick knows where to land.
-    // We encode the target in the sign: positive ticks → STRAIGHT, negative → DIVERGENT.
-    // Actually, we handle this in on_tick by storing target alongside MOVING state.
-    // For now the callers (EbiLockSystem / Ml8System) manage per-switch target tracking.
     return changes;
 }
 
@@ -71,21 +74,21 @@ std::vector<DeviceStateChange> execute_set_switch_position(const IStateView& sta
 std::optional<InterlockingViolation> check_set_signal_aspect(const IStateView& state,
                                                              const SetSignalAspectCmd& cmd)
 {
-    const Signal* sig = state.find_signal(cmd.gid);
+    const Signal* sig = state.find_signal(cmd.uid);
     if (!sig)
-        return violation(NAK_NOT_FOUND, "Signal not found: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_NOT_FOUND, "Signal not found: " + uid_str(cmd.uid), cmd.uid);
 
     // Refuse to show a proceed aspect on a route-locked signal via direct command;
     // proceed aspects are set through RequestRoute.  Direct commands may only set STOP
     // or shunting aspects on locked signals.
-    if (sig->locked_by_route.has_value())
+    if (sig->locked_by_route_uid.has_value())
     {
         const bool is_stop =
             (cmd.aspect == SignalAspect::S1_STOP || cmd.aspect == SignalAspect::MS1_STOP);
         if (!is_stop)
             return violation(NAK_ROUTE_LOCKED,
-                             "Cannot change locked signal to proceed aspect: " + cmd.gid.value,
-                             cmd.gid);
+                             "Cannot change locked signal to proceed aspect: " + uid_str(cmd.uid),
+                             cmd.uid);
     }
 
     return std::nullopt;
@@ -94,7 +97,7 @@ std::optional<InterlockingViolation> check_set_signal_aspect(const IStateView& s
 std::vector<DeviceStateChange> execute_set_signal_aspect(const IStateView& /*state*/,
                                                          const SetSignalAspectCmd& cmd)
 {
-    return {SignalAspectChange{cmd.gid, cmd.aspect, ChangeCause::COMMAND, std::nullopt}};
+    return {SignalAspectChange{cmd.uid, cmd.aspect, ChangeCause::COMMAND, std::nullopt}};
 }
 
 // ── R3: SetDerailerPosition ───────────────────────────────────────────────────
@@ -102,22 +105,22 @@ std::vector<DeviceStateChange> execute_set_signal_aspect(const IStateView& /*sta
 std::optional<InterlockingViolation> check_set_derailer_position(const IStateView& state,
                                                                  const SetDerailerPositionCmd& cmd)
 {
-    const Derailer* d = state.find_derailer(cmd.gid);
+    const Derailer* d = state.find_derailer(cmd.uid);
     if (!d)
-        return violation(NAK_NOT_FOUND, "Derailer not found: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_NOT_FOUND, "Derailer not found: " + uid_str(cmd.uid), cmd.uid);
 
-    if (d->locked_by_route.has_value())
-        return violation(
-            NAK_ROUTE_LOCKED,
-            "Derailer locked by route " + d->locked_by_route->value + ": " + cmd.gid.value,
-            cmd.gid);
+    if (d->locked_by_route_uid.has_value())
+        return violation(NAK_ROUTE_LOCKED,
+                         "Derailer locked by route " + uid_str(*d->locked_by_route_uid) + ": " +
+                             uid_str(cmd.uid),
+                         cmd.uid);
 
     if (cmd.position == DerailerState::UNLOCKED)
     {
-        const TrackSection* guarded = state.find_track_section(d->guards_track_section_gid);
+        const TrackSection* guarded = state.find_track_section(d->guards_section_uid);
         if (guarded && guarded->occupancy == TrackOccupancy::OCCUPIED)
-            return violation(NAK_SAFETY_BLOCK, "Guarded section is occupied: " + cmd.gid.value,
-                             cmd.gid);
+            return violation(NAK_SAFETY_BLOCK, "Guarded section is occupied: " + uid_str(cmd.uid),
+                             cmd.uid);
     }
 
     return std::nullopt;
@@ -126,7 +129,7 @@ std::optional<InterlockingViolation> check_set_derailer_position(const IStateVie
 std::vector<DeviceStateChange> execute_set_derailer_position(const IStateView& /*state*/,
                                                              const SetDerailerPositionCmd& cmd)
 {
-    return {DerailerStateChange{cmd.gid, cmd.position, ChangeCause::COMMAND, std::nullopt}};
+    return {DerailerStateChange{cmd.uid, cmd.position, ChangeCause::COMMAND, std::nullopt}};
 }
 
 // ── R4: SetBlockSection (EbiLock OPEN/CLOSED) ─────────────────────────────────
@@ -134,15 +137,15 @@ std::vector<DeviceStateChange> execute_set_derailer_position(const IStateView& /
 std::optional<InterlockingViolation> check_set_block_section(const IStateView& state,
                                                              const SetBlockSectionCmd& cmd)
 {
-    const BlockSection* bs = state.find_block_section(cmd.gid);
+    const BlockSection* bs = state.find_block_section(cmd.uid);
     if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.gid.value, cmd.gid);
+        return violation(NAK_NOT_FOUND, "Block section not found: " + uid_str(cmd.uid), cmd.uid);
 
     if (cmd.state == BlockSectionState::CLOSED && bs->axle_count != 0)
         return violation(NAK_SAFETY_BLOCK,
                          "Cannot close block section: axle count " +
-                             std::to_string(bs->axle_count) + " != 0: " + cmd.gid.value,
-                         cmd.gid);
+                             std::to_string(bs->axle_count) + " != 0: " + uid_str(cmd.uid),
+                         cmd.uid);
 
     return std::nullopt;
 }
@@ -150,7 +153,7 @@ std::optional<InterlockingViolation> check_set_block_section(const IStateView& s
 std::vector<DeviceStateChange> execute_set_block_section(const IStateView& /*state*/,
                                                          const SetBlockSectionCmd& cmd)
 {
-    return {BlockSectionStateChange{cmd.gid, cmd.state}};
+    return {BlockSectionStateChange{cmd.uid, cmd.state}};
 }
 
 // ── R5: RequestRoute ─────────────────────────────────────────────────────────
@@ -158,55 +161,55 @@ std::vector<DeviceStateChange> execute_set_block_section(const IStateView& /*sta
 std::optional<InterlockingViolation> check_request_route(const IStateView& state,
                                                          const RequestRouteCmd& cmd)
 {
-    const Signal* entry = state.find_signal(cmd.from_signal_gid);
+    const Signal* entry = state.find_signal(cmd.from_signal_uid);
     if (!entry)
-        return violation(NAK_NOT_FOUND, "Entry signal not found: " + cmd.from_signal_gid.value,
-                         cmd.from_signal_gid);
+        return violation(NAK_NOT_FOUND, "Entry signal not found: " + uid_str(cmd.from_signal_uid),
+                         cmd.from_signal_uid);
 
-    const Signal* exit = state.find_signal(cmd.to_signal_gid);
+    const Signal* exit = state.find_signal(cmd.to_signal_uid);
     if (!exit)
-        return violation(NAK_NOT_FOUND, "Exit signal not found: " + cmd.to_signal_gid.value,
-                         cmd.to_signal_gid);
+        return violation(NAK_NOT_FOUND, "Exit signal not found: " + uid_str(cmd.to_signal_uid),
+                         cmd.to_signal_uid);
 
     // Entry signal must not already be locked by a different route.
-    if (entry->locked_by_route.has_value())
+    if (entry->locked_by_route_uid.has_value())
         return violation(NAK_ROUTE_LOCKED,
-                         "Entry signal already route-locked: " + cmd.from_signal_gid.value,
-                         cmd.from_signal_gid);
+                         "Entry signal already route-locked: " + uid_str(cmd.from_signal_uid),
+                         cmd.from_signal_uid);
 
-    auto path = find_route_path(state, cmd.from_signal_gid, cmd.to_signal_gid);
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid);
     if (!path)
-        return violation(NAK_NO_PATH, "No topology path from " + cmd.from_signal_gid.value +
-                                          " to " + cmd.to_signal_gid.value);
+        return violation(NAK_NO_PATH, "No topology path from " + uid_str(cmd.from_signal_uid) +
+                                          " to " + uid_str(cmd.to_signal_uid));
 
     // Check that no switch along the path is occupied or locked by another route.
     for (const auto& node : path->nodes)
     {
         if (node.kind != RoutePathNode::Kind::SWITCH)
             continue;
-        const Switch* sw = state.find_switch(node.gid);
+        const Switch* sw = state.find_switch(node.uid);
         if (!sw)
             continue;
 
         if (sw->occupancy == TrackOccupancy::OCCUPIED)
-            return violation(NAK_SAFETY_BLOCK, "Switch occupied on route path: " + node.gid.value,
-                             node.gid);
+            return violation(NAK_SAFETY_BLOCK,
+                             "Switch occupied on route path: " + uid_str(node.uid), node.uid);
 
-        if (sw->locked_by_route.has_value())
-            return violation(NAK_ROUTE_LOCKED, "Switch locked by another route: " + node.gid.value,
-                             node.gid);
+        if (sw->locked_by_route_uid.has_value())
+            return violation(NAK_ROUTE_LOCKED,
+                             "Switch locked by another route: " + uid_str(node.uid), node.uid);
 
         if (sw->position == SwitchPosition::MOVING)
-            return violation(NAK_SWITCH_MOVING, "Switch is moving: " + node.gid.value, node.gid);
+            return violation(NAK_SWITCH_MOVING, "Switch is moving: " + uid_str(node.uid), node.uid);
     }
 
     // Check that no section along the path is occupied.
-    for (const auto& sgid : path->section_gids)
+    for (const auto& suid : path->section_uids)
     {
-        const TrackSection* ts = state.find_track_section(sgid);
+        const TrackSection* ts = state.find_track_section(suid);
         if (ts && ts->occupancy == TrackOccupancy::OCCUPIED)
             return violation(NAK_SAFETY_BLOCK,
-                             "Track section occupied on route path: " + sgid.value, sgid);
+                             "Track section occupied on route path: " + uid_str(suid), suid);
     }
 
     return std::nullopt;
@@ -215,11 +218,11 @@ std::optional<InterlockingViolation> check_request_route(const IStateView& state
 std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
                                                      const RequestRouteCmd& cmd, uint64_t tick)
 {
-    auto path = find_route_path(state, cmd.from_signal_gid, cmd.to_signal_gid);
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid);
     if (!path)
         return {};
 
-    const GID route_id = make_route_id(cmd.from_signal_gid, cmd.to_signal_gid, tick);
+    const UID route_uid = make_route_uid(cmd.from_signal_uid, cmd.to_signal_uid, tick);
     std::vector<DeviceStateChange> changes;
 
     // Position switches to required position (instantaneous for route setting;
@@ -228,40 +231,40 @@ std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
     {
         if (node.kind != RoutePathNode::Kind::SWITCH)
             continue;
-        const Switch* sw = state.find_switch(node.gid);
+        const Switch* sw = state.find_switch(node.uid);
         if (!sw)
             continue;
         if (sw->position != node.required_position)
         {
             changes.push_back(
-                SwitchPositionChange{node.gid, node.required_position, ChangeCause::AUTO, 0});
+                SwitchPositionChange{node.uid, node.required_position, ChangeCause::AUTO, 0});
         }
-        changes.push_back(SwitchLocked{node.gid, route_id});
+        changes.push_back(SwitchLocked{node.uid, route_uid});
     }
 
     // Lock derailers (unlock them so the route path is clear, then lock to route).
-    for (const GID& dgid : path->derailer_gids)
+    for (const UID& duid : path->derailer_uids)
     {
-        const Derailer* d = state.find_derailer(dgid);
+        const Derailer* d = state.find_derailer(duid);
         if (!d)
             continue;
         if (d->state == DerailerState::LOCKED)
             changes.push_back(
-                DerailerStateChange{dgid, DerailerState::UNLOCKED, ChangeCause::AUTO, route_id});
+                DerailerStateChange{duid, DerailerState::UNLOCKED, ChangeCause::AUTO, route_uid});
     }
 
     // Show proceed aspect on entry signal.
-    changes.push_back(SignalAspectChange{cmd.from_signal_gid, SignalAspect::S2_PROCEED,
-                                         ChangeCause::AUTO, route_id});
+    changes.push_back(SignalAspectChange{cmd.from_signal_uid, SignalAspect::S2_PROCEED,
+                                         ChangeCause::AUTO, route_uid});
 
     // Build and add the RouteState.
     RouteState rs;
-    rs.route_id = route_id;
-    rs.from_signal_gid = cmd.from_signal_gid;
-    rs.to_signal_gid = cmd.to_signal_gid;
-    rs.section_gids = path->section_gids;
-    rs.switch_gids = path->switch_gids;
-    rs.derailer_gids = path->derailer_gids;
+    rs.uid = route_uid;
+    rs.from_signal_uid = cmd.from_signal_uid;
+    rs.to_signal_uid = cmd.to_signal_uid;
+    rs.section_uids = path->section_uids;
+    rs.switch_uids = path->switch_uids;
+    rs.derailer_uids = path->derailer_uids;
     rs.created_tick = tick;
     changes.push_back(RouteAdded{std::move(rs)});
 
@@ -273,14 +276,15 @@ std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
 std::optional<InterlockingViolation> check_cancel_route(const IStateView& state,
                                                         const CancelRouteCmd& cmd)
 {
-    const RouteState* route = state.find_route(cmd.route_id);
+    const RouteState* route = state.find_route(cmd.route_uid);
     if (!route)
-        return violation(NAK_NOT_FOUND, "Route not found: " + cmd.route_id.value, cmd.route_id);
+        return violation(NAK_NOT_FOUND, "Route not found: " + uid_str(cmd.route_uid),
+                         cmd.route_uid);
 
     if (!cmd.force && route->train_entered)
         return violation(NAK_SAFETY_BLOCK,
-                         "Train has entered route; use force to cancel: " + cmd.route_id.value,
-                         cmd.route_id);
+                         "Train has entered route; use force to cancel: " + uid_str(cmd.route_uid),
+                         cmd.route_uid);
 
     return std::nullopt;
 }
@@ -288,31 +292,31 @@ std::optional<InterlockingViolation> check_cancel_route(const IStateView& state,
 std::vector<DeviceStateChange> execute_cancel_route(const IStateView& state,
                                                     const CancelRouteCmd& cmd)
 {
-    const RouteState* route = state.find_route(cmd.route_id);
+    const RouteState* route = state.find_route(cmd.route_uid);
     if (!route)
         return {};
 
     std::vector<DeviceStateChange> changes;
 
     // Reset entry signal to STOP.
-    changes.push_back(SignalAspectChange{route->from_signal_gid, SignalAspect::S1_STOP,
-                                         ChangeCause::COMMAND, cmd.route_id});
+    changes.push_back(SignalAspectChange{route->from_signal_uid, SignalAspect::S1_STOP,
+                                         ChangeCause::COMMAND, cmd.route_uid});
 
     // Unlock switches.
-    for (const GID& swgid : route->switch_gids)
-        changes.push_back(SwitchUnlocked{swgid, cmd.route_id});
+    for (const UID& swuid : route->switch_uids)
+        changes.push_back(SwitchUnlocked{swuid, cmd.route_uid});
 
     // Re-lock derailers.
-    for (const GID& dgid : route->derailer_gids)
+    for (const UID& duid : route->derailer_uids)
     {
-        const Derailer* d = state.find_derailer(dgid);
+        const Derailer* d = state.find_derailer(duid);
         if (d && d->state == DerailerState::UNLOCKED)
             changes.push_back(
-                DerailerStateChange{dgid, DerailerState::LOCKED, ChangeCause::AUTO, std::nullopt});
+                DerailerStateChange{duid, DerailerState::LOCKED, ChangeCause::AUTO, std::nullopt});
     }
 
     const std::string reason = cmd.force ? "FORCE" : "OPERATOR_CANCEL";
-    changes.push_back(RouteRemoved{cmd.route_id, reason});
+    changes.push_back(RouteRemoved{cmd.route_uid, reason});
 
     return changes;
 }
@@ -322,15 +326,16 @@ std::vector<DeviceStateChange> execute_cancel_route(const IStateView& state,
 std::optional<InterlockingViolation> check_acknowledge_alarm(const IStateView& state,
                                                              const AcknowledgeAlarmCmd& cmd)
 {
-    if (!state.find_alarm(cmd.alarm_id))
-        return violation(NAK_NOT_FOUND, "Alarm not found: " + cmd.alarm_id.value, cmd.alarm_id);
+    if (!state.find_alarm(cmd.alarm_uid))
+        return violation(NAK_NOT_FOUND, "Alarm not found: " + uid_str(cmd.alarm_uid),
+                         cmd.alarm_uid);
     return std::nullopt;
 }
 
 std::vector<DeviceStateChange> execute_acknowledge_alarm(const IStateView& /*state*/,
                                                          const AcknowledgeAlarmCmd& cmd)
 {
-    return {AlarmCleared{cmd.alarm_id}};
+    return {AlarmCleared{cmd.alarm_uid}};
 }
 
 static bool target_exists(const IStateView& state, const OperatorCommandCmd& cmd)
@@ -338,23 +343,23 @@ static bool target_exists(const IStateView& state, const OperatorCommandCmd& cmd
     switch (cmd.target_kind)
     {
         case OperatorTargetKind::SIGNAL:
-            return state.find_signal(cmd.target_gid) != nullptr;
+            return state.find_signal(cmd.target_uid) != nullptr;
         case OperatorTargetKind::SWITCH:
-            return state.find_switch(cmd.target_gid) != nullptr ||
-                   state.find_derailer(cmd.target_gid) != nullptr;
+            return state.find_switch(cmd.target_uid) != nullptr ||
+                   state.find_derailer(cmd.target_uid) != nullptr;
         case OperatorTargetKind::DERAILER:
-            return state.find_derailer(cmd.target_gid) != nullptr;
+            return state.find_derailer(cmd.target_uid) != nullptr;
         case OperatorTargetKind::TRACK_SECTION:
-            return state.find_track_section(cmd.target_gid) != nullptr;
+            return state.find_track_section(cmd.target_uid) != nullptr;
         case OperatorTargetKind::BLOCK_SECTION:
-            return state.find_block_section(cmd.target_gid) != nullptr;
+            return state.find_block_section(cmd.target_uid) != nullptr;
         case OperatorTargetKind::AXLE_COUNTER_SYSTEM:
         case OperatorTargetKind::STATION:
         case OperatorTargetKind::ROUTE:
         case OperatorTargetKind::LEVEL_CROSSING:
         case OperatorTargetKind::INTERLOCKING_COMPUTER:
         case OperatorTargetKind::POWER_SUPPLY:
-            return !cmd.target_gid.value.empty();
+            return cmd.target_uid.value != 0;
     }
     return false;
 }
@@ -363,33 +368,34 @@ std::optional<InterlockingViolation> check_operator_command(const IStateView& st
                                                             const OperatorCommandCmd& cmd)
 {
     if (!target_exists(state, cmd))
-        return violation(NAK_NOT_FOUND, "Operator command target not found: " + cmd.target_gid.value,
-                         cmd.target_gid);
+        return violation(NAK_NOT_FOUND,
+                         "Operator command target not found: " + uid_str(cmd.target_uid),
+                         cmd.target_uid);
 
     if (cmd.code == OperatorCommandCode::ZWP || cmd.code == OperatorCommandCode::ZWM ||
         cmd.code == OperatorCommandCode::ZBP || cmd.code == OperatorCommandCode::ZBM)
     {
-        if (const Switch* sw = state.find_switch(cmd.target_gid))
+        if (const Switch* sw = state.find_switch(cmd.target_uid))
         {
             if (sw->occupancy == TrackOccupancy::OCCUPIED)
-                return violation(NAK_SAFETY_BLOCK,
-                                 "Switch is occupied: " + cmd.target_gid.value, cmd.target_gid);
-            if (sw->locked_by_route.has_value())
+                return violation(NAK_SAFETY_BLOCK, "Switch is occupied: " + uid_str(cmd.target_uid),
+                                 cmd.target_uid);
+            if (sw->locked_by_route_uid.has_value())
                 return violation(NAK_ROUTE_LOCKED,
-                                 "Switch locked by route: " + cmd.target_gid.value,
-                                 cmd.target_gid);
+                                 "Switch locked by route: " + uid_str(cmd.target_uid),
+                                 cmd.target_uid);
             if (sw->position == SwitchPosition::MOVING)
-                return violation(NAK_SWITCH_MOVING,
-                                 "Switch is moving: " + cmd.target_gid.value, cmd.target_gid);
+                return violation(NAK_SWITCH_MOVING, "Switch is moving: " + uid_str(cmd.target_uid),
+                                 cmd.target_uid);
         }
     }
 
     if (cmd.code == OperatorCommandCode::BLZ)
     {
-        const BlockSection* bs = state.find_block_section(cmd.target_gid);
+        const BlockSection* bs = state.find_block_section(cmd.target_uid);
         if (bs && bs->axle_count != 0)
             return violation(NAK_SAFETY_BLOCK, "Cannot release block direction: axle count != 0",
-                             cmd.target_gid);
+                             cmd.target_uid);
     }
 
     return std::nullopt;
@@ -400,17 +406,17 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
                                                         int throw_time_ticks)
 {
     std::vector<DeviceStateChange> changes;
-    changes.push_back(OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, true});
+    changes.push_back(OperatorCommandStateChange{cmd.target_uid, cmd.target_kind, cmd.code, true});
 
     switch (cmd.code)
     {
         case OperatorCommandCode::SES:
-            if (const Signal* sig = state.find_signal(cmd.target_gid))
+            if (const Signal* sig = state.find_signal(cmd.target_uid))
             {
                 const auto aspect = sig->type == Signal::Type::SHUNTING ? SignalAspect::MS1_STOP
                                                                          : SignalAspect::S1_STOP;
                 changes.push_back(
-                    SignalAspectChange{cmd.target_gid, aspect, ChangeCause::COMMAND, std::nullopt});
+                    SignalAspectChange{cmd.target_uid, aspect, ChangeCause::COMMAND, std::nullopt});
             }
             break;
         case OperatorCommandCode::SEO:
@@ -425,74 +431,74 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
         case OperatorCommandCode::UPAO:
         case OperatorCommandCode::ZSO:
             changes.push_back(
-                OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, false});
+                OperatorCommandStateChange{cmd.target_uid, cmd.target_kind, cmd.code, false});
             break;
         case OperatorCommandCode::SZW:
         case OperatorCommandCode::SZN:
-            changes.push_back(SignalAspectChange{cmd.target_gid, SignalAspect::S2_PROCEED,
+            changes.push_back(SignalAspectChange{cmd.target_uid, SignalAspect::S2_PROCEED,
                                                  ChangeCause::COMMAND, std::nullopt});
             break;
         case OperatorCommandCode::ZWP:
         case OperatorCommandCode::ZBP:
-            if (state.find_switch(cmd.target_gid))
+            if (state.find_switch(cmd.target_uid))
             {
                 auto sub = execute_set_switch_position(
-                    state, SetSwitchPositionCmd{cmd.target_gid, SwitchPosition::STRAIGHT},
+                    state, SetSwitchPositionCmd{cmd.target_uid, SwitchPosition::STRAIGHT},
                     throw_time_ticks);
                 changes.insert(changes.end(), sub.begin(), sub.end());
             }
-            else if (state.find_derailer(cmd.target_gid))
+            else if (state.find_derailer(cmd.target_uid))
             {
                 auto sub = execute_set_derailer_position(
-                    state, SetDerailerPositionCmd{cmd.target_gid, DerailerState::LOCKED});
+                    state, SetDerailerPositionCmd{cmd.target_uid, DerailerState::LOCKED});
                 changes.insert(changes.end(), sub.begin(), sub.end());
             }
             break;
         case OperatorCommandCode::ZWM:
         case OperatorCommandCode::ZBM:
-            if (state.find_switch(cmd.target_gid))
+            if (state.find_switch(cmd.target_uid))
             {
                 auto sub = execute_set_switch_position(
-                    state, SetSwitchPositionCmd{cmd.target_gid, SwitchPosition::DIVERGENT},
+                    state, SetSwitchPositionCmd{cmd.target_uid, SwitchPosition::DIVERGENT},
                     throw_time_ticks);
                 changes.insert(changes.end(), sub.begin(), sub.end());
             }
-            else if (state.find_derailer(cmd.target_gid))
+            else if (state.find_derailer(cmd.target_uid))
             {
                 auto sub = execute_set_derailer_position(
-                    state, SetDerailerPositionCmd{cmd.target_gid, DerailerState::UNLOCKED});
+                    state, SetDerailerPositionCmd{cmd.target_uid, DerailerState::UNLOCKED});
                 changes.insert(changes.end(), sub.begin(), sub.end());
             }
             break;
         case OperatorCommandCode::SLK:
-            changes.push_back(AxleCounterResetChange{cmd.target_gid, cmd.target_kind});
+            changes.push_back(AxleCounterResetChange{cmd.target_uid, cmd.target_kind});
             changes.push_back(
-                OperatorCommandStateChange{cmd.target_gid, cmd.target_kind, cmd.code, false});
+                OperatorCommandStateChange{cmd.target_uid, cmd.target_kind, cmd.code, false});
             break;
         case OperatorCommandCode::BLS:
-            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+            changes.push_back(BlockSectionStateChange{cmd.target_uid, BlockSectionState::CLOSED});
             break;
         case OperatorCommandCode::BLW:
         case OperatorCommandCode::BPZ:
-            changes.push_back(BlockDirectionChange{cmd.target_gid,
-                                                   BlockDirectionState::OUTBOUND_PENDING, true});
+            changes.push_back(
+                BlockDirectionChange{cmd.target_uid, BlockDirectionState::OUTBOUND_PENDING, true});
             break;
         case OperatorCommandCode::BPO:
         case OperatorCommandCode::BKO:
         case OperatorCommandCode::BTW:
         case OperatorCommandCode::POC:
         case OperatorCommandCode::PZW:
-            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+            changes.push_back(BlockSectionStateChange{cmd.target_uid, BlockSectionState::CLOSED});
             break;
         case OperatorCommandCode::BLP:
         case OperatorCommandCode::POZ:
-            if (const BlockSection* bs = state.find_block_section(cmd.target_gid))
+            if (const BlockSection* bs = state.find_block_section(cmd.target_uid))
             {
                 const auto direction = bs->direction == BlockDirectionState::INBOUND_PENDING
                                            ? BlockDirectionState::INBOUND
                                            : BlockDirectionState::OUTBOUND;
-                changes.push_back(BlockDirectionChange{cmd.target_gid, direction, false});
-                changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::OPEN});
+                changes.push_back(BlockDirectionChange{cmd.target_uid, direction, false});
+                changes.push_back(BlockSectionStateChange{cmd.target_uid, BlockSectionState::OPEN});
             }
             break;
         case OperatorCommandCode::BLO:
@@ -501,13 +507,13 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
         case OperatorCommandCode::OPS:
         case OperatorCommandCode::DPW:
             changes.push_back(
-                BlockDirectionChange{cmd.target_gid, BlockDirectionState::NEUTRAL, false});
-            changes.push_back(BlockSectionStateChange{cmd.target_gid, BlockSectionState::CLOSED});
+                BlockDirectionChange{cmd.target_uid, BlockDirectionState::NEUTRAL, false});
+            changes.push_back(BlockSectionStateChange{cmd.target_uid, BlockSectionState::CLOSED});
             break;
         case OperatorCommandCode::BLAI:
         case OperatorCommandCode::DPWI:
             changes.push_back(
-                BlockDirectionChange{cmd.target_gid, BlockDirectionState::EMERGENCY, false});
+                BlockDirectionChange{cmd.target_uid, BlockDirectionState::EMERGENCY, false});
             break;
         default:
             break;
@@ -521,10 +527,11 @@ std::vector<DeviceStateChange> execute_operator_command(const IStateView& state,
 std::optional<InterlockingViolation> check_set_block_direction(const IStateView& state,
                                                                const SetBlockDirectionCmd& cmd)
 {
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    const BlockSection* bs = state.find_block_section(cmd.block_section_uid);
     if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
+        return violation(NAK_NOT_FOUND,
+                         "Block section not found: " + uid_str(cmd.block_section_uid),
+                         cmd.block_section_uid);
 
     const BlockDirectionState dir = bs->direction;
 
@@ -535,7 +542,7 @@ std::optional<InterlockingViolation> check_set_block_direction(const IStateView&
                 return violation(NAK_INVALID_STATE,
                                  "BLW requires NEUTRAL direction, current: " +
                                      std::to_string(static_cast<int>(dir)),
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::BLP:
@@ -543,40 +550,40 @@ std::optional<InterlockingViolation> check_set_block_direction(const IStateView&
                 dir != BlockDirectionState::INBOUND_PENDING)
                 return violation(NAK_INVALID_STATE,
                                  "BLP requires OUTBOUND_PENDING or INBOUND_PENDING",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::BLO:
             if (dir != BlockDirectionState::OUTBOUND_PENDING)
                 return violation(NAK_INVALID_STATE, "BLO requires OUTBOUND_PENDING",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::BLZ:
             if (dir != BlockDirectionState::OUTBOUND && dir != BlockDirectionState::INBOUND)
                 return violation(NAK_INVALID_STATE, "BLZ requires OUTBOUND or INBOUND",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             if (bs->axle_count != 0)
                 return violation(NAK_SAFETY_BLOCK, "Cannot release direction: axle count != 0",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::BLAI:
             if (dir == BlockDirectionState::RESET_PENDING)
                 return violation(NAK_INVALID_STATE, "BLAI not allowed in RESET_PENDING state",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::BLA:
             if (dir != BlockDirectionState::EMERGENCY)
                 return violation(NAK_INVALID_STATE, "BLA requires EMERGENCY state",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
 
         case Shl12Op::OPS:
             if (dir != BlockDirectionState::EMERGENCY && dir != BlockDirectionState::RESET_PENDING)
                 return violation(NAK_INVALID_STATE, "OPS requires EMERGENCY or RESET_PENDING state",
-                                 cmd.block_section_gid);
+                                 cmd.block_section_uid);
             break;
     }
 
@@ -586,7 +593,7 @@ std::optional<InterlockingViolation> check_set_block_direction(const IStateView&
 std::vector<DeviceStateChange> execute_set_block_direction(const IStateView& state,
                                                            const SetBlockDirectionCmd& cmd)
 {
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    const BlockSection* bs = state.find_block_section(cmd.block_section_uid);
     if (!bs)
         return {};
 
@@ -595,68 +602,58 @@ std::vector<DeviceStateChange> execute_set_block_direction(const IStateView& sta
     switch (cmd.operation)
     {
         case Shl12Op::BLW:
-            // Request outbound direction — transition to OUTBOUND_PENDING.
-            // The neighbour must respond with BLP to confirm.
             changes.push_back(BlockDirectionChange{
-                cmd.block_section_gid, BlockDirectionState::OUTBOUND_PENDING,
+                cmd.block_section_uid, BlockDirectionState::OUTBOUND_PENDING,
                 true  // requires_neighbor_confirmation
             });
             break;
 
         case Shl12Op::BLP:
-            // Confirm a pending direction.
             if (bs->direction == BlockDirectionState::OUTBOUND_PENDING)
             {
-                // Our own BLW was acknowledged by the neighbour.
-                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
+                changes.push_back(BlockDirectionChange{cmd.block_section_uid,
                                                        BlockDirectionState::OUTBOUND, false});
-                // Open the block section for departure.
                 changes.push_back(
-                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
+                    BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::OPEN});
             }
             else
             {
-                // Neighbour's BLW — we confirm INBOUND.
-                changes.push_back(BlockDirectionChange{cmd.block_section_gid,
+                changes.push_back(BlockDirectionChange{cmd.block_section_uid,
                                                        BlockDirectionState::INBOUND, false});
                 changes.push_back(
-                    BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::OPEN});
+                    BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::OPEN});
             }
             break;
 
         case Shl12Op::BLO:
-            // Cancel pending outbound request.
             changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+                BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::NEUTRAL, false});
             break;
 
         case Shl12Op::BLZ:
-            // Release established direction.
             changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+                BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::NEUTRAL, false});
             changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+                BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::CLOSED});
             break;
 
         case Shl12Op::BLAI:
             changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::EMERGENCY, false});
+                BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::EMERGENCY, false});
             break;
 
         case Shl12Op::BLA:
-            // Execute emergency direction change — resets to NEUTRAL.
             changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+                BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::NEUTRAL, false});
             changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+                BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::CLOSED});
             break;
 
         case Shl12Op::OPS:
-            // Cancel special procedure — reset to NEUTRAL.
             changes.push_back(
-                BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false});
+                BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::NEUTRAL, false});
             changes.push_back(
-                BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED});
+                BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::CLOSED});
             break;
     }
 
@@ -668,21 +665,22 @@ std::vector<DeviceStateChange> execute_set_block_direction(const IStateView& sta
 std::optional<InterlockingViolation> check_init_axle_counter_reset(
     const IStateView& state, const InitAxleCounterResetCmd& cmd)
 {
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    const BlockSection* bs = state.find_block_section(cmd.block_section_uid);
     if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
+        return violation(NAK_NOT_FOUND,
+                         "Block section not found: " + uid_str(cmd.block_section_uid),
+                         cmd.block_section_uid);
 
     if (bs->direction != BlockDirectionState::NEUTRAL)
         return violation(NAK_INVALID_STATE, "SLI requires NEUTRAL direction",
-                         cmd.block_section_gid);
+                         cmd.block_section_uid);
     return std::nullopt;
 }
 
 std::vector<DeviceStateChange> execute_init_axle_counter_reset(const IStateView& /*state*/,
                                                                const InitAxleCounterResetCmd& cmd)
 {
-    return {BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::RESET_PENDING, false}};
+    return {BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::RESET_PENDING, false}};
 }
 
 // ── R10: ResetAxleCounter (SLK) ───────────────────────────────────────────────
@@ -690,14 +688,15 @@ std::vector<DeviceStateChange> execute_init_axle_counter_reset(const IStateView&
 std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& state,
                                                               const ResetAxleCounterCmd& cmd)
 {
-    const BlockSection* bs = state.find_block_section(cmd.block_section_gid);
+    const BlockSection* bs = state.find_block_section(cmd.block_section_uid);
     if (!bs)
-        return violation(NAK_NOT_FOUND, "Block section not found: " + cmd.block_section_gid.value,
-                         cmd.block_section_gid);
+        return violation(NAK_NOT_FOUND,
+                         "Block section not found: " + uid_str(cmd.block_section_uid),
+                         cmd.block_section_uid);
 
     if (bs->direction != BlockDirectionState::RESET_PENDING)
         return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
-                         cmd.block_section_gid);
+                         cmd.block_section_uid);
     return std::nullopt;
 }
 
@@ -705,8 +704,8 @@ std::vector<DeviceStateChange> execute_reset_axle_counter(const IStateView& /*st
                                                           const ResetAxleCounterCmd& cmd)
 {
     return {
-        BlockDirectionChange{cmd.block_section_gid, BlockDirectionState::NEUTRAL, false},
-        BlockSectionStateChange{cmd.block_section_gid, BlockSectionState::CLOSED},
+        BlockDirectionChange{cmd.block_section_uid, BlockDirectionState::NEUTRAL, false},
+        BlockSectionStateChange{cmd.block_section_uid, BlockSectionState::CLOSED},
     };
 }
 
@@ -714,7 +713,7 @@ std::vector<DeviceStateChange> execute_reset_axle_counter(const IStateView& /*st
 
 std::vector<DeviceStateChange> tick_switch_machines(
     const IStateView& state,
-    std::unordered_map<GID, SwitchPosition, std::hash<GID>>& pending_targets)
+    std::unordered_map<UID, SwitchPosition, std::hash<UID>>& pending_targets)
 {
     std::vector<DeviceStateChange> changes;
 
@@ -723,32 +722,32 @@ std::vector<DeviceStateChange> tick_switch_machines(
         {
             if (sw.position != SwitchPosition::MOVING)
             {
-                pending_targets.erase(sw.gid);
+                pending_targets.erase(sw.uid);
                 return;
             }
             if (sw.moving_ticks_remaining <= 0)
             {
                 // Should not happen; land the switch as a safety fallback.
-                auto it = pending_targets.find(sw.gid);
+                auto it = pending_targets.find(sw.uid);
                 SwitchPosition target =
                     (it != pending_targets.end()) ? it->second : SwitchPosition::STRAIGHT;
-                pending_targets.erase(sw.gid);
-                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
+                pending_targets.erase(sw.uid);
+                changes.push_back(SwitchPositionChange{sw.uid, target, ChangeCause::AUTO, 0});
                 return;
             }
 
             const int remaining = sw.moving_ticks_remaining - 1;
             if (remaining == 0)
             {
-                auto it = pending_targets.find(sw.gid);
+                auto it = pending_targets.find(sw.uid);
                 SwitchPosition target =
                     (it != pending_targets.end()) ? it->second : SwitchPosition::STRAIGHT;
-                pending_targets.erase(sw.gid);
-                changes.push_back(SwitchPositionChange{sw.gid, target, ChangeCause::AUTO, 0});
+                pending_targets.erase(sw.uid);
+                changes.push_back(SwitchPositionChange{sw.uid, target, ChangeCause::AUTO, 0});
             }
             else
             {
-                changes.push_back(SwitchPositionChange{sw.gid, SwitchPosition::MOVING,
+                changes.push_back(SwitchPositionChange{sw.uid, SwitchPosition::MOVING,
                                                        ChangeCause::AUTO, remaining});
             }
         });
@@ -768,9 +767,9 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
 
             // Check whether all sections on the route are now free.
             bool all_free = true;
-            for (const GID& sgid : route.section_gids)
+            for (const UID& suid : route.section_uids)
             {
-                const TrackSection* ts = state.find_track_section(sgid);
+                const TrackSection* ts = state.find_track_section(suid);
                 if (ts && ts->occupancy == TrackOccupancy::OCCUPIED)
                 {
                     all_free = false;
@@ -781,17 +780,14 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
                 return;
 
             // Reset entry signal to STOP.
-            changes.push_back(SignalAspectChange{route.from_signal_gid, SignalAspect::S1_STOP,
-                                                 ChangeCause::AUTO, route.route_id});
+            changes.push_back(SignalAspectChange{route.from_signal_uid, SignalAspect::S1_STOP,
+                                                 ChangeCause::AUTO, route.uid});
 
             // Unlock switches.
-            for (const GID& swgid : route.switch_gids)
-                changes.push_back(SwitchUnlocked{swgid, route.route_id});
+            for (const UID& swuid : route.switch_uids)
+                changes.push_back(SwitchUnlocked{swuid, route.uid});
 
-            // Re-lock derailers.
-            // (We don't have derailer states here without the state view — handled by engine)
-
-            changes.push_back(RouteRemoved{route.route_id, "TRAIN_CLEARED"});
+            changes.push_back(RouteRemoved{route.uid, "TRAIN_CLEARED"});
         });
 
     return changes;

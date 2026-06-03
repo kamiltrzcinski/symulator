@@ -63,8 +63,9 @@ TEST(TrainSlot, EqualityOperator)
 
 TEST(PipEvent, SlotAbsent)
 {
-    PipEvent ev{GID{"OT-GOr-tor_1a-0000001"}, SID{"GOr"}, TrackOccupancy::FREE, std::nullopt,
-                false};
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    PipEvent ev{section, station, TrackOccupancy::FREE, std::nullopt, false};
     EXPECT_EQ(ev.occupancy, TrackOccupancy::FREE);
     EXPECT_FALSE(ev.slot.has_value());
     EXPECT_FALSE(ev.lcs_boundary_crossing);
@@ -72,8 +73,10 @@ TEST(PipEvent, SlotAbsent)
 
 TEST(PipEvent, SlotPresent)
 {
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
     TrainSlot slot{"IC1234", false, false, EntrySide::LEFT};
-    PipEvent ev{GID{"OT-GOr-tor_1a-0000001"}, SID{"GOr"}, TrackOccupancy::OCCUPIED, slot, false};
+    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, false};
     ASSERT_TRUE(ev.slot.has_value());
     EXPECT_EQ(ev.slot->number, "IC1234");
     EXPECT_EQ(ev.slot->entry_side, EntrySide::LEFT);
@@ -82,27 +85,46 @@ TEST(PipEvent, SlotPresent)
 
 TEST(PipEvent, LcsBoundaryCrossing)
 {
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 10);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
     TrainSlot slot{"TLK567", false, false, EntrySide::RIGHT};
-    PipEvent ev{GID{"OT-GOr-szlak_1-0000001"}, SID{"GOr"}, TrackOccupancy::OCCUPIED, slot, true};
+    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, true};
     EXPECT_TRUE(ev.lcs_boundary_crossing);
     ASSERT_TRUE(ev.slot.has_value());
     EXPECT_EQ(ev.slot->number, "TLK567");
     EXPECT_EQ(ev.slot->entry_side, EntrySide::RIGHT);
 }
 
-TEST(PipEvent, SectionAndStationIds)
+TEST(PipEvent, SectionAndStationUids)
 {
-    PipEvent ev{GID{"OT-GGO-tor_2-0000042"}, SID{"GGO"}, TrackOccupancy::FREE, std::nullopt, false};
-    EXPECT_EQ(ev.section_gid.value, "OT-GGO-tor_2-0000042");
-    EXPECT_EQ(ev.station_sid.value, "GGO");
+    // Station GOr = instance 1, scope 1; Track section instance 42 on GOr
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 42);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    PipEvent ev{section, station, TrackOccupancy::FREE, std::nullopt, false};
+    EXPECT_EQ(uid_kind(ev.section_uid), UIDKind::TRACK_SECTION);
+    EXPECT_EQ(uid_scope(ev.section_uid), 1);
+    EXPECT_EQ(uid_instance(ev.section_uid), 42);
+    EXPECT_EQ(uid_kind(ev.station_uid), UIDKind::STATION);
+    EXPECT_EQ(uid_scope(ev.station_uid), 1);
 }
 
 TEST(PipEvent, ExtraInfoFlag)
 {
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 3, 1);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 3, 1);
     TrainSlot slot{"EIC001", true, false, EntrySide::LEFT};
-    PipEvent ev{GID{"OT-GGO-tor_1-0000001"}, SID{"GGO"}, TrackOccupancy::OCCUPIED, slot, false};
+    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, false};
     ASSERT_TRUE(ev.slot.has_value());
     EXPECT_TRUE(ev.slot->has_extra_info);
+}
+
+TEST(PipEvent, SectionAndStationAreDifferentKinds)
+{
+    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    EXPECT_NE(section.value, station.value);
+    EXPECT_TRUE(uid_has_kind(section, UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION));
+    EXPECT_TRUE(uid_has_kind(station, UIDDomain::INFRASTRUCTURE, UIDKind::STATION));
 }
 
 // ── TrainCategory ────────────────────────────────────────────────────────────
@@ -116,7 +138,6 @@ TEST(TrainCategory, DistinctValues)
 
 TEST(TrainCategory, AllValues)
 {
-    // Compile-time check: all enumerators are reachable
     auto cat = TrainCategory::PASSENGER;
     cat = TrainCategory::FREIGHT;
     cat = TrainCategory::MAINTENANCE;
@@ -135,7 +156,6 @@ TEST(DispatchFormType, DistinctValues)
 
 TEST(DispatchFormType, AllFormsReachable)
 {
-    // Compile-time coverage: every enumerator used
     auto f = DispatchFormType::S2;
     f = DispatchFormType::S24;
     f = DispatchFormType::S25;
@@ -179,7 +199,6 @@ TEST(ExchangeStatus, DistinctValues)
 
 TEST(ExchangeStatus, StandardPath)
 {
-    // Simulates the happy-path state progression
     ExchangeStatus s = ExchangeStatus::IDLE;
     EXPECT_EQ(s, ExchangeStatus::IDLE);
     s = ExchangeStatus::S2_SENT;

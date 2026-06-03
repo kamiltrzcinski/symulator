@@ -237,7 +237,7 @@ inline const char *EnumNameTrainDecomposeReason(TrainDecomposeReason e) {
 
 struct SwitchPositionChangedT : public ::flatbuffers::NativeTable {
   typedef SwitchPositionChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::SwitchPosition new_position = proto::SwitchPosition_STRAIGHT;
   proto::ChangeCause cause = proto::ChangeCause_COMMAND;
 };
@@ -246,12 +246,12 @@ struct SwitchPositionChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   typedef SwitchPositionChangedT NativeTableType;
   typedef SwitchPositionChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_NEW_POSITION = 6,
     VT_CAUSE = 8
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::SwitchPosition new_position() const {
     return static_cast<proto::SwitchPosition>(GetField<int8_t>(VT_NEW_POSITION, 0));
@@ -262,8 +262,7 @@ struct SwitchPositionChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_NEW_POSITION, 1) &&
            VerifyField<int8_t>(verifier, VT_CAUSE, 1) &&
            verifier.EndTable();
@@ -277,8 +276,8 @@ struct SwitchPositionChangedBuilder {
   typedef SwitchPositionChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(SwitchPositionChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(SwitchPositionChanged::VT_UID, uid, 0);
   }
   void add_new_position(proto::SwitchPosition new_position) {
     fbb_.AddElement<int8_t>(SwitchPositionChanged::VT_NEW_POSITION, static_cast<int8_t>(new_position), 0);
@@ -293,57 +292,43 @@ struct SwitchPositionChangedBuilder {
   ::flatbuffers::Offset<SwitchPositionChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<SwitchPositionChanged>(end);
-    fbb_.Required(o, SwitchPositionChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<SwitchPositionChanged> CreateSwitchPositionChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::SwitchPosition new_position = proto::SwitchPosition_STRAIGHT,
     proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
   SwitchPositionChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_cause(cause);
   builder_.add_new_position(new_position);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<SwitchPositionChanged> CreateSwitchPositionChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::SwitchPosition new_position = proto::SwitchPosition_STRAIGHT,
-    proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateSwitchPositionChanged(
-      _fbb,
-      g_id__,
-      new_position,
-      cause);
 }
 
 ::flatbuffers::Offset<SwitchPositionChanged> CreateSwitchPositionChanged(::flatbuffers::FlatBufferBuilder &_fbb, const SwitchPositionChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct SwitchOccupancyChangedT : public ::flatbuffers::NativeTable {
   typedef SwitchOccupancyChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   bool occupied = false;
   int32_t axle_count = 0;
-  std::string train_g_id{};
+  uint64_t train_uid = 0;
 };
 
 struct SwitchOccupancyChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef SwitchOccupancyChangedT NativeTableType;
   typedef SwitchOccupancyChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_OCCUPIED = 6,
     VT_AXLE_COUNT = 8,
-    VT_TRAIN_G_ID = 10
+    VT_TRAIN_UID = 10
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   bool occupied() const {
     return GetField<uint8_t>(VT_OCCUPIED, 0) != 0;
@@ -351,18 +336,16 @@ struct SwitchOccupancyChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   int32_t axle_count() const {
     return GetField<int32_t>(VT_AXLE_COUNT, 0);
   }
-  const ::flatbuffers::String *train_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_G_ID);
+  uint64_t train_uid() const {
+    return GetField<uint64_t>(VT_TRAIN_UID, 0);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<uint8_t>(verifier, VT_OCCUPIED, 1) &&
            VerifyField<int32_t>(verifier, VT_AXLE_COUNT, 4) &&
-           VerifyOffset(verifier, VT_TRAIN_G_ID) &&
-           verifier.VerifyString(train_g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_TRAIN_UID, 8) &&
            verifier.EndTable();
   }
   SwitchOccupancyChangedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -374,8 +357,8 @@ struct SwitchOccupancyChangedBuilder {
   typedef SwitchOccupancyChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(SwitchOccupancyChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(SwitchOccupancyChanged::VT_UID, uid, 0);
   }
   void add_occupied(bool occupied) {
     fbb_.AddElement<uint8_t>(SwitchOccupancyChanged::VT_OCCUPIED, static_cast<uint8_t>(occupied), 0);
@@ -383,8 +366,8 @@ struct SwitchOccupancyChangedBuilder {
   void add_axle_count(int32_t axle_count) {
     fbb_.AddElement<int32_t>(SwitchOccupancyChanged::VT_AXLE_COUNT, axle_count, 0);
   }
-  void add_train_g_id(::flatbuffers::Offset<::flatbuffers::String> train_g_id) {
-    fbb_.AddOffset(SwitchOccupancyChanged::VT_TRAIN_G_ID, train_g_id);
+  void add_train_uid(uint64_t train_uid) {
+    fbb_.AddElement<uint64_t>(SwitchOccupancyChanged::VT_TRAIN_UID, train_uid, 0);
   }
   explicit SwitchOccupancyChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -393,46 +376,29 @@ struct SwitchOccupancyChangedBuilder {
   ::flatbuffers::Offset<SwitchOccupancyChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<SwitchOccupancyChanged>(end);
-    fbb_.Required(o, SwitchOccupancyChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<SwitchOccupancyChanged> CreateSwitchOccupancyChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     bool occupied = false,
     int32_t axle_count = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> train_g_id = 0) {
+    uint64_t train_uid = 0) {
   SwitchOccupancyChangedBuilder builder_(_fbb);
-  builder_.add_train_g_id(train_g_id);
+  builder_.add_train_uid(train_uid);
+  builder_.add_uid(uid);
   builder_.add_axle_count(axle_count);
-  builder_.add_g_id(g_id);
   builder_.add_occupied(occupied);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<SwitchOccupancyChanged> CreateSwitchOccupancyChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    bool occupied = false,
-    int32_t axle_count = 0,
-    const char *train_g_id = nullptr) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  auto train_g_id__ = train_g_id ? _fbb.CreateString(train_g_id) : 0;
-  return proto::CreateSwitchOccupancyChanged(
-      _fbb,
-      g_id__,
-      occupied,
-      axle_count,
-      train_g_id__);
 }
 
 ::flatbuffers::Offset<SwitchOccupancyChanged> CreateSwitchOccupancyChanged(::flatbuffers::FlatBufferBuilder &_fbb, const SwitchOccupancyChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct SignalAspectChangedT : public ::flatbuffers::NativeTable {
   typedef SignalAspectChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::Aspect new_aspect = proto::Aspect_S1_STOP;
   proto::ChangeCause cause = proto::ChangeCause_COMMAND;
 };
@@ -441,12 +407,12 @@ struct SignalAspectChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   typedef SignalAspectChangedT NativeTableType;
   typedef SignalAspectChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_NEW_ASPECT = 6,
     VT_CAUSE = 8
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::Aspect new_aspect() const {
     return static_cast<proto::Aspect>(GetField<int8_t>(VT_NEW_ASPECT, 0));
@@ -457,8 +423,7 @@ struct SignalAspectChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_NEW_ASPECT, 1) &&
            VerifyField<int8_t>(verifier, VT_CAUSE, 1) &&
            verifier.EndTable();
@@ -472,8 +437,8 @@ struct SignalAspectChangedBuilder {
   typedef SignalAspectChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(SignalAspectChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(SignalAspectChanged::VT_UID, uid, 0);
   }
   void add_new_aspect(proto::Aspect new_aspect) {
     fbb_.AddElement<int8_t>(SignalAspectChanged::VT_NEW_ASPECT, static_cast<int8_t>(new_aspect), 0);
@@ -488,57 +453,43 @@ struct SignalAspectChangedBuilder {
   ::flatbuffers::Offset<SignalAspectChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<SignalAspectChanged>(end);
-    fbb_.Required(o, SignalAspectChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<SignalAspectChanged> CreateSignalAspectChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::Aspect new_aspect = proto::Aspect_S1_STOP,
     proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
   SignalAspectChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_cause(cause);
   builder_.add_new_aspect(new_aspect);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<SignalAspectChanged> CreateSignalAspectChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::Aspect new_aspect = proto::Aspect_S1_STOP,
-    proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateSignalAspectChanged(
-      _fbb,
-      g_id__,
-      new_aspect,
-      cause);
 }
 
 ::flatbuffers::Offset<SignalAspectChanged> CreateSignalAspectChanged(::flatbuffers::FlatBufferBuilder &_fbb, const SignalAspectChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct TrackSectionOccupancyChangedT : public ::flatbuffers::NativeTable {
   typedef TrackSectionOccupancyChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   bool occupied = false;
   int32_t axle_count = 0;
-  std::string train_g_id{};
+  uint64_t train_uid = 0;
 };
 
 struct TrackSectionOccupancyChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TrackSectionOccupancyChangedT NativeTableType;
   typedef TrackSectionOccupancyChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_OCCUPIED = 6,
     VT_AXLE_COUNT = 8,
-    VT_TRAIN_G_ID = 10
+    VT_TRAIN_UID = 10
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   bool occupied() const {
     return GetField<uint8_t>(VT_OCCUPIED, 0) != 0;
@@ -546,18 +497,16 @@ struct TrackSectionOccupancyChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuff
   int32_t axle_count() const {
     return GetField<int32_t>(VT_AXLE_COUNT, 0);
   }
-  const ::flatbuffers::String *train_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_G_ID);
+  uint64_t train_uid() const {
+    return GetField<uint64_t>(VT_TRAIN_UID, 0);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<uint8_t>(verifier, VT_OCCUPIED, 1) &&
            VerifyField<int32_t>(verifier, VT_AXLE_COUNT, 4) &&
-           VerifyOffset(verifier, VT_TRAIN_G_ID) &&
-           verifier.VerifyString(train_g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_TRAIN_UID, 8) &&
            verifier.EndTable();
   }
   TrackSectionOccupancyChangedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -569,8 +518,8 @@ struct TrackSectionOccupancyChangedBuilder {
   typedef TrackSectionOccupancyChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(TrackSectionOccupancyChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(TrackSectionOccupancyChanged::VT_UID, uid, 0);
   }
   void add_occupied(bool occupied) {
     fbb_.AddElement<uint8_t>(TrackSectionOccupancyChanged::VT_OCCUPIED, static_cast<uint8_t>(occupied), 0);
@@ -578,8 +527,8 @@ struct TrackSectionOccupancyChangedBuilder {
   void add_axle_count(int32_t axle_count) {
     fbb_.AddElement<int32_t>(TrackSectionOccupancyChanged::VT_AXLE_COUNT, axle_count, 0);
   }
-  void add_train_g_id(::flatbuffers::Offset<::flatbuffers::String> train_g_id) {
-    fbb_.AddOffset(TrackSectionOccupancyChanged::VT_TRAIN_G_ID, train_g_id);
+  void add_train_uid(uint64_t train_uid) {
+    fbb_.AddElement<uint64_t>(TrackSectionOccupancyChanged::VT_TRAIN_UID, train_uid, 0);
   }
   explicit TrackSectionOccupancyChangedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -588,46 +537,29 @@ struct TrackSectionOccupancyChangedBuilder {
   ::flatbuffers::Offset<TrackSectionOccupancyChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TrackSectionOccupancyChanged>(end);
-    fbb_.Required(o, TrackSectionOccupancyChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<TrackSectionOccupancyChanged> CreateTrackSectionOccupancyChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     bool occupied = false,
     int32_t axle_count = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> train_g_id = 0) {
+    uint64_t train_uid = 0) {
   TrackSectionOccupancyChangedBuilder builder_(_fbb);
-  builder_.add_train_g_id(train_g_id);
+  builder_.add_train_uid(train_uid);
+  builder_.add_uid(uid);
   builder_.add_axle_count(axle_count);
-  builder_.add_g_id(g_id);
   builder_.add_occupied(occupied);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<TrackSectionOccupancyChanged> CreateTrackSectionOccupancyChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    bool occupied = false,
-    int32_t axle_count = 0,
-    const char *train_g_id = nullptr) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  auto train_g_id__ = train_g_id ? _fbb.CreateString(train_g_id) : 0;
-  return proto::CreateTrackSectionOccupancyChanged(
-      _fbb,
-      g_id__,
-      occupied,
-      axle_count,
-      train_g_id__);
 }
 
 ::flatbuffers::Offset<TrackSectionOccupancyChanged> CreateTrackSectionOccupancyChanged(::flatbuffers::FlatBufferBuilder &_fbb, const TrackSectionOccupancyChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct DerailerPositionChangedT : public ::flatbuffers::NativeTable {
   typedef DerailerPositionChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::DerailerPosition new_position = proto::DerailerPosition_LOCKED;
   proto::ChangeCause cause = proto::ChangeCause_COMMAND;
 };
@@ -636,12 +568,12 @@ struct DerailerPositionChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   typedef DerailerPositionChangedT NativeTableType;
   typedef DerailerPositionChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_NEW_POSITION = 6,
     VT_CAUSE = 8
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::DerailerPosition new_position() const {
     return static_cast<proto::DerailerPosition>(GetField<int8_t>(VT_NEW_POSITION, 0));
@@ -652,8 +584,7 @@ struct DerailerPositionChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_NEW_POSITION, 1) &&
            VerifyField<int8_t>(verifier, VT_CAUSE, 1) &&
            verifier.EndTable();
@@ -667,8 +598,8 @@ struct DerailerPositionChangedBuilder {
   typedef DerailerPositionChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(DerailerPositionChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(DerailerPositionChanged::VT_UID, uid, 0);
   }
   void add_new_position(proto::DerailerPosition new_position) {
     fbb_.AddElement<int8_t>(DerailerPositionChanged::VT_NEW_POSITION, static_cast<int8_t>(new_position), 0);
@@ -683,41 +614,27 @@ struct DerailerPositionChangedBuilder {
   ::flatbuffers::Offset<DerailerPositionChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DerailerPositionChanged>(end);
-    fbb_.Required(o, DerailerPositionChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<DerailerPositionChanged> CreateDerailerPositionChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::DerailerPosition new_position = proto::DerailerPosition_LOCKED,
     proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
   DerailerPositionChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_cause(cause);
   builder_.add_new_position(new_position);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<DerailerPositionChanged> CreateDerailerPositionChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::DerailerPosition new_position = proto::DerailerPosition_LOCKED,
-    proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateDerailerPositionChanged(
-      _fbb,
-      g_id__,
-      new_position,
-      cause);
 }
 
 ::flatbuffers::Offset<DerailerPositionChanged> CreateDerailerPositionChanged(::flatbuffers::FlatBufferBuilder &_fbb, const DerailerPositionChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct BlockSectionStateChangedT : public ::flatbuffers::NativeTable {
   typedef BlockSectionStateChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::BlockSectionState new_state = proto::BlockSectionState_OPEN;
 };
 
@@ -725,11 +642,11 @@ struct BlockSectionStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
   typedef BlockSectionStateChangedT NativeTableType;
   typedef BlockSectionStateChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_NEW_STATE = 6
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::BlockSectionState new_state() const {
     return static_cast<proto::BlockSectionState>(GetField<int8_t>(VT_NEW_STATE, 0));
@@ -737,8 +654,7 @@ struct BlockSectionStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers:
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_NEW_STATE, 1) &&
            verifier.EndTable();
   }
@@ -751,8 +667,8 @@ struct BlockSectionStateChangedBuilder {
   typedef BlockSectionStateChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(BlockSectionStateChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(BlockSectionStateChanged::VT_UID, uid, 0);
   }
   void add_new_state(proto::BlockSectionState new_state) {
     fbb_.AddElement<int8_t>(BlockSectionStateChanged::VT_NEW_STATE, static_cast<int8_t>(new_state), 0);
@@ -764,75 +680,59 @@ struct BlockSectionStateChangedBuilder {
   ::flatbuffers::Offset<BlockSectionStateChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<BlockSectionStateChanged>(end);
-    fbb_.Required(o, BlockSectionStateChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<BlockSectionStateChanged> CreateBlockSectionStateChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::BlockSectionState new_state = proto::BlockSectionState_OPEN) {
   BlockSectionStateChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_new_state(new_state);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<BlockSectionStateChanged> CreateBlockSectionStateChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::BlockSectionState new_state = proto::BlockSectionState_OPEN) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateBlockSectionStateChanged(
-      _fbb,
-      g_id__,
-      new_state);
 }
 
 ::flatbuffers::Offset<BlockSectionStateChanged> CreateBlockSectionStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const BlockSectionStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct RouteSetT : public ::flatbuffers::NativeTable {
   typedef RouteSet TableType;
-  std::string route_id{};
-  std::string from_g_id{};
-  std::string to_g_id{};
-  std::vector<std::string> section_ids{};
+  uint64_t uid = 0;
+  uint64_t from_signal_uid = 0;
+  uint64_t to_signal_uid = 0;
+  std::vector<uint64_t> section_uids{};
 };
 
 struct RouteSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RouteSetT NativeTableType;
   typedef RouteSetBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ROUTE_ID = 4,
-    VT_FROM_G_ID = 6,
-    VT_TO_G_ID = 8,
-    VT_SECTION_IDS = 10
+    VT_UID = 4,
+    VT_FROM_SIGNAL_UID = 6,
+    VT_TO_SIGNAL_UID = 8,
+    VT_SECTION_UIDS = 10
   };
-  const ::flatbuffers::String *route_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ROUTE_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
-  const ::flatbuffers::String *from_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_FROM_G_ID);
+  uint64_t from_signal_uid() const {
+    return GetField<uint64_t>(VT_FROM_SIGNAL_UID, 0);
   }
-  const ::flatbuffers::String *to_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TO_G_ID);
+  uint64_t to_signal_uid() const {
+    return GetField<uint64_t>(VT_TO_SIGNAL_UID, 0);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *section_ids() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_SECTION_IDS);
+  const ::flatbuffers::Vector<uint64_t> *section_uids() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_SECTION_UIDS);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_ROUTE_ID) &&
-           verifier.VerifyString(route_id()) &&
-           VerifyOffsetRequired(verifier, VT_FROM_G_ID) &&
-           verifier.VerifyString(from_g_id()) &&
-           VerifyOffsetRequired(verifier, VT_TO_G_ID) &&
-           verifier.VerifyString(to_g_id()) &&
-           VerifyOffset(verifier, VT_SECTION_IDS) &&
-           verifier.VerifyVector(section_ids()) &&
-           verifier.VerifyVectorOfStrings(section_ids()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_FROM_SIGNAL_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_TO_SIGNAL_UID, 8) &&
+           VerifyOffset(verifier, VT_SECTION_UIDS) &&
+           verifier.VerifyVector(section_uids()) &&
            verifier.EndTable();
   }
   RouteSetT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -844,17 +744,17 @@ struct RouteSetBuilder {
   typedef RouteSet Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_route_id(::flatbuffers::Offset<::flatbuffers::String> route_id) {
-    fbb_.AddOffset(RouteSet::VT_ROUTE_ID, route_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(RouteSet::VT_UID, uid, 0);
   }
-  void add_from_g_id(::flatbuffers::Offset<::flatbuffers::String> from_g_id) {
-    fbb_.AddOffset(RouteSet::VT_FROM_G_ID, from_g_id);
+  void add_from_signal_uid(uint64_t from_signal_uid) {
+    fbb_.AddElement<uint64_t>(RouteSet::VT_FROM_SIGNAL_UID, from_signal_uid, 0);
   }
-  void add_to_g_id(::flatbuffers::Offset<::flatbuffers::String> to_g_id) {
-    fbb_.AddOffset(RouteSet::VT_TO_G_ID, to_g_id);
+  void add_to_signal_uid(uint64_t to_signal_uid) {
+    fbb_.AddElement<uint64_t>(RouteSet::VT_TO_SIGNAL_UID, to_signal_uid, 0);
   }
-  void add_section_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> section_ids) {
-    fbb_.AddOffset(RouteSet::VT_SECTION_IDS, section_ids);
+  void add_section_uids(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> section_uids) {
+    fbb_.AddOffset(RouteSet::VT_SECTION_UIDS, section_uids);
   }
   explicit RouteSetBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -863,50 +763,44 @@ struct RouteSetBuilder {
   ::flatbuffers::Offset<RouteSet> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<RouteSet>(end);
-    fbb_.Required(o, RouteSet::VT_ROUTE_ID);
-    fbb_.Required(o, RouteSet::VT_FROM_G_ID);
-    fbb_.Required(o, RouteSet::VT_TO_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<RouteSet> CreateRouteSet(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> route_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> from_g_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> to_g_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> section_ids = 0) {
+    uint64_t uid = 0,
+    uint64_t from_signal_uid = 0,
+    uint64_t to_signal_uid = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> section_uids = 0) {
   RouteSetBuilder builder_(_fbb);
-  builder_.add_section_ids(section_ids);
-  builder_.add_to_g_id(to_g_id);
-  builder_.add_from_g_id(from_g_id);
-  builder_.add_route_id(route_id);
+  builder_.add_to_signal_uid(to_signal_uid);
+  builder_.add_from_signal_uid(from_signal_uid);
+  builder_.add_uid(uid);
+  builder_.add_section_uids(section_uids);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<RouteSet> CreateRouteSetDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *route_id = nullptr,
-    const char *from_g_id = nullptr,
-    const char *to_g_id = nullptr,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *section_ids = nullptr) {
-  auto route_id__ = route_id ? _fbb.CreateString(route_id) : 0;
-  auto from_g_id__ = from_g_id ? _fbb.CreateString(from_g_id) : 0;
-  auto to_g_id__ = to_g_id ? _fbb.CreateString(to_g_id) : 0;
-  auto section_ids__ = section_ids ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*section_ids) : 0;
+    uint64_t uid = 0,
+    uint64_t from_signal_uid = 0,
+    uint64_t to_signal_uid = 0,
+    const std::vector<uint64_t> *section_uids = nullptr) {
+  auto section_uids__ = section_uids ? _fbb.CreateVector<uint64_t>(*section_uids) : 0;
   return proto::CreateRouteSet(
       _fbb,
-      route_id__,
-      from_g_id__,
-      to_g_id__,
-      section_ids__);
+      uid,
+      from_signal_uid,
+      to_signal_uid,
+      section_uids__);
 }
 
 ::flatbuffers::Offset<RouteSet> CreateRouteSet(::flatbuffers::FlatBufferBuilder &_fbb, const RouteSetT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct RouteReleasedT : public ::flatbuffers::NativeTable {
   typedef RouteReleased TableType;
-  std::string route_id{};
+  uint64_t route_uid = 0;
   proto::RouteReleaseReason reason = proto::RouteReleaseReason_TRAIN_CLEARED;
 };
 
@@ -914,11 +808,11 @@ struct RouteReleased FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef RouteReleasedT NativeTableType;
   typedef RouteReleasedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ROUTE_ID = 4,
+    VT_ROUTE_UID = 4,
     VT_REASON = 6
   };
-  const ::flatbuffers::String *route_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ROUTE_ID);
+  uint64_t route_uid() const {
+    return GetField<uint64_t>(VT_ROUTE_UID, 0);
   }
   proto::RouteReleaseReason reason() const {
     return static_cast<proto::RouteReleaseReason>(GetField<int8_t>(VT_REASON, 0));
@@ -926,8 +820,7 @@ struct RouteReleased FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_ROUTE_ID) &&
-           verifier.VerifyString(route_id()) &&
+           VerifyField<uint64_t>(verifier, VT_ROUTE_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_REASON, 1) &&
            verifier.EndTable();
   }
@@ -940,8 +833,8 @@ struct RouteReleasedBuilder {
   typedef RouteReleased Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_route_id(::flatbuffers::Offset<::flatbuffers::String> route_id) {
-    fbb_.AddOffset(RouteReleased::VT_ROUTE_ID, route_id);
+  void add_route_uid(uint64_t route_uid) {
+    fbb_.AddElement<uint64_t>(RouteReleased::VT_ROUTE_UID, route_uid, 0);
   }
   void add_reason(proto::RouteReleaseReason reason) {
     fbb_.AddElement<int8_t>(RouteReleased::VT_REASON, static_cast<int8_t>(reason), 0);
@@ -953,38 +846,26 @@ struct RouteReleasedBuilder {
   ::flatbuffers::Offset<RouteReleased> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<RouteReleased>(end);
-    fbb_.Required(o, RouteReleased::VT_ROUTE_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<RouteReleased> CreateRouteReleased(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> route_id = 0,
+    uint64_t route_uid = 0,
     proto::RouteReleaseReason reason = proto::RouteReleaseReason_TRAIN_CLEARED) {
   RouteReleasedBuilder builder_(_fbb);
-  builder_.add_route_id(route_id);
+  builder_.add_route_uid(route_uid);
   builder_.add_reason(reason);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<RouteReleased> CreateRouteReleasedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *route_id = nullptr,
-    proto::RouteReleaseReason reason = proto::RouteReleaseReason_TRAIN_CLEARED) {
-  auto route_id__ = route_id ? _fbb.CreateString(route_id) : 0;
-  return proto::CreateRouteReleased(
-      _fbb,
-      route_id__,
-      reason);
 }
 
 ::flatbuffers::Offset<RouteReleased> CreateRouteReleased(::flatbuffers::FlatBufferBuilder &_fbb, const RouteReleasedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct TrainMovementT : public ::flatbuffers::NativeTable {
   typedef TrainMovement TableType;
-  std::string train_g_id{};
-  std::string section_g_id{};
+  uint64_t train_uid = 0;
+  uint64_t section_uid = 0;
   proto::Direction direction = proto::Direction_FORWARD;
   float speed_kmh = 0.0f;
 };
@@ -993,16 +874,16 @@ struct TrainMovement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TrainMovementT NativeTableType;
   typedef TrainMovementBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TRAIN_G_ID = 4,
-    VT_SECTION_G_ID = 6,
+    VT_TRAIN_UID = 4,
+    VT_SECTION_UID = 6,
     VT_DIRECTION = 8,
     VT_SPEED_KMH = 10
   };
-  const ::flatbuffers::String *train_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_G_ID);
+  uint64_t train_uid() const {
+    return GetField<uint64_t>(VT_TRAIN_UID, 0);
   }
-  const ::flatbuffers::String *section_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_SECTION_G_ID);
+  uint64_t section_uid() const {
+    return GetField<uint64_t>(VT_SECTION_UID, 0);
   }
   proto::Direction direction() const {
     return static_cast<proto::Direction>(GetField<int8_t>(VT_DIRECTION, 0));
@@ -1013,10 +894,8 @@ struct TrainMovement FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_TRAIN_G_ID) &&
-           verifier.VerifyString(train_g_id()) &&
-           VerifyOffsetRequired(verifier, VT_SECTION_G_ID) &&
-           verifier.VerifyString(section_g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_TRAIN_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_SECTION_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_DIRECTION, 1) &&
            VerifyField<float>(verifier, VT_SPEED_KMH, 4) &&
            verifier.EndTable();
@@ -1030,11 +909,11 @@ struct TrainMovementBuilder {
   typedef TrainMovement Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_train_g_id(::flatbuffers::Offset<::flatbuffers::String> train_g_id) {
-    fbb_.AddOffset(TrainMovement::VT_TRAIN_G_ID, train_g_id);
+  void add_train_uid(uint64_t train_uid) {
+    fbb_.AddElement<uint64_t>(TrainMovement::VT_TRAIN_UID, train_uid, 0);
   }
-  void add_section_g_id(::flatbuffers::Offset<::flatbuffers::String> section_g_id) {
-    fbb_.AddOffset(TrainMovement::VT_SECTION_G_ID, section_g_id);
+  void add_section_uid(uint64_t section_uid) {
+    fbb_.AddElement<uint64_t>(TrainMovement::VT_SECTION_UID, section_uid, 0);
   }
   void add_direction(proto::Direction direction) {
     fbb_.AddElement<int8_t>(TrainMovement::VT_DIRECTION, static_cast<int8_t>(direction), 0);
@@ -1049,49 +928,31 @@ struct TrainMovementBuilder {
   ::flatbuffers::Offset<TrainMovement> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TrainMovement>(end);
-    fbb_.Required(o, TrainMovement::VT_TRAIN_G_ID);
-    fbb_.Required(o, TrainMovement::VT_SECTION_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<TrainMovement> CreateTrainMovement(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> train_g_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> section_g_id = 0,
+    uint64_t train_uid = 0,
+    uint64_t section_uid = 0,
     proto::Direction direction = proto::Direction_FORWARD,
     float speed_kmh = 0.0f) {
   TrainMovementBuilder builder_(_fbb);
+  builder_.add_section_uid(section_uid);
+  builder_.add_train_uid(train_uid);
   builder_.add_speed_kmh(speed_kmh);
-  builder_.add_section_g_id(section_g_id);
-  builder_.add_train_g_id(train_g_id);
   builder_.add_direction(direction);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<TrainMovement> CreateTrainMovementDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *train_g_id = nullptr,
-    const char *section_g_id = nullptr,
-    proto::Direction direction = proto::Direction_FORWARD,
-    float speed_kmh = 0.0f) {
-  auto train_g_id__ = train_g_id ? _fbb.CreateString(train_g_id) : 0;
-  auto section_g_id__ = section_g_id ? _fbb.CreateString(section_g_id) : 0;
-  return proto::CreateTrainMovement(
-      _fbb,
-      train_g_id__,
-      section_g_id__,
-      direction,
-      speed_kmh);
 }
 
 ::flatbuffers::Offset<TrainMovement> CreateTrainMovement(::flatbuffers::FlatBufferBuilder &_fbb, const TrainMovementT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct AlarmRaisedT : public ::flatbuffers::NativeTable {
   typedef AlarmRaised TableType;
-  std::string alarm_id{};
+  uint64_t alarm_uid = 0;
   proto::AlarmType alarm_type = proto::AlarmType_TRACK_OCCUPIED_UNEXPECTEDLY;
-  std::string object_g_id{};
+  uint64_t object_uid = 0;
   std::string message{};
 };
 
@@ -1099,19 +960,19 @@ struct AlarmRaised FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef AlarmRaisedT NativeTableType;
   typedef AlarmRaisedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ALARM_ID = 4,
+    VT_ALARM_UID = 4,
     VT_ALARM_TYPE = 6,
-    VT_OBJECT_G_ID = 8,
+    VT_OBJECT_UID = 8,
     VT_MESSAGE = 10
   };
-  const ::flatbuffers::String *alarm_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ALARM_ID);
+  uint64_t alarm_uid() const {
+    return GetField<uint64_t>(VT_ALARM_UID, 0);
   }
   proto::AlarmType alarm_type() const {
     return static_cast<proto::AlarmType>(GetField<int8_t>(VT_ALARM_TYPE, 0));
   }
-  const ::flatbuffers::String *object_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_OBJECT_G_ID);
+  uint64_t object_uid() const {
+    return GetField<uint64_t>(VT_OBJECT_UID, 0);
   }
   const ::flatbuffers::String *message() const {
     return GetPointer<const ::flatbuffers::String *>(VT_MESSAGE);
@@ -1119,11 +980,9 @@ struct AlarmRaised FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_ALARM_ID) &&
-           verifier.VerifyString(alarm_id()) &&
+           VerifyField<uint64_t>(verifier, VT_ALARM_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_ALARM_TYPE, 1) &&
-           VerifyOffset(verifier, VT_OBJECT_G_ID) &&
-           verifier.VerifyString(object_g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_OBJECT_UID, 8) &&
            VerifyOffset(verifier, VT_MESSAGE) &&
            verifier.VerifyString(message()) &&
            verifier.EndTable();
@@ -1137,14 +996,14 @@ struct AlarmRaisedBuilder {
   typedef AlarmRaised Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_alarm_id(::flatbuffers::Offset<::flatbuffers::String> alarm_id) {
-    fbb_.AddOffset(AlarmRaised::VT_ALARM_ID, alarm_id);
+  void add_alarm_uid(uint64_t alarm_uid) {
+    fbb_.AddElement<uint64_t>(AlarmRaised::VT_ALARM_UID, alarm_uid, 0);
   }
   void add_alarm_type(proto::AlarmType alarm_type) {
     fbb_.AddElement<int8_t>(AlarmRaised::VT_ALARM_TYPE, static_cast<int8_t>(alarm_type), 0);
   }
-  void add_object_g_id(::flatbuffers::Offset<::flatbuffers::String> object_g_id) {
-    fbb_.AddOffset(AlarmRaised::VT_OBJECT_G_ID, object_g_id);
+  void add_object_uid(uint64_t object_uid) {
+    fbb_.AddElement<uint64_t>(AlarmRaised::VT_OBJECT_UID, object_uid, 0);
   }
   void add_message(::flatbuffers::Offset<::flatbuffers::String> message) {
     fbb_.AddOffset(AlarmRaised::VT_MESSAGE, message);
@@ -1156,39 +1015,36 @@ struct AlarmRaisedBuilder {
   ::flatbuffers::Offset<AlarmRaised> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<AlarmRaised>(end);
-    fbb_.Required(o, AlarmRaised::VT_ALARM_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<AlarmRaised> CreateAlarmRaised(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> alarm_id = 0,
+    uint64_t alarm_uid = 0,
     proto::AlarmType alarm_type = proto::AlarmType_TRACK_OCCUPIED_UNEXPECTEDLY,
-    ::flatbuffers::Offset<::flatbuffers::String> object_g_id = 0,
+    uint64_t object_uid = 0,
     ::flatbuffers::Offset<::flatbuffers::String> message = 0) {
   AlarmRaisedBuilder builder_(_fbb);
+  builder_.add_object_uid(object_uid);
+  builder_.add_alarm_uid(alarm_uid);
   builder_.add_message(message);
-  builder_.add_object_g_id(object_g_id);
-  builder_.add_alarm_id(alarm_id);
   builder_.add_alarm_type(alarm_type);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<AlarmRaised> CreateAlarmRaisedDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *alarm_id = nullptr,
+    uint64_t alarm_uid = 0,
     proto::AlarmType alarm_type = proto::AlarmType_TRACK_OCCUPIED_UNEXPECTEDLY,
-    const char *object_g_id = nullptr,
+    uint64_t object_uid = 0,
     const char *message = nullptr) {
-  auto alarm_id__ = alarm_id ? _fbb.CreateString(alarm_id) : 0;
-  auto object_g_id__ = object_g_id ? _fbb.CreateString(object_g_id) : 0;
   auto message__ = message ? _fbb.CreateString(message) : 0;
   return proto::CreateAlarmRaised(
       _fbb,
-      alarm_id__,
+      alarm_uid,
       alarm_type,
-      object_g_id__,
+      object_uid,
       message__);
 }
 
@@ -1196,23 +1052,22 @@ inline ::flatbuffers::Offset<AlarmRaised> CreateAlarmRaisedDirect(
 
 struct AlarmClearedT : public ::flatbuffers::NativeTable {
   typedef AlarmCleared TableType;
-  std::string alarm_id{};
+  uint64_t alarm_uid = 0;
 };
 
 struct AlarmCleared FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef AlarmClearedT NativeTableType;
   typedef AlarmClearedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ALARM_ID = 4
+    VT_ALARM_UID = 4
   };
-  const ::flatbuffers::String *alarm_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ALARM_ID);
+  uint64_t alarm_uid() const {
+    return GetField<uint64_t>(VT_ALARM_UID, 0);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_ALARM_ID) &&
-           verifier.VerifyString(alarm_id()) &&
+           VerifyField<uint64_t>(verifier, VT_ALARM_UID, 8) &&
            verifier.EndTable();
   }
   AlarmClearedT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
@@ -1224,8 +1079,8 @@ struct AlarmClearedBuilder {
   typedef AlarmCleared Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_alarm_id(::flatbuffers::Offset<::flatbuffers::String> alarm_id) {
-    fbb_.AddOffset(AlarmCleared::VT_ALARM_ID, alarm_id);
+  void add_alarm_uid(uint64_t alarm_uid) {
+    fbb_.AddElement<uint64_t>(AlarmCleared::VT_ALARM_UID, alarm_uid, 0);
   }
   explicit AlarmClearedBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1234,34 +1089,24 @@ struct AlarmClearedBuilder {
   ::flatbuffers::Offset<AlarmCleared> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<AlarmCleared>(end);
-    fbb_.Required(o, AlarmCleared::VT_ALARM_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<AlarmCleared> CreateAlarmCleared(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> alarm_id = 0) {
+    uint64_t alarm_uid = 0) {
   AlarmClearedBuilder builder_(_fbb);
-  builder_.add_alarm_id(alarm_id);
+  builder_.add_alarm_uid(alarm_uid);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<AlarmCleared> CreateAlarmClearedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *alarm_id = nullptr) {
-  auto alarm_id__ = alarm_id ? _fbb.CreateString(alarm_id) : 0;
-  return proto::CreateAlarmCleared(
-      _fbb,
-      alarm_id__);
 }
 
 ::flatbuffers::Offset<AlarmCleared> CreateAlarmCleared(::flatbuffers::FlatBufferBuilder &_fbb, const AlarmClearedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct DispatchAreaOwnershipChangedT : public ::flatbuffers::NativeTable {
   typedef DispatchAreaOwnershipChanged TableType;
-  std::string dispatch_area_id{};
-  std::string station_sid{};
+  uint64_t dispatch_area_uid = 0;
+  uint64_t station_uid = 0;
   std::string new_owner_client_id{};
 };
 
@@ -1269,15 +1114,15 @@ struct DispatchAreaOwnershipChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuff
   typedef DispatchAreaOwnershipChangedT NativeTableType;
   typedef DispatchAreaOwnershipChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DISPATCH_AREA_ID = 4,
-    VT_STATION_SID = 6,
+    VT_DISPATCH_AREA_UID = 4,
+    VT_STATION_UID = 6,
     VT_NEW_OWNER_CLIENT_ID = 8
   };
-  const ::flatbuffers::String *dispatch_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_DISPATCH_AREA_ID);
+  uint64_t dispatch_area_uid() const {
+    return GetField<uint64_t>(VT_DISPATCH_AREA_UID, 0);
   }
-  const ::flatbuffers::String *station_sid() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_STATION_SID);
+  uint64_t station_uid() const {
+    return GetField<uint64_t>(VT_STATION_UID, 0);
   }
   const ::flatbuffers::String *new_owner_client_id() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NEW_OWNER_CLIENT_ID);
@@ -1285,10 +1130,8 @@ struct DispatchAreaOwnershipChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuff
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_DISPATCH_AREA_ID) &&
-           verifier.VerifyString(dispatch_area_id()) &&
-           VerifyOffsetRequired(verifier, VT_STATION_SID) &&
-           verifier.VerifyString(station_sid()) &&
+           VerifyField<uint64_t>(verifier, VT_DISPATCH_AREA_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_STATION_UID, 8) &&
            VerifyOffset(verifier, VT_NEW_OWNER_CLIENT_ID) &&
            verifier.VerifyString(new_owner_client_id()) &&
            verifier.EndTable();
@@ -1302,11 +1145,11 @@ struct DispatchAreaOwnershipChangedBuilder {
   typedef DispatchAreaOwnershipChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_dispatch_area_id(::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id) {
-    fbb_.AddOffset(DispatchAreaOwnershipChanged::VT_DISPATCH_AREA_ID, dispatch_area_id);
+  void add_dispatch_area_uid(uint64_t dispatch_area_uid) {
+    fbb_.AddElement<uint64_t>(DispatchAreaOwnershipChanged::VT_DISPATCH_AREA_UID, dispatch_area_uid, 0);
   }
-  void add_station_sid(::flatbuffers::Offset<::flatbuffers::String> station_sid) {
-    fbb_.AddOffset(DispatchAreaOwnershipChanged::VT_STATION_SID, station_sid);
+  void add_station_uid(uint64_t station_uid) {
+    fbb_.AddElement<uint64_t>(DispatchAreaOwnershipChanged::VT_STATION_UID, station_uid, 0);
   }
   void add_new_owner_client_id(::flatbuffers::Offset<::flatbuffers::String> new_owner_client_id) {
     fbb_.AddOffset(DispatchAreaOwnershipChanged::VT_NEW_OWNER_CLIENT_ID, new_owner_client_id);
@@ -1318,36 +1161,32 @@ struct DispatchAreaOwnershipChangedBuilder {
   ::flatbuffers::Offset<DispatchAreaOwnershipChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DispatchAreaOwnershipChanged>(end);
-    fbb_.Required(o, DispatchAreaOwnershipChanged::VT_DISPATCH_AREA_ID);
-    fbb_.Required(o, DispatchAreaOwnershipChanged::VT_STATION_SID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<DispatchAreaOwnershipChanged> CreateDispatchAreaOwnershipChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> station_sid = 0,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     ::flatbuffers::Offset<::flatbuffers::String> new_owner_client_id = 0) {
   DispatchAreaOwnershipChangedBuilder builder_(_fbb);
+  builder_.add_station_uid(station_uid);
+  builder_.add_dispatch_area_uid(dispatch_area_uid);
   builder_.add_new_owner_client_id(new_owner_client_id);
-  builder_.add_station_sid(station_sid);
-  builder_.add_dispatch_area_id(dispatch_area_id);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<DispatchAreaOwnershipChanged> CreateDispatchAreaOwnershipChangedDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *dispatch_area_id = nullptr,
-    const char *station_sid = nullptr,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     const char *new_owner_client_id = nullptr) {
-  auto dispatch_area_id__ = dispatch_area_id ? _fbb.CreateString(dispatch_area_id) : 0;
-  auto station_sid__ = station_sid ? _fbb.CreateString(station_sid) : 0;
   auto new_owner_client_id__ = new_owner_client_id ? _fbb.CreateString(new_owner_client_id) : 0;
   return proto::CreateDispatchAreaOwnershipChanged(
       _fbb,
-      dispatch_area_id__,
-      station_sid__,
+      dispatch_area_uid,
+      station_uid,
       new_owner_client_id__);
 }
 
@@ -1408,8 +1247,8 @@ inline ::flatbuffers::Offset<SessionStateChanged> CreateSessionStateChanged(
 
 struct TrainComposedT : public ::flatbuffers::NativeTable {
   typedef TrainComposed TableType;
-  std::string train_g_id{};
-  std::vector<std::string> vehicle_g_ids{};
+  uint64_t train_uid = 0;
+  std::vector<uint64_t> vehicle_uids{};
   float total_length_m = 0.0f;
   int32_t total_axles = 0;
 };
@@ -1418,16 +1257,16 @@ struct TrainComposed FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TrainComposedT NativeTableType;
   typedef TrainComposedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TRAIN_G_ID = 4,
-    VT_VEHICLE_G_IDS = 6,
+    VT_TRAIN_UID = 4,
+    VT_VEHICLE_UIDS = 6,
     VT_TOTAL_LENGTH_M = 8,
     VT_TOTAL_AXLES = 10
   };
-  const ::flatbuffers::String *train_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_G_ID);
+  uint64_t train_uid() const {
+    return GetField<uint64_t>(VT_TRAIN_UID, 0);
   }
-  const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *vehicle_g_ids() const {
-    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>> *>(VT_VEHICLE_G_IDS);
+  const ::flatbuffers::Vector<uint64_t> *vehicle_uids() const {
+    return GetPointer<const ::flatbuffers::Vector<uint64_t> *>(VT_VEHICLE_UIDS);
   }
   float total_length_m() const {
     return GetField<float>(VT_TOTAL_LENGTH_M, 0.0f);
@@ -1438,11 +1277,9 @@ struct TrainComposed FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_TRAIN_G_ID) &&
-           verifier.VerifyString(train_g_id()) &&
-           VerifyOffset(verifier, VT_VEHICLE_G_IDS) &&
-           verifier.VerifyVector(vehicle_g_ids()) &&
-           verifier.VerifyVectorOfStrings(vehicle_g_ids()) &&
+           VerifyField<uint64_t>(verifier, VT_TRAIN_UID, 8) &&
+           VerifyOffset(verifier, VT_VEHICLE_UIDS) &&
+           verifier.VerifyVector(vehicle_uids()) &&
            VerifyField<float>(verifier, VT_TOTAL_LENGTH_M, 4) &&
            VerifyField<int32_t>(verifier, VT_TOTAL_AXLES, 4) &&
            verifier.EndTable();
@@ -1456,11 +1293,11 @@ struct TrainComposedBuilder {
   typedef TrainComposed Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_train_g_id(::flatbuffers::Offset<::flatbuffers::String> train_g_id) {
-    fbb_.AddOffset(TrainComposed::VT_TRAIN_G_ID, train_g_id);
+  void add_train_uid(uint64_t train_uid) {
+    fbb_.AddElement<uint64_t>(TrainComposed::VT_TRAIN_UID, train_uid, 0);
   }
-  void add_vehicle_g_ids(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> vehicle_g_ids) {
-    fbb_.AddOffset(TrainComposed::VT_VEHICLE_G_IDS, vehicle_g_ids);
+  void add_vehicle_uids(::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vehicle_uids) {
+    fbb_.AddOffset(TrainComposed::VT_VEHICLE_UIDS, vehicle_uids);
   }
   void add_total_length_m(float total_length_m) {
     fbb_.AddElement<float>(TrainComposed::VT_TOTAL_LENGTH_M, total_length_m, 0.0f);
@@ -1475,37 +1312,35 @@ struct TrainComposedBuilder {
   ::flatbuffers::Offset<TrainComposed> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TrainComposed>(end);
-    fbb_.Required(o, TrainComposed::VT_TRAIN_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<TrainComposed> CreateTrainComposed(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> train_g_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> vehicle_g_ids = 0,
+    uint64_t train_uid = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<uint64_t>> vehicle_uids = 0,
     float total_length_m = 0.0f,
     int32_t total_axles = 0) {
   TrainComposedBuilder builder_(_fbb);
+  builder_.add_train_uid(train_uid);
   builder_.add_total_axles(total_axles);
   builder_.add_total_length_m(total_length_m);
-  builder_.add_vehicle_g_ids(vehicle_g_ids);
-  builder_.add_train_g_id(train_g_id);
+  builder_.add_vehicle_uids(vehicle_uids);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<TrainComposed> CreateTrainComposedDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *train_g_id = nullptr,
-    const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *vehicle_g_ids = nullptr,
+    uint64_t train_uid = 0,
+    const std::vector<uint64_t> *vehicle_uids = nullptr,
     float total_length_m = 0.0f,
     int32_t total_axles = 0) {
-  auto train_g_id__ = train_g_id ? _fbb.CreateString(train_g_id) : 0;
-  auto vehicle_g_ids__ = vehicle_g_ids ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*vehicle_g_ids) : 0;
+  auto vehicle_uids__ = vehicle_uids ? _fbb.CreateVector<uint64_t>(*vehicle_uids) : 0;
   return proto::CreateTrainComposed(
       _fbb,
-      train_g_id__,
-      vehicle_g_ids__,
+      train_uid,
+      vehicle_uids__,
       total_length_m,
       total_axles);
 }
@@ -1514,7 +1349,7 @@ inline ::flatbuffers::Offset<TrainComposed> CreateTrainComposedDirect(
 
 struct TrainDecomposedT : public ::flatbuffers::NativeTable {
   typedef TrainDecomposed TableType;
-  std::string train_g_id{};
+  uint64_t train_uid = 0;
   proto::TrainDecomposeReason reason = proto::TrainDecomposeReason_UNCOUPLED;
 };
 
@@ -1522,11 +1357,11 @@ struct TrainDecomposed FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TrainDecomposedT NativeTableType;
   typedef TrainDecomposedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_TRAIN_G_ID = 4,
+    VT_TRAIN_UID = 4,
     VT_REASON = 6
   };
-  const ::flatbuffers::String *train_g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TRAIN_G_ID);
+  uint64_t train_uid() const {
+    return GetField<uint64_t>(VT_TRAIN_UID, 0);
   }
   proto::TrainDecomposeReason reason() const {
     return static_cast<proto::TrainDecomposeReason>(GetField<int8_t>(VT_REASON, 0));
@@ -1534,8 +1369,7 @@ struct TrainDecomposed FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_TRAIN_G_ID) &&
-           verifier.VerifyString(train_g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_TRAIN_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_REASON, 1) &&
            verifier.EndTable();
   }
@@ -1548,8 +1382,8 @@ struct TrainDecomposedBuilder {
   typedef TrainDecomposed Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_train_g_id(::flatbuffers::Offset<::flatbuffers::String> train_g_id) {
-    fbb_.AddOffset(TrainDecomposed::VT_TRAIN_G_ID, train_g_id);
+  void add_train_uid(uint64_t train_uid) {
+    fbb_.AddElement<uint64_t>(TrainDecomposed::VT_TRAIN_UID, train_uid, 0);
   }
   void add_reason(proto::TrainDecomposeReason reason) {
     fbb_.AddElement<int8_t>(TrainDecomposed::VT_REASON, static_cast<int8_t>(reason), 0);
@@ -1561,37 +1395,25 @@ struct TrainDecomposedBuilder {
   ::flatbuffers::Offset<TrainDecomposed> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TrainDecomposed>(end);
-    fbb_.Required(o, TrainDecomposed::VT_TRAIN_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<TrainDecomposed> CreateTrainDecomposed(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> train_g_id = 0,
+    uint64_t train_uid = 0,
     proto::TrainDecomposeReason reason = proto::TrainDecomposeReason_UNCOUPLED) {
   TrainDecomposedBuilder builder_(_fbb);
-  builder_.add_train_g_id(train_g_id);
+  builder_.add_train_uid(train_uid);
   builder_.add_reason(reason);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<TrainDecomposed> CreateTrainDecomposedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *train_g_id = nullptr,
-    proto::TrainDecomposeReason reason = proto::TrainDecomposeReason_UNCOUPLED) {
-  auto train_g_id__ = train_g_id ? _fbb.CreateString(train_g_id) : 0;
-  return proto::CreateTrainDecomposed(
-      _fbb,
-      train_g_id__,
-      reason);
 }
 
 ::flatbuffers::Offset<TrainDecomposed> CreateTrainDecomposed(::flatbuffers::FlatBufferBuilder &_fbb, const TrainDecomposedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct BlockDirectionStateChangedT : public ::flatbuffers::NativeTable {
   typedef BlockDirectionStateChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::BlockDirectionState new_direction = proto::BlockDirectionState_NEUTRAL;
   proto::ChangeCause cause = proto::ChangeCause_COMMAND;
 };
@@ -1600,12 +1422,12 @@ struct BlockDirectionStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffer
   typedef BlockDirectionStateChangedT NativeTableType;
   typedef BlockDirectionStateChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_NEW_DIRECTION = 6,
     VT_CAUSE = 8
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::BlockDirectionState new_direction() const {
     return static_cast<proto::BlockDirectionState>(GetField<int8_t>(VT_NEW_DIRECTION, 0));
@@ -1616,8 +1438,7 @@ struct BlockDirectionStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffer
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_NEW_DIRECTION, 1) &&
            VerifyField<int8_t>(verifier, VT_CAUSE, 1) &&
            verifier.EndTable();
@@ -1631,8 +1452,8 @@ struct BlockDirectionStateChangedBuilder {
   typedef BlockDirectionStateChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(BlockDirectionStateChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(BlockDirectionStateChanged::VT_UID, uid, 0);
   }
   void add_new_direction(proto::BlockDirectionState new_direction) {
     fbb_.AddElement<int8_t>(BlockDirectionStateChanged::VT_NEW_DIRECTION, static_cast<int8_t>(new_direction), 0);
@@ -1647,41 +1468,27 @@ struct BlockDirectionStateChangedBuilder {
   ::flatbuffers::Offset<BlockDirectionStateChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<BlockDirectionStateChanged>(end);
-    fbb_.Required(o, BlockDirectionStateChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<BlockDirectionStateChanged> CreateBlockDirectionStateChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::BlockDirectionState new_direction = proto::BlockDirectionState_NEUTRAL,
     proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
   BlockDirectionStateChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_cause(cause);
   builder_.add_new_direction(new_direction);
   return builder_.Finish();
-}
-
-inline ::flatbuffers::Offset<BlockDirectionStateChanged> CreateBlockDirectionStateChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::BlockDirectionState new_direction = proto::BlockDirectionState_NEUTRAL,
-    proto::ChangeCause cause = proto::ChangeCause_COMMAND) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateBlockDirectionStateChanged(
-      _fbb,
-      g_id__,
-      new_direction,
-      cause);
 }
 
 ::flatbuffers::Offset<BlockDirectionStateChanged> CreateBlockDirectionStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const BlockDirectionStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct OperatorCommandStateChangedT : public ::flatbuffers::NativeTable {
   typedef OperatorCommandStateChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
   proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES;
   bool active = false;
@@ -1691,13 +1498,13 @@ struct OperatorCommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffe
   typedef OperatorCommandStateChangedT NativeTableType;
   typedef OperatorCommandStateChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_TARGET_KIND = 6,
     VT_COMMAND_CODE = 8,
     VT_ACTIVE = 10
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::OperatorTargetKind target_kind() const {
     return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
@@ -1711,8 +1518,7 @@ struct OperatorCommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffe
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
            VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
            VerifyField<uint8_t>(verifier, VT_ACTIVE, 1) &&
@@ -1727,8 +1533,8 @@ struct OperatorCommandStateChangedBuilder {
   typedef OperatorCommandStateChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(OperatorCommandStateChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(OperatorCommandStateChanged::VT_UID, uid, 0);
   }
   void add_target_kind(proto::OperatorTargetKind target_kind) {
     fbb_.AddElement<int8_t>(OperatorCommandStateChanged::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
@@ -1746,45 +1552,29 @@ struct OperatorCommandStateChangedBuilder {
   ::flatbuffers::Offset<OperatorCommandStateChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<OperatorCommandStateChanged>(end);
-    fbb_.Required(o, OperatorCommandStateChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
     proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES,
     bool active = false) {
   OperatorCommandStateChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_active(active);
   builder_.add_command_code(command_code);
   builder_.add_target_kind(target_kind);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
-    proto::OperatorCommandCode command_code = proto::OperatorCommandCode_SES,
-    bool active = false) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateOperatorCommandStateChanged(
-      _fbb,
-      g_id__,
-      target_kind,
-      command_code,
-      active);
-}
-
 ::flatbuffers::Offset<OperatorCommandStateChanged> CreateOperatorCommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const OperatorCommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct Ml8CommandStateChangedT : public ::flatbuffers::NativeTable {
   typedef Ml8CommandStateChanged TableType;
-  std::string g_id{};
+  uint64_t uid = 0;
   proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL;
   proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK;
   bool active = false;
@@ -1794,13 +1584,13 @@ struct Ml8CommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   typedef Ml8CommandStateChangedT NativeTableType;
   typedef Ml8CommandStateChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_G_ID = 4,
+    VT_UID = 4,
     VT_TARGET_KIND = 6,
     VT_COMMAND_CODE = 8,
     VT_ACTIVE = 10
   };
-  const ::flatbuffers::String *g_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_G_ID);
+  uint64_t uid() const {
+    return GetField<uint64_t>(VT_UID, 0);
   }
   proto::OperatorTargetKind target_kind() const {
     return static_cast<proto::OperatorTargetKind>(GetField<int8_t>(VT_TARGET_KIND, 0));
@@ -1814,8 +1604,7 @@ struct Ml8CommandStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_G_ID) &&
-           verifier.VerifyString(g_id()) &&
+           VerifyField<uint64_t>(verifier, VT_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_TARGET_KIND, 1) &&
            VerifyField<int8_t>(verifier, VT_COMMAND_CODE, 1) &&
            VerifyField<uint8_t>(verifier, VT_ACTIVE, 1) &&
@@ -1830,8 +1619,8 @@ struct Ml8CommandStateChangedBuilder {
   typedef Ml8CommandStateChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_g_id(::flatbuffers::Offset<::flatbuffers::String> g_id) {
-    fbb_.AddOffset(Ml8CommandStateChanged::VT_G_ID, g_id);
+  void add_uid(uint64_t uid) {
+    fbb_.AddElement<uint64_t>(Ml8CommandStateChanged::VT_UID, uid, 0);
   }
   void add_target_kind(proto::OperatorTargetKind target_kind) {
     fbb_.AddElement<int8_t>(Ml8CommandStateChanged::VT_TARGET_KIND, static_cast<int8_t>(target_kind), 0);
@@ -1849,47 +1638,31 @@ struct Ml8CommandStateChangedBuilder {
   ::flatbuffers::Offset<Ml8CommandStateChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<Ml8CommandStateChanged>(end);
-    fbb_.Required(o, Ml8CommandStateChanged::VT_G_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> g_id = 0,
+    uint64_t uid = 0,
     proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
     proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK,
     bool active = false) {
   Ml8CommandStateChangedBuilder builder_(_fbb);
-  builder_.add_g_id(g_id);
+  builder_.add_uid(uid);
   builder_.add_active(active);
   builder_.add_command_code(command_code);
   builder_.add_target_kind(target_kind);
   return builder_.Finish();
 }
 
-inline ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChangedDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *g_id = nullptr,
-    proto::OperatorTargetKind target_kind = proto::OperatorTargetKind_SIGNAL,
-    proto::Ml8CommandCode command_code = proto::Ml8CommandCode_AK,
-    bool active = false) {
-  auto g_id__ = g_id ? _fbb.CreateString(g_id) : 0;
-  return proto::CreateMl8CommandStateChanged(
-      _fbb,
-      g_id__,
-      target_kind,
-      command_code,
-      active);
-}
-
 ::flatbuffers::Offset<Ml8CommandStateChanged> CreateMl8CommandStateChanged(::flatbuffers::FlatBufferBuilder &_fbb, const Ml8CommandStateChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct DispatchTelegramStateChangedT : public ::flatbuffers::NativeTable {
   typedef DispatchTelegramStateChanged TableType;
-  std::string exchange_id{};
-  std::string src_area_id{};
-  std::string dst_area_id{};
+  uint64_t exchange_uid = 0;
+  uint64_t src_area_uid = 0;
+  uint64_t dst_area_uid = 0;
   proto::DispatchFormType form_type = proto::DispatchFormType_S2;
   proto::TelegramDirection direction = proto::TelegramDirection_SENT;
   std::string train_number{};
@@ -1901,23 +1674,23 @@ struct DispatchTelegramStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuff
   typedef DispatchTelegramStateChangedT NativeTableType;
   typedef DispatchTelegramStateChangedBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_EXCHANGE_ID = 4,
-    VT_SRC_AREA_ID = 6,
-    VT_DST_AREA_ID = 8,
+    VT_EXCHANGE_UID = 4,
+    VT_SRC_AREA_UID = 6,
+    VT_DST_AREA_UID = 8,
     VT_FORM_TYPE = 10,
     VT_DIRECTION = 12,
     VT_TRAIN_NUMBER = 14,
     VT_NEW_STATUS = 16,
     VT_TIMESTAMP_US = 18
   };
-  const ::flatbuffers::String *exchange_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_EXCHANGE_ID);
+  uint64_t exchange_uid() const {
+    return GetField<uint64_t>(VT_EXCHANGE_UID, 0);
   }
-  const ::flatbuffers::String *src_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_SRC_AREA_ID);
+  uint64_t src_area_uid() const {
+    return GetField<uint64_t>(VT_SRC_AREA_UID, 0);
   }
-  const ::flatbuffers::String *dst_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_DST_AREA_ID);
+  uint64_t dst_area_uid() const {
+    return GetField<uint64_t>(VT_DST_AREA_UID, 0);
   }
   proto::DispatchFormType form_type() const {
     return static_cast<proto::DispatchFormType>(GetField<int8_t>(VT_FORM_TYPE, 0));
@@ -1937,12 +1710,9 @@ struct DispatchTelegramStateChanged FLATBUFFERS_FINAL_CLASS : private ::flatbuff
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_EXCHANGE_ID) &&
-           verifier.VerifyString(exchange_id()) &&
-           VerifyOffsetRequired(verifier, VT_SRC_AREA_ID) &&
-           verifier.VerifyString(src_area_id()) &&
-           VerifyOffsetRequired(verifier, VT_DST_AREA_ID) &&
-           verifier.VerifyString(dst_area_id()) &&
+           VerifyField<uint64_t>(verifier, VT_EXCHANGE_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_SRC_AREA_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_DST_AREA_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_FORM_TYPE, 1) &&
            VerifyField<int8_t>(verifier, VT_DIRECTION, 1) &&
            VerifyOffset(verifier, VT_TRAIN_NUMBER) &&
@@ -1960,14 +1730,14 @@ struct DispatchTelegramStateChangedBuilder {
   typedef DispatchTelegramStateChanged Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_exchange_id(::flatbuffers::Offset<::flatbuffers::String> exchange_id) {
-    fbb_.AddOffset(DispatchTelegramStateChanged::VT_EXCHANGE_ID, exchange_id);
+  void add_exchange_uid(uint64_t exchange_uid) {
+    fbb_.AddElement<uint64_t>(DispatchTelegramStateChanged::VT_EXCHANGE_UID, exchange_uid, 0);
   }
-  void add_src_area_id(::flatbuffers::Offset<::flatbuffers::String> src_area_id) {
-    fbb_.AddOffset(DispatchTelegramStateChanged::VT_SRC_AREA_ID, src_area_id);
+  void add_src_area_uid(uint64_t src_area_uid) {
+    fbb_.AddElement<uint64_t>(DispatchTelegramStateChanged::VT_SRC_AREA_UID, src_area_uid, 0);
   }
-  void add_dst_area_id(::flatbuffers::Offset<::flatbuffers::String> dst_area_id) {
-    fbb_.AddOffset(DispatchTelegramStateChanged::VT_DST_AREA_ID, dst_area_id);
+  void add_dst_area_uid(uint64_t dst_area_uid) {
+    fbb_.AddElement<uint64_t>(DispatchTelegramStateChanged::VT_DST_AREA_UID, dst_area_uid, 0);
   }
   void add_form_type(proto::DispatchFormType form_type) {
     fbb_.AddElement<int8_t>(DispatchTelegramStateChanged::VT_FORM_TYPE, static_cast<int8_t>(form_type), 0);
@@ -1991,18 +1761,15 @@ struct DispatchTelegramStateChangedBuilder {
   ::flatbuffers::Offset<DispatchTelegramStateChanged> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DispatchTelegramStateChanged>(end);
-    fbb_.Required(o, DispatchTelegramStateChanged::VT_EXCHANGE_ID);
-    fbb_.Required(o, DispatchTelegramStateChanged::VT_SRC_AREA_ID);
-    fbb_.Required(o, DispatchTelegramStateChanged::VT_DST_AREA_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChanged(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> exchange_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> src_area_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> dst_area_id = 0,
+    uint64_t exchange_uid = 0,
+    uint64_t src_area_uid = 0,
+    uint64_t dst_area_uid = 0,
     proto::DispatchFormType form_type = proto::DispatchFormType_S2,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     ::flatbuffers::Offset<::flatbuffers::String> train_number = 0,
@@ -2010,10 +1777,10 @@ inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegra
     uint64_t timestamp_us = 0) {
   DispatchTelegramStateChangedBuilder builder_(_fbb);
   builder_.add_timestamp_us(timestamp_us);
+  builder_.add_dst_area_uid(dst_area_uid);
+  builder_.add_src_area_uid(src_area_uid);
+  builder_.add_exchange_uid(exchange_uid);
   builder_.add_train_number(train_number);
-  builder_.add_dst_area_id(dst_area_id);
-  builder_.add_src_area_id(src_area_id);
-  builder_.add_exchange_id(exchange_id);
   builder_.add_new_status(new_status);
   builder_.add_direction(direction);
   builder_.add_form_type(form_type);
@@ -2022,23 +1789,20 @@ inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegra
 
 inline ::flatbuffers::Offset<DispatchTelegramStateChanged> CreateDispatchTelegramStateChangedDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *exchange_id = nullptr,
-    const char *src_area_id = nullptr,
-    const char *dst_area_id = nullptr,
+    uint64_t exchange_uid = 0,
+    uint64_t src_area_uid = 0,
+    uint64_t dst_area_uid = 0,
     proto::DispatchFormType form_type = proto::DispatchFormType_S2,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     const char *train_number = nullptr,
     proto::ExchangeStatus new_status = proto::ExchangeStatus_PENDING,
     uint64_t timestamp_us = 0) {
-  auto exchange_id__ = exchange_id ? _fbb.CreateString(exchange_id) : 0;
-  auto src_area_id__ = src_area_id ? _fbb.CreateString(src_area_id) : 0;
-  auto dst_area_id__ = dst_area_id ? _fbb.CreateString(dst_area_id) : 0;
   auto train_number__ = train_number ? _fbb.CreateString(train_number) : 0;
   return proto::CreateDispatchTelegramStateChanged(
       _fbb,
-      exchange_id__,
-      src_area_id__,
-      dst_area_id__,
+      exchange_uid,
+      src_area_uid,
+      dst_area_uid,
       form_type,
       direction,
       train_number__,
@@ -2057,7 +1821,7 @@ inline SwitchPositionChangedT *SwitchPositionChanged::UnPack(const ::flatbuffers
 inline void SwitchPositionChanged::UnPackTo(SwitchPositionChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = new_position(); _o->new_position = _e; }
   { auto _e = cause(); _o->cause = _e; }
 }
@@ -2070,12 +1834,12 @@ inline ::flatbuffers::Offset<SwitchPositionChanged> SwitchPositionChanged::Pack(
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const SwitchPositionChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _new_position = _o->new_position;
   auto _cause = _o->cause;
   return proto::CreateSwitchPositionChanged(
       _fbb,
-      _g_id,
+      _uid,
       _new_position,
       _cause);
 }
@@ -2089,10 +1853,10 @@ inline SwitchOccupancyChangedT *SwitchOccupancyChanged::UnPack(const ::flatbuffe
 inline void SwitchOccupancyChanged::UnPackTo(SwitchOccupancyChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = occupied(); _o->occupied = _e; }
   { auto _e = axle_count(); _o->axle_count = _e; }
-  { auto _e = train_g_id(); if (_e) _o->train_g_id = _e->str(); }
+  { auto _e = train_uid(); _o->train_uid = _e; }
 }
 
 inline ::flatbuffers::Offset<SwitchOccupancyChanged> CreateSwitchOccupancyChanged(::flatbuffers::FlatBufferBuilder &_fbb, const SwitchOccupancyChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -2103,16 +1867,16 @@ inline ::flatbuffers::Offset<SwitchOccupancyChanged> SwitchOccupancyChanged::Pac
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const SwitchOccupancyChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _occupied = _o->occupied;
   auto _axle_count = _o->axle_count;
-  auto _train_g_id = _o->train_g_id.empty() ? 0 : _fbb.CreateString(_o->train_g_id);
+  auto _train_uid = _o->train_uid;
   return proto::CreateSwitchOccupancyChanged(
       _fbb,
-      _g_id,
+      _uid,
       _occupied,
       _axle_count,
-      _train_g_id);
+      _train_uid);
 }
 
 inline SignalAspectChangedT *SignalAspectChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -2124,7 +1888,7 @@ inline SignalAspectChangedT *SignalAspectChanged::UnPack(const ::flatbuffers::re
 inline void SignalAspectChanged::UnPackTo(SignalAspectChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = new_aspect(); _o->new_aspect = _e; }
   { auto _e = cause(); _o->cause = _e; }
 }
@@ -2137,12 +1901,12 @@ inline ::flatbuffers::Offset<SignalAspectChanged> SignalAspectChanged::Pack(::fl
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const SignalAspectChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _new_aspect = _o->new_aspect;
   auto _cause = _o->cause;
   return proto::CreateSignalAspectChanged(
       _fbb,
-      _g_id,
+      _uid,
       _new_aspect,
       _cause);
 }
@@ -2156,10 +1920,10 @@ inline TrackSectionOccupancyChangedT *TrackSectionOccupancyChanged::UnPack(const
 inline void TrackSectionOccupancyChanged::UnPackTo(TrackSectionOccupancyChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = occupied(); _o->occupied = _e; }
   { auto _e = axle_count(); _o->axle_count = _e; }
-  { auto _e = train_g_id(); if (_e) _o->train_g_id = _e->str(); }
+  { auto _e = train_uid(); _o->train_uid = _e; }
 }
 
 inline ::flatbuffers::Offset<TrackSectionOccupancyChanged> CreateTrackSectionOccupancyChanged(::flatbuffers::FlatBufferBuilder &_fbb, const TrackSectionOccupancyChangedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -2170,16 +1934,16 @@ inline ::flatbuffers::Offset<TrackSectionOccupancyChanged> TrackSectionOccupancy
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TrackSectionOccupancyChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _occupied = _o->occupied;
   auto _axle_count = _o->axle_count;
-  auto _train_g_id = _o->train_g_id.empty() ? 0 : _fbb.CreateString(_o->train_g_id);
+  auto _train_uid = _o->train_uid;
   return proto::CreateTrackSectionOccupancyChanged(
       _fbb,
-      _g_id,
+      _uid,
       _occupied,
       _axle_count,
-      _train_g_id);
+      _train_uid);
 }
 
 inline DerailerPositionChangedT *DerailerPositionChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -2191,7 +1955,7 @@ inline DerailerPositionChangedT *DerailerPositionChanged::UnPack(const ::flatbuf
 inline void DerailerPositionChanged::UnPackTo(DerailerPositionChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = new_position(); _o->new_position = _e; }
   { auto _e = cause(); _o->cause = _e; }
 }
@@ -2204,12 +1968,12 @@ inline ::flatbuffers::Offset<DerailerPositionChanged> DerailerPositionChanged::P
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DerailerPositionChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _new_position = _o->new_position;
   auto _cause = _o->cause;
   return proto::CreateDerailerPositionChanged(
       _fbb,
-      _g_id,
+      _uid,
       _new_position,
       _cause);
 }
@@ -2223,7 +1987,7 @@ inline BlockSectionStateChangedT *BlockSectionStateChanged::UnPack(const ::flatb
 inline void BlockSectionStateChanged::UnPackTo(BlockSectionStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = new_state(); _o->new_state = _e; }
 }
 
@@ -2235,11 +1999,11 @@ inline ::flatbuffers::Offset<BlockSectionStateChanged> BlockSectionStateChanged:
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const BlockSectionStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _new_state = _o->new_state;
   return proto::CreateBlockSectionStateChanged(
       _fbb,
-      _g_id,
+      _uid,
       _new_state);
 }
 
@@ -2252,10 +2016,10 @@ inline RouteSetT *RouteSet::UnPack(const ::flatbuffers::resolver_function_t *_re
 inline void RouteSet::UnPackTo(RouteSetT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = route_id(); if (_e) _o->route_id = _e->str(); }
-  { auto _e = from_g_id(); if (_e) _o->from_g_id = _e->str(); }
-  { auto _e = to_g_id(); if (_e) _o->to_g_id = _e->str(); }
-  { auto _e = section_ids(); if (_e) { _o->section_ids.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->section_ids[_i] = _e->Get(_i)->str(); } } else { _o->section_ids.resize(0); } }
+  { auto _e = uid(); _o->uid = _e; }
+  { auto _e = from_signal_uid(); _o->from_signal_uid = _e; }
+  { auto _e = to_signal_uid(); _o->to_signal_uid = _e; }
+  { auto _e = section_uids(); if (_e) { _o->section_uids.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->section_uids[_i] = _e->Get(_i); } } else { _o->section_uids.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<RouteSet> CreateRouteSet(::flatbuffers::FlatBufferBuilder &_fbb, const RouteSetT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -2266,16 +2030,16 @@ inline ::flatbuffers::Offset<RouteSet> RouteSet::Pack(::flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const RouteSetT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _route_id = _fbb.CreateString(_o->route_id);
-  auto _from_g_id = _fbb.CreateString(_o->from_g_id);
-  auto _to_g_id = _fbb.CreateString(_o->to_g_id);
-  auto _section_ids = _o->section_ids.size() ? _fbb.CreateVectorOfStrings(_o->section_ids) : 0;
+  auto _uid = _o->uid;
+  auto _from_signal_uid = _o->from_signal_uid;
+  auto _to_signal_uid = _o->to_signal_uid;
+  auto _section_uids = _o->section_uids.size() ? _fbb.CreateVector(_o->section_uids) : 0;
   return proto::CreateRouteSet(
       _fbb,
-      _route_id,
-      _from_g_id,
-      _to_g_id,
-      _section_ids);
+      _uid,
+      _from_signal_uid,
+      _to_signal_uid,
+      _section_uids);
 }
 
 inline RouteReleasedT *RouteReleased::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -2287,7 +2051,7 @@ inline RouteReleasedT *RouteReleased::UnPack(const ::flatbuffers::resolver_funct
 inline void RouteReleased::UnPackTo(RouteReleasedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = route_id(); if (_e) _o->route_id = _e->str(); }
+  { auto _e = route_uid(); _o->route_uid = _e; }
   { auto _e = reason(); _o->reason = _e; }
 }
 
@@ -2299,11 +2063,11 @@ inline ::flatbuffers::Offset<RouteReleased> RouteReleased::Pack(::flatbuffers::F
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const RouteReleasedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _route_id = _fbb.CreateString(_o->route_id);
+  auto _route_uid = _o->route_uid;
   auto _reason = _o->reason;
   return proto::CreateRouteReleased(
       _fbb,
-      _route_id,
+      _route_uid,
       _reason);
 }
 
@@ -2316,8 +2080,8 @@ inline TrainMovementT *TrainMovement::UnPack(const ::flatbuffers::resolver_funct
 inline void TrainMovement::UnPackTo(TrainMovementT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = train_g_id(); if (_e) _o->train_g_id = _e->str(); }
-  { auto _e = section_g_id(); if (_e) _o->section_g_id = _e->str(); }
+  { auto _e = train_uid(); _o->train_uid = _e; }
+  { auto _e = section_uid(); _o->section_uid = _e; }
   { auto _e = direction(); _o->direction = _e; }
   { auto _e = speed_kmh(); _o->speed_kmh = _e; }
 }
@@ -2330,14 +2094,14 @@ inline ::flatbuffers::Offset<TrainMovement> TrainMovement::Pack(::flatbuffers::F
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TrainMovementT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _train_g_id = _fbb.CreateString(_o->train_g_id);
-  auto _section_g_id = _fbb.CreateString(_o->section_g_id);
+  auto _train_uid = _o->train_uid;
+  auto _section_uid = _o->section_uid;
   auto _direction = _o->direction;
   auto _speed_kmh = _o->speed_kmh;
   return proto::CreateTrainMovement(
       _fbb,
-      _train_g_id,
-      _section_g_id,
+      _train_uid,
+      _section_uid,
       _direction,
       _speed_kmh);
 }
@@ -2351,9 +2115,9 @@ inline AlarmRaisedT *AlarmRaised::UnPack(const ::flatbuffers::resolver_function_
 inline void AlarmRaised::UnPackTo(AlarmRaisedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = alarm_id(); if (_e) _o->alarm_id = _e->str(); }
+  { auto _e = alarm_uid(); _o->alarm_uid = _e; }
   { auto _e = alarm_type(); _o->alarm_type = _e; }
-  { auto _e = object_g_id(); if (_e) _o->object_g_id = _e->str(); }
+  { auto _e = object_uid(); _o->object_uid = _e; }
   { auto _e = message(); if (_e) _o->message = _e->str(); }
 }
 
@@ -2365,15 +2129,15 @@ inline ::flatbuffers::Offset<AlarmRaised> AlarmRaised::Pack(::flatbuffers::FlatB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AlarmRaisedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _alarm_id = _fbb.CreateString(_o->alarm_id);
+  auto _alarm_uid = _o->alarm_uid;
   auto _alarm_type = _o->alarm_type;
-  auto _object_g_id = _o->object_g_id.empty() ? 0 : _fbb.CreateString(_o->object_g_id);
+  auto _object_uid = _o->object_uid;
   auto _message = _o->message.empty() ? 0 : _fbb.CreateString(_o->message);
   return proto::CreateAlarmRaised(
       _fbb,
-      _alarm_id,
+      _alarm_uid,
       _alarm_type,
-      _object_g_id,
+      _object_uid,
       _message);
 }
 
@@ -2386,7 +2150,7 @@ inline AlarmClearedT *AlarmCleared::UnPack(const ::flatbuffers::resolver_functio
 inline void AlarmCleared::UnPackTo(AlarmClearedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = alarm_id(); if (_e) _o->alarm_id = _e->str(); }
+  { auto _e = alarm_uid(); _o->alarm_uid = _e; }
 }
 
 inline ::flatbuffers::Offset<AlarmCleared> CreateAlarmCleared(::flatbuffers::FlatBufferBuilder &_fbb, const AlarmClearedT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -2397,10 +2161,10 @@ inline ::flatbuffers::Offset<AlarmCleared> AlarmCleared::Pack(::flatbuffers::Fla
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AlarmClearedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _alarm_id = _fbb.CreateString(_o->alarm_id);
+  auto _alarm_uid = _o->alarm_uid;
   return proto::CreateAlarmCleared(
       _fbb,
-      _alarm_id);
+      _alarm_uid);
 }
 
 inline DispatchAreaOwnershipChangedT *DispatchAreaOwnershipChanged::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -2412,8 +2176,8 @@ inline DispatchAreaOwnershipChangedT *DispatchAreaOwnershipChanged::UnPack(const
 inline void DispatchAreaOwnershipChanged::UnPackTo(DispatchAreaOwnershipChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = dispatch_area_id(); if (_e) _o->dispatch_area_id = _e->str(); }
-  { auto _e = station_sid(); if (_e) _o->station_sid = _e->str(); }
+  { auto _e = dispatch_area_uid(); _o->dispatch_area_uid = _e; }
+  { auto _e = station_uid(); _o->station_uid = _e; }
   { auto _e = new_owner_client_id(); if (_e) _o->new_owner_client_id = _e->str(); }
 }
 
@@ -2425,13 +2189,13 @@ inline ::flatbuffers::Offset<DispatchAreaOwnershipChanged> DispatchAreaOwnership
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DispatchAreaOwnershipChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _dispatch_area_id = _fbb.CreateString(_o->dispatch_area_id);
-  auto _station_sid = _fbb.CreateString(_o->station_sid);
+  auto _dispatch_area_uid = _o->dispatch_area_uid;
+  auto _station_uid = _o->station_uid;
   auto _new_owner_client_id = _o->new_owner_client_id.empty() ? 0 : _fbb.CreateString(_o->new_owner_client_id);
   return proto::CreateDispatchAreaOwnershipChanged(
       _fbb,
-      _dispatch_area_id,
-      _station_sid,
+      _dispatch_area_uid,
+      _station_uid,
       _new_owner_client_id);
 }
 
@@ -2470,8 +2234,8 @@ inline TrainComposedT *TrainComposed::UnPack(const ::flatbuffers::resolver_funct
 inline void TrainComposed::UnPackTo(TrainComposedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = train_g_id(); if (_e) _o->train_g_id = _e->str(); }
-  { auto _e = vehicle_g_ids(); if (_e) { _o->vehicle_g_ids.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vehicle_g_ids[_i] = _e->Get(_i)->str(); } } else { _o->vehicle_g_ids.resize(0); } }
+  { auto _e = train_uid(); _o->train_uid = _e; }
+  { auto _e = vehicle_uids(); if (_e) { _o->vehicle_uids.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vehicle_uids[_i] = _e->Get(_i); } } else { _o->vehicle_uids.resize(0); } }
   { auto _e = total_length_m(); _o->total_length_m = _e; }
   { auto _e = total_axles(); _o->total_axles = _e; }
 }
@@ -2484,14 +2248,14 @@ inline ::flatbuffers::Offset<TrainComposed> TrainComposed::Pack(::flatbuffers::F
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TrainComposedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _train_g_id = _fbb.CreateString(_o->train_g_id);
-  auto _vehicle_g_ids = _o->vehicle_g_ids.size() ? _fbb.CreateVectorOfStrings(_o->vehicle_g_ids) : 0;
+  auto _train_uid = _o->train_uid;
+  auto _vehicle_uids = _o->vehicle_uids.size() ? _fbb.CreateVector(_o->vehicle_uids) : 0;
   auto _total_length_m = _o->total_length_m;
   auto _total_axles = _o->total_axles;
   return proto::CreateTrainComposed(
       _fbb,
-      _train_g_id,
-      _vehicle_g_ids,
+      _train_uid,
+      _vehicle_uids,
       _total_length_m,
       _total_axles);
 }
@@ -2505,7 +2269,7 @@ inline TrainDecomposedT *TrainDecomposed::UnPack(const ::flatbuffers::resolver_f
 inline void TrainDecomposed::UnPackTo(TrainDecomposedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = train_g_id(); if (_e) _o->train_g_id = _e->str(); }
+  { auto _e = train_uid(); _o->train_uid = _e; }
   { auto _e = reason(); _o->reason = _e; }
 }
 
@@ -2517,11 +2281,11 @@ inline ::flatbuffers::Offset<TrainDecomposed> TrainDecomposed::Pack(::flatbuffer
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TrainDecomposedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _train_g_id = _fbb.CreateString(_o->train_g_id);
+  auto _train_uid = _o->train_uid;
   auto _reason = _o->reason;
   return proto::CreateTrainDecomposed(
       _fbb,
-      _train_g_id,
+      _train_uid,
       _reason);
 }
 
@@ -2534,7 +2298,7 @@ inline BlockDirectionStateChangedT *BlockDirectionStateChanged::UnPack(const ::f
 inline void BlockDirectionStateChanged::UnPackTo(BlockDirectionStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = new_direction(); _o->new_direction = _e; }
   { auto _e = cause(); _o->cause = _e; }
 }
@@ -2547,12 +2311,12 @@ inline ::flatbuffers::Offset<BlockDirectionStateChanged> BlockDirectionStateChan
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const BlockDirectionStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _new_direction = _o->new_direction;
   auto _cause = _o->cause;
   return proto::CreateBlockDirectionStateChanged(
       _fbb,
-      _g_id,
+      _uid,
       _new_direction,
       _cause);
 }
@@ -2566,7 +2330,7 @@ inline OperatorCommandStateChangedT *OperatorCommandStateChanged::UnPack(const :
 inline void OperatorCommandStateChanged::UnPackTo(OperatorCommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = target_kind(); _o->target_kind = _e; }
   { auto _e = command_code(); _o->command_code = _e; }
   { auto _e = active(); _o->active = _e; }
@@ -2580,13 +2344,13 @@ inline ::flatbuffers::Offset<OperatorCommandStateChanged> OperatorCommandStateCh
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const OperatorCommandStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _target_kind = _o->target_kind;
   auto _command_code = _o->command_code;
   auto _active = _o->active;
   return proto::CreateOperatorCommandStateChanged(
       _fbb,
-      _g_id,
+      _uid,
       _target_kind,
       _command_code,
       _active);
@@ -2601,7 +2365,7 @@ inline Ml8CommandStateChangedT *Ml8CommandStateChanged::UnPack(const ::flatbuffe
 inline void Ml8CommandStateChanged::UnPackTo(Ml8CommandStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = g_id(); if (_e) _o->g_id = _e->str(); }
+  { auto _e = uid(); _o->uid = _e; }
   { auto _e = target_kind(); _o->target_kind = _e; }
   { auto _e = command_code(); _o->command_code = _e; }
   { auto _e = active(); _o->active = _e; }
@@ -2615,13 +2379,13 @@ inline ::flatbuffers::Offset<Ml8CommandStateChanged> Ml8CommandStateChanged::Pac
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const Ml8CommandStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _g_id = _fbb.CreateString(_o->g_id);
+  auto _uid = _o->uid;
   auto _target_kind = _o->target_kind;
   auto _command_code = _o->command_code;
   auto _active = _o->active;
   return proto::CreateMl8CommandStateChanged(
       _fbb,
-      _g_id,
+      _uid,
       _target_kind,
       _command_code,
       _active);
@@ -2636,9 +2400,9 @@ inline DispatchTelegramStateChangedT *DispatchTelegramStateChanged::UnPack(const
 inline void DispatchTelegramStateChanged::UnPackTo(DispatchTelegramStateChangedT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = exchange_id(); if (_e) _o->exchange_id = _e->str(); }
-  { auto _e = src_area_id(); if (_e) _o->src_area_id = _e->str(); }
-  { auto _e = dst_area_id(); if (_e) _o->dst_area_id = _e->str(); }
+  { auto _e = exchange_uid(); _o->exchange_uid = _e; }
+  { auto _e = src_area_uid(); _o->src_area_uid = _e; }
+  { auto _e = dst_area_uid(); _o->dst_area_uid = _e; }
   { auto _e = form_type(); _o->form_type = _e; }
   { auto _e = direction(); _o->direction = _e; }
   { auto _e = train_number(); if (_e) _o->train_number = _e->str(); }
@@ -2654,9 +2418,9 @@ inline ::flatbuffers::Offset<DispatchTelegramStateChanged> DispatchTelegramState
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DispatchTelegramStateChangedT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _exchange_id = _fbb.CreateString(_o->exchange_id);
-  auto _src_area_id = _fbb.CreateString(_o->src_area_id);
-  auto _dst_area_id = _fbb.CreateString(_o->dst_area_id);
+  auto _exchange_uid = _o->exchange_uid;
+  auto _src_area_uid = _o->src_area_uid;
+  auto _dst_area_uid = _o->dst_area_uid;
   auto _form_type = _o->form_type;
   auto _direction = _o->direction;
   auto _train_number = _o->train_number.empty() ? 0 : _fbb.CreateString(_o->train_number);
@@ -2664,9 +2428,9 @@ inline ::flatbuffers::Offset<DispatchTelegramStateChanged> DispatchTelegramState
   auto _timestamp_us = _o->timestamp_us;
   return proto::CreateDispatchTelegramStateChanged(
       _fbb,
-      _exchange_id,
-      _src_area_id,
-      _dst_area_id,
+      _exchange_uid,
+      _src_area_uid,
+      _dst_area_uid,
       _form_type,
       _direction,
       _train_number,

@@ -1,5 +1,6 @@
 add_executable(tests_engine
     test_placeholder.cpp
+    test_uid_codec.cpp
     test_event_queue.cpp
     test_priority_command_queue.cpp
     test_event_dispatcher.cpp

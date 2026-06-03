@@ -15,9 +15,9 @@ using namespace srk::common;
 // ── Static registration ───────────────────────────────────────────────────────
 
 // Self-registers in the ControlSystemRegistry at static-init time.
-// The engine simply calls ControlSystemRegistry::instance().create({"ebilock_x4"}).
+// The engine simply calls ControlSystemRegistry::instance().create("ebilock_x4").
 static const bool kRegistered = ControlSystemRegistry::register_static(
-    ControlSystemID{"ebilock_x4"}, [] { return std::make_unique<EbiLockSystem>(); });
+    "ebilock_x4", [] { return std::make_unique<EbiLockSystem>(); });
 
 // ── Constructor ───────────────────────────────────────────────────────────────
 
@@ -25,9 +25,9 @@ EbiLockSystem::EbiLockSystem(int eea4_throw_ticks) : eea4_throw_ticks_{eea4_thro
 
 // ── system_id ─────────────────────────────────────────────────────────────────
 
-ControlSystemID EbiLockSystem::system_id() const
+std::string EbiLockSystem::system_id() const
 {
-    return ControlSystemID{"ebilock_x4"};
+    return "ebilock_x4";
 }
 
 // ── supported_command_types ───────────────────────────────────────────────────
@@ -86,7 +86,7 @@ std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateVi
                 return srk::common::check_operator_command(state, c);
 
             else
-                return InterlockingViolation{NAK_UNSUPPORTED, "Unrecognised command", GID{}};
+                return InterlockingViolation{NAK_UNSUPPORTED, "Unrecognised command", UID{}};
         },
         cmd);
 }
@@ -107,7 +107,7 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
                     srk::common::execute_set_switch_position(state, c, eea4_throw_ticks_);
                 // Record the target so on_tick() knows where to land the switch.
                 if (eea4_throw_ticks_ > 0)
-                    pending_targets_[c.gid] = c.position;
+                    pending_targets_[c.uid] = c.position;
                 return changes;
             }
             else if constexpr (std::is_same_v<T, SetSignalAspectCmd>)

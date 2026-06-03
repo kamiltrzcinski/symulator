@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <string>
 #include <variant>
 
 namespace server
@@ -38,7 +39,6 @@ static uint64_t now_us()
         duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-// Write a uint32_t little-endian into a buffer.
 static void write_u32_le(uint8_t* dst, uint32_t v)
 {
     dst[0] = static_cast<uint8_t>(v & 0xFF);
@@ -47,48 +47,34 @@ static void write_u32_le(uint8_t* dst, uint32_t v)
     dst[3] = static_cast<uint8_t>((v >> 24) & 0xFF);
 }
 
-// Write a uint64_t little-endian into a buffer.
 static void write_u64_le(uint8_t* dst, uint64_t v)
 {
     for (int i = 0; i < 8; ++i)
         dst[i] = static_cast<uint8_t>((v >> (8 * i)) & 0xFF);
 }
 
-// Map engine DerailerState → proto DerailerPosition
 static proto::DerailerPosition to_proto_derailer(engine::core::DerailerState s)
 {
-    switch (s)
-    {
-        case engine::core::DerailerState::LOCKED:
-            return proto::DerailerPosition_LOCKED;
-        case engine::core::DerailerState::UNLOCKED:
-            return proto::DerailerPosition_UNLOCKED;
-    }
-    return proto::DerailerPosition_LOCKED;
+    return (s == engine::core::DerailerState::LOCKED) ? proto::DerailerPosition_LOCKED
+                                                      : proto::DerailerPosition_UNLOCKED;
 }
 
-// Map engine BlockSectionState → proto BlockSectionState
-// INVERTED: engine CLOSED=0/OPEN=1, proto OPEN=0/CLOSED=1
 static proto::BlockSectionState to_proto_block_section(engine::core::BlockSectionState s)
 {
-    if (s == engine::core::BlockSectionState::CLOSED)
-        return proto::BlockSectionState_CLOSED;
-    return proto::BlockSectionState_OPEN;
+    return (s == engine::core::BlockSectionState::CLOSED) ? proto::BlockSectionState_CLOSED
+                                                          : proto::BlockSectionState_OPEN;
 }
 
-// Map engine BlockDirectionState → proto BlockDirectionState (same ordinals)
 static proto::BlockDirectionState to_proto_direction(engine::core::BlockDirectionState s)
 {
     return static_cast<proto::BlockDirectionState>(static_cast<int>(s));
 }
 
-// Map engine ChangeCause → proto ChangeCause (same ordinals)
 static proto::ChangeCause to_proto_cause(engine::core::ChangeCause c)
 {
     return static_cast<proto::ChangeCause>(static_cast<int>(c));
 }
 
-// Map RouteRemoved::reason string → proto RouteReleaseReason
 static proto::RouteReleaseReason to_proto_release_reason(const std::string& reason)
 {
     if (reason == "OPERATOR_CANCEL")
@@ -137,130 +123,104 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
             flatbuffers::FlatBufferBuilder fbb(256);
             uint8_t et = 0;
 
-            // ── Signal aspect ─────────────────────────────────────────────────
             if constexpr (std::is_same_v<T, engine::core::SignalAspectChange>)
             {
                 et = event_type::kSignalAspectChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateSignalAspectChanged(
-                    fbb, gid_off, static_cast<proto::Aspect>(static_cast<int>(ev.new_aspect)),
+                    fbb, ev.uid.value, static_cast<proto::Aspect>(static_cast<int>(ev.new_aspect)),
                     to_proto_cause(ev.cause));
                 fbb.Finish(off);
             }
-            // ── Switch position ───────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::SwitchPositionChange>)
             {
                 et = event_type::kSwitchPositionChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateSwitchPositionChanged(
-                    fbb, gid_off,
+                    fbb, ev.uid.value,
                     static_cast<proto::SwitchPosition>(static_cast<int>(ev.new_position)),
                     to_proto_cause(ev.cause));
                 fbb.Finish(off);
             }
-            // ── Switch locked / unlocked: emit SwitchPositionChanged ──────────
             else if constexpr (std::is_same_v<T, engine::core::SwitchLocked>)
             {
                 et = event_type::kSwitchPositionChanged;
-                auto gid_off = fbb.CreateString(ev.switch_gid.value);
-                // Position unchanged — we still emit to signal the lock; use default (STRAIGHT)
-                auto off = proto::CreateSwitchPositionChanged(
-                    fbb, gid_off, proto::SwitchPosition_STRAIGHT, proto::ChangeCause_AUTO);
+                auto off = proto::CreateSwitchPositionChanged(fbb, ev.switch_uid.value,
+                                                              proto::SwitchPosition_STRAIGHT,
+                                                              proto::ChangeCause_AUTO);
                 fbb.Finish(off);
             }
             else if constexpr (std::is_same_v<T, engine::core::SwitchUnlocked>)
             {
                 et = event_type::kSwitchPositionChanged;
-                auto gid_off = fbb.CreateString(ev.switch_gid.value);
-                auto off = proto::CreateSwitchPositionChanged(
-                    fbb, gid_off, proto::SwitchPosition_STRAIGHT, proto::ChangeCause_AUTO);
+                auto off = proto::CreateSwitchPositionChanged(fbb, ev.switch_uid.value,
+                                                              proto::SwitchPosition_STRAIGHT,
+                                                              proto::ChangeCause_AUTO);
                 fbb.Finish(off);
             }
-            // ── Derailer ──────────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::DerailerStateChange>)
             {
                 et = event_type::kDerailerPositionChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateDerailerPositionChanged(
-                    fbb, gid_off, to_proto_derailer(ev.new_state), to_proto_cause(ev.cause));
+                    fbb, ev.uid.value, to_proto_derailer(ev.new_state), to_proto_cause(ev.cause));
                 fbb.Finish(off);
             }
-            // ── Block section ─────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::BlockSectionStateChange>)
             {
                 et = event_type::kBlockSectionStateChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateBlockSectionStateChanged(
-                    fbb, gid_off, to_proto_block_section(ev.new_state));
+                    fbb, ev.uid.value, to_proto_block_section(ev.new_state));
                 fbb.Finish(off);
             }
-            // ── Block direction ───────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::BlockDirectionChange>)
             {
                 et = event_type::kBlockDirectionStateChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateBlockDirectionStateChanged(
-                    fbb, gid_off, to_proto_direction(ev.new_direction), proto::ChangeCause_COMMAND);
+                    fbb, ev.uid.value, to_proto_direction(ev.new_direction),
+                    proto::ChangeCause_COMMAND);
                 fbb.Finish(off);
             }
-            // ── Operator command state ───────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::OperatorCommandStateChange>)
             {
                 et = event_type::kOperatorCommandStateChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateOperatorCommandStateChanged(
-                    fbb, gid_off,
+                    fbb, ev.uid.value,
                     static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
                     static_cast<proto::OperatorCommandCode>(static_cast<int>(ev.code)), ev.active);
                 fbb.Finish(off);
             }
-            // ── ML8 command state ────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::Ml8CommandStateChange>)
             {
                 et = event_type::kMl8CommandStateChanged;
-                auto gid_off = fbb.CreateString(ev.gid.value);
                 auto off = proto::CreateMl8CommandStateChanged(
-                    fbb, gid_off,
+                    fbb, ev.uid.value,
                     static_cast<proto::OperatorTargetKind>(static_cast<int>(ev.target_kind)),
                     static_cast<proto::Ml8CommandCode>(static_cast<int>(ev.code)), ev.active);
                 fbb.Finish(off);
             }
-            // ── Route set ───────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::RouteAdded>)
             {
                 et = event_type::kRouteSet;
                 const auto& r = ev.route;
-                auto route_id_off = fbb.CreateString(r.route_id.value);
-                auto from_g_id_off = fbb.CreateString(r.from_signal_gid.value);
-                auto to_g_id_off = fbb.CreateString(r.to_signal_gid.value);
-                // Build vector of section strings
-                std::vector<flatbuffers::Offset<flatbuffers::String>> sec_offs;
-                sec_offs.reserve(r.section_gids.size());
-                for (const auto& s : r.section_gids)
-                    sec_offs.push_back(fbb.CreateString(s.value));
-                auto sec_vec_off = fbb.CreateVector(sec_offs);
-                auto off = proto::CreateRouteSet(fbb, route_id_off, from_g_id_off, to_g_id_off,
-                                                 sec_vec_off);
+                std::vector<uint64_t> sec_uids;
+                sec_uids.reserve(r.section_uids.size());
+                for (const auto& s : r.section_uids)
+                    sec_uids.push_back(s.value);
+                auto sec_vec = fbb.CreateVector(sec_uids);
+                auto off = proto::CreateRouteSet(fbb, r.uid.value, r.from_signal_uid.value,
+                                                 r.to_signal_uid.value, sec_vec);
                 fbb.Finish(off);
             }
-            // ── Route released ────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::RouteRemoved>)
             {
                 et = event_type::kRouteReleased;
-                auto route_id_off = fbb.CreateString(ev.route_id.value);
-                auto off = proto::CreateRouteReleased(fbb, route_id_off,
+                auto off = proto::CreateRouteReleased(fbb, ev.route_uid.value,
                                                       to_proto_release_reason(ev.reason));
                 fbb.Finish(off);
             }
-            // ── Alarm raised ──────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::AlarmRaised>)
             {
                 et = event_type::kAlarmRaised;
                 const auto& a = ev.alarm;
-                auto alarm_id_off = fbb.CreateString(a.alarm_id.value);
-                auto obj_g_id_off = fbb.CreateString(a.object_gid.value);
                 auto message_off = fbb.CreateString(a.message);
-                // AlarmType defaults to TRACK_OCCUPIED_UNEXPECTEDLY if kind unknown
                 proto::AlarmType alarm_type = proto::AlarmType_TRACK_OCCUPIED_UNEXPECTEDLY;
                 if (a.kind == "SWITCH_FAILURE")
                     alarm_type = proto::AlarmType_SWITCH_POSITION_MISMATCH;
@@ -272,19 +232,16 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                     alarm_type = proto::AlarmType_COMMS_FAILURE;
                 else if (a.kind == "ENGINE_FAULT")
                     alarm_type = proto::AlarmType_ENGINE_FAULT;
-                auto off = proto::CreateAlarmRaised(fbb, alarm_id_off, alarm_type, obj_g_id_off,
-                                                    message_off);
+                auto off = proto::CreateAlarmRaised(fbb, a.uid.value, alarm_type,
+                                                    a.object_uid.value, message_off);
                 fbb.Finish(off);
             }
-            // ── Alarm cleared ─────────────────────────────────────────────────
             else if constexpr (std::is_same_v<T, engine::core::AlarmCleared>)
             {
                 et = event_type::kAlarmCleared;
                 flatbuffers::FlatBufferBuilder fbb2(64);
-                auto alarm_id_off = fbb2.CreateString(ev.alarm_id.value);
-                auto off = proto::CreateAlarmCleared(fbb2, alarm_id_off);
+                auto off = proto::CreateAlarmCleared(fbb2, ev.alarm_uid.value);
                 fbb2.Finish(off);
-                // Use fbb2 instead
                 const auto prefix = build_event_prefix(et, eid, timestamp_us);
                 std::vector<uint8_t> payload;
                 payload.reserve(prefix.size() + fbb2.GetSize());
@@ -299,14 +256,12 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                 return std::nullopt;
             }
 
-            // Common path (all except AlarmCleared which returns early)
             const auto prefix = build_event_prefix(et, eid, timestamp_us);
             std::vector<uint8_t> payload;
             payload.reserve(prefix.size() + fbb.GetSize());
             payload.insert(payload.end(), prefix.begin(), prefix.end());
             payload.insert(payload.end(), fbb.GetBufferPointer(),
                            fbb.GetBufferPointer() + fbb.GetSize());
-
             const uint32_t seq = tx_seq_.fetch_add(1, std::memory_order_relaxed);
             return encode_frame(msg_type::kDomainEvent, 0, seq, payload);
         },
@@ -324,13 +279,6 @@ void DispatchBus::on_state_changes(const std::vector<engine::core::DeviceStateCh
 
         gateway_.broadcast(*frame);
 
-        // ── Persist to session.events ─────────────────────────────────────────
-        // The wire frame layout (from frame.hpp):
-        //   [0..15]  transport header (16 bytes)
-        //   [16]     event_type
-        //   [17..20] event_id  (uint32 LE)
-        //   [21..28] timestamp_us (uint64 LE)
-        //   [29..]   FlatBuffers body
         if (frame->size() > 29)
         {
             DomainEventRow rec;
@@ -348,8 +296,6 @@ void DispatchBus::on_state_changes(const std::vector<engine::core::DeviceStateCh
     }
 }
 
-// ── object_gid_from_change ────────────────────────────────────────────────────
-
 // static
 std::optional<std::string> DispatchBus::object_gid_from_change(
     const engine::core::DeviceStateChange& change)
@@ -359,22 +305,18 @@ std::optional<std::string> DispatchBus::object_gid_from_change(
         [](const auto& ev) -> std::optional<std::string>
         {
             using T = std::decay_t<decltype(ev)>;
-            // Most variants carry a .gid field (the affected device's GID).
-            if constexpr (requires { ev.gid; })
-                return ev.gid.value;
-            // SwitchLocked / SwitchUnlocked carry .switch_gid instead.
-            else if constexpr (requires { ev.switch_gid; })
-                return ev.switch_gid.value;
-            // Route events: use the route_id as the object identifier.
+            if constexpr (requires { ev.uid; })
+                return std::to_string(ev.uid.value);
+            else if constexpr (requires { ev.switch_uid; })
+                return std::to_string(ev.switch_uid.value);
             else if constexpr (std::is_same_v<T, RouteAdded>)
-                return ev.route.route_id.value;
+                return std::to_string(ev.route.uid.value);
             else if constexpr (std::is_same_v<T, RouteRemoved>)
-                return ev.route_id.value;
-            // Alarm events.
+                return std::to_string(ev.route_uid.value);
             else if constexpr (std::is_same_v<T, AlarmRaised>)
-                return ev.alarm.object_gid.value;
+                return std::to_string(ev.alarm.object_uid.value);
             else if constexpr (std::is_same_v<T, AlarmCleared>)
-                return ev.alarm_id.value;
+                return std::to_string(ev.alarm_uid.value);
             else
                 return std::nullopt;
         },

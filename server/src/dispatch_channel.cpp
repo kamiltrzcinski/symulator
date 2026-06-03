@@ -75,26 +75,26 @@ void DispatchChannel::on_inbound(const std::vector<std::uint8_t>& payload,
                                  const std::string& sender_client_id,
                                  const std::string& sender_area_id)
 {
-    // 1. Verify FlatBuffers payload.
     flatbuffers::Verifier verifier(payload.data(), payload.size());
     if (!verifier.VerifyBuffer<proto::DispatchChannelMessage>())
-        return;  // malformed — drop silently
+        return;
 
     const auto* msg = flatbuffers::GetRoot<proto::DispatchChannelMessage>(payload.data());
 
-    if (!msg->src_area_id() || !msg->dst_area_id())
+    // Area UIDs from wire (uint64). Convert to strings for internal routing.
+    const std::uint64_t src_uid = msg->src_area_uid();
+    const std::uint64_t dst_uid = msg->dst_area_uid();
+    if (src_uid == 0 || dst_uid == 0)
         return;
 
-    const std::string src_area = msg->src_area_id()->str();
-    const std::string dst_area = msg->dst_area_id()->str();
+    const std::string src_area = std::to_string(src_uid);
+    const std::string dst_area = std::to_string(dst_uid);
 
-    // 2. Security check: sender must match the claimed src_area.
     if (src_area != sender_area_id)
         return;
 
     const std::uint64_t ts = now_us();
 
-    // 3a. FREE_TEXT path — delegate + broadcast.
     if (msg->kind() == proto::DispatchChannelMessageKind_FREE_TEXT)
     {
         const auto* ft_payload = msg->body_as_FreeTextPayload();
@@ -104,29 +104,23 @@ void DispatchChannel::on_inbound(const std::vector<std::uint8_t>& payload,
         const std::string body = ft_payload->body()->str();
         coordinator_.handle_free_text(src_area, dst_area, body, ts);
 
-        // Broadcast echo + relay.
         flatbuffers::FlatBufferBuilder fbb(512);
-        auto src_off = fbb.CreateString(src_area);
-        auto dst_off = fbb.CreateString(dst_area);
         auto sender_off = fbb.CreateString(sender_client_id);
-        auto exch_off = fbb.CreateString("");
         auto body_str = fbb.CreateString(body);
         auto ft_off = proto::CreateFreeTextPayload(fbb, body_str);
         auto root = proto::CreateDispatchChannelMessage(
-            fbb, src_off, dst_off, proto::TelegramDirection_SENT,
+            fbb, src_uid, dst_uid, proto::TelegramDirection_SENT,
             proto::DispatchChannelMessageKind_FREE_TEXT,
-            proto::DispatchChannelMessageBody_FreeTextPayload, ft_off.Union(), exch_off,
-            proto::ExchangeStatus_ACCEPTED, ts, sender_off);
+            proto::DispatchChannelMessageBody_FreeTextPayload, ft_off.Union(),
+            /*exchange_uid=*/0, proto::ExchangeStatus_ACCEPTED, ts, sender_off);
         fbb.Finish(root);
 
-        std::vector<std::uint8_t> out(fbb.GetBufferPointer(),
-                                      fbb.GetBufferPointer() + fbb.GetSize());
-        auto wire = encode_frame(msg_type::kDispatchChannel, 0, 0, out);
+        auto wire = encode_frame(msg_type::kDispatchChannel, 0, 0,
+                                 {fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize()});
         gateway_.broadcast_to_pair(src_area, dst_area, std::move(wire));
         return;
     }
 
-    // 3b. DISPATCH_FORM path — delegate + broadcast outcome.
     const auto* df_payload = msg->body_as_DispatchFormPayload();
     if (!df_payload || !df_payload->train_number())
         return;
@@ -154,14 +148,20 @@ void DispatchChannel::on_inbound(const std::vector<std::uint8_t>& payload,
     const auto outcome = coordinator_.handle_dispatch_form(
         engine_form, direction, src_area, dst_area, train_number, track_number, km_markers, ts);
     if (!outcome)
-        return;  // rejected by state machine
+        return;
 
-    // 4. Build and broadcast outbound frame with server-filled fields.
+    // Parse exchange_id string back to uint64 for wire protocol.
+    std::uint64_t exchange_uid = 0;
+    try
+    {
+        exchange_uid = std::stoull(outcome->exchange_id);
+    }
+    catch (...)
+    {
+    }
+
     flatbuffers::FlatBufferBuilder fbb(512);
-    auto src_off = fbb.CreateString(src_area);
-    auto dst_off = fbb.CreateString(dst_area);
     auto sender_off = fbb.CreateString(sender_client_id);
-    auto exch_off = fbb.CreateString(outcome->exchange_id);
     auto train_off = fbb.CreateString(train_number);
 
     std::vector<flatbuffers::Offset<flatbuffers::String>> km_offs;
@@ -177,13 +177,13 @@ void DispatchChannel::on_inbound(const std::vector<std::uint8_t>& payload,
                                                     track_off);
 
     auto root = proto::CreateDispatchChannelMessage(
-        fbb, src_off, dst_off, msg->direction(), proto::DispatchChannelMessageKind_DISPATCH_FORM,
-        proto::DispatchChannelMessageBody_DispatchFormPayload, dfp_off.Union(), exch_off,
+        fbb, src_uid, dst_uid, msg->direction(), proto::DispatchChannelMessageKind_DISPATCH_FORM,
+        proto::DispatchChannelMessageBody_DispatchFormPayload, dfp_off.Union(), exchange_uid,
         to_proto_status(outcome->new_status), ts, sender_off);
     fbb.Finish(root);
 
-    std::vector<std::uint8_t> out(fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize());
-    auto wire = encode_frame(msg_type::kDispatchChannel, 0, 0, out);
+    auto wire = encode_frame(msg_type::kDispatchChannel, 0, 0,
+                             {fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize()});
     gateway_.broadcast_to_pair(src_area, dst_area, std::move(wire));
 }
 

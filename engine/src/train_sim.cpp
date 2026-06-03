@@ -53,10 +53,9 @@ physics::TrainPhysicsState PhysicsModelIntegrator::step(const physics::TrainPhys
     return physics::PhysicsModel::integrate(params, state, dt_s);
 }
 
-void NullTrainEventSink::on_section_crossing(const core::GID& train_gid,
-                                             const SectionCrossing& crossing)
+void NullTrainEventSink::on_section_crossing(core::UID train_uid, const SectionCrossing& crossing)
 {
-    (void)train_gid;
+    (void)train_uid;
     (void)crossing;
 }
 
@@ -92,13 +91,13 @@ TrainSimOutput TrainSim::tick(float dt_s, const TrainSimTickInput& input)
     {
         const float overshoot = state_.physics_state.position_m - input.section_length_m;
 
-        if (input.next_section_gid.has_value())
+        if (input.next_section_uid.has_value())
         {
             crossing =
-                SectionCrossing{state_.current_section_gid, *input.next_section_gid, overshoot};
-            state_.current_section_gid = *input.next_section_gid;
+                SectionCrossing{state_.current_section_uid, *input.next_section_uid, overshoot};
+            state_.current_section_uid = *input.next_section_uid;
             state_.physics_state.position_m = overshoot;
-            event_sink_->on_section_crossing(state_.train_gid, *crossing);
+            event_sink_->on_section_crossing(state_.train_uid, *crossing);
         }
         else
         {
@@ -117,16 +116,16 @@ TrainSimOutput TrainSim::tick(float dt_s, const TrainSimTickInput& input)
 
 TrainSimState make_train_sim_state(const core::TrainConsist& consist,
                                    const std::vector<core::Vehicle>& vehicles,
-                                   const core::GID& initial_section_gid)
+                                   core::UID initial_section_uid)
 {
     if (vehicles.empty())
     {
         throw std::invalid_argument("make_train_sim_state requires at least one vehicle");
     }
 
-    if (vehicles.size() != consist.vehicle_gids.size())
+    if (vehicles.size() != consist.vehicle_uids.size())
     {
-        throw std::invalid_argument("Vehicle list size must match consist.vehicle_gids size");
+        throw std::invalid_argument("Vehicle list size must match consist.vehicle_uids size");
     }
 
     std::vector<physics::VehiclePhysicsContrib> contrib;
@@ -170,7 +169,7 @@ TrainSimState make_train_sim_state(const core::TrainConsist& consist,
             const bool same_type = std::all_of(
                 operational_locomotive_indices.begin(), operational_locomotive_indices.end(),
                 [&vehicles, &first_locomotive](std::size_t idx)
-                { return vehicles[idx].type_id == first_locomotive.type_id; });
+                { return vehicles[idx].type_uid == first_locomotive.type_uid; });
 
             const bool coupling_allowed =
                 same_type && first_locomotive.multiple_coupling_capable.value_or(false);
@@ -192,8 +191,8 @@ TrainSimState make_train_sim_state(const core::TrainConsist& consist,
     }
 
     TrainSimState state{};
-    state.train_gid = consist.gid;
-    state.current_section_gid = initial_section_gid;
+    state.train_uid = consist.uid;
+    state.current_section_uid = initial_section_uid;
     state.physics_params = physics::build_train_params(contrib.data(), contrib.size());
     state.max_brake_kn =
         physics::PhysicsModel::max_brake_kn(state.physics_params, consist.consist_lambda_pct);

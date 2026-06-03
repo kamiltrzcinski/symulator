@@ -1,531 +1,532 @@
 {
     "$comment": "Gdynia Orlowo station topology. L202 km 15.896; L250 km 15.749. Both lines are independent (no physical connection). South = Sopot direction; north L202 = Gdynia Glowna direction; north L250 = Gdynia Redlowo direction. Same scissors-crossover model as Sopot.",
-
     "boundary_nodes": [
         {
-            "gID": "BND-TRJ-GOr-l202-S",
+            "uid": 2302102536193,
             "pID": "l202_granica_poludniowa",
-            "sID": "GOr",
             "description": "South boundary L202 — connects to Sopot (line 202, km 11.661)"
         },
         {
-            "gID": "BND-TRJ-GOr-l202-N",
+            "uid": 2302102536194,
             "pID": "l202_granica_polnocna",
-            "sID": "GOr",
             "description": "North boundary L202 — connects to Gdynia Glowna (line 202, km 20.992)"
         },
         {
-            "gID": "BND-TRJ-GOr-l250-S",
+            "uid": 2302102536195,
             "pID": "l250_granica_poludniowa",
-            "sID": "GOr",
             "description": "South boundary L250 — connects to Sopot (line 250, km 11.680)"
         },
         {
-            "gID": "BND-TRJ-GOr-l250-N",
+            "uid": 2302102536196,
             "pID": "l250_granica_polnocna",
-            "sID": "GOr",
             "description": "North boundary L250 — connects to Gdynia Redlowo (line 250, km 17.557)"
         }
     ],
-
     "track_sections": [
         {
-            "gID": "OT-TRJ-GOr-l202-t1a",
+            "uid": 2280627699713,
             "pID": "l202_tor1a",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GOr-l202-S",
-                "itID":       "IT-TRJ-GOr-l202-t1a-A",
-                "signals":    ["SEM-TRJ-GOr-l202-Wp1"]
+                "neighborUID": 2302102536193,
+                "itUID": 2310692470785,
+                "signalUIDs": [
+                    2289217634305
+                ]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr1",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-trunk",
-                "signals":    ["SEM-TRJ-GOr-l202-Op1"]
+                "neighborUID": 2284922667009,
+                "izUID": 2310692470786,
+                "signalUIDs": [
+                    2289217634307
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-t2a",
+            "uid": 2280627699714,
             "pID": "l202_tor2a_in",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GOr-l202-S",
-                "itID":       "IT-TRJ-GOr-l202-t2a-A",
-                "signals":    ["SEM-TRJ-GOr-l202-Wp2"]
+                "neighborUID": 2302102536193,
+                "itUID": 2310692470787,
+                "signalUIDs": [
+                    2289217634306
+                ]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr2",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-trunk",
-                "signals":    ["SEM-TRJ-GOr-l202-Op2"]
+                "neighborUID": 2284922667010,
+                "izUID": 2310692470788,
+                "signalUIDs": [
+                    2289217634308
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-t1p",
+            "uid": 2280627699715,
             "pID": "l202_tor1_peron",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr1",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-straight",
-                "signals":    []
+                "neighborUID": 2284922667009,
+                "izUID": 2310692470789,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr3",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-trunk",
-                "signals":    []
+                "neighborUID": 2284922667011,
+                "izUID": 2310692470790,
+                "signalUIDs": []
             },
-            "lengthM":     350.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 350.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-t2p",
+            "uid": 2280627699716,
             "pID": "l202_tor2a_peron",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr2",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-straight",
-                "signals":    []
+                "neighborUID": 2284922667010,
+                "izUID": 2310692470791,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr4",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-trunk",
-                "signals":    []
+                "neighborUID": 2284922667012,
+                "izUID": 2310692470792,
+                "signalUIDs": []
             },
-            "lengthM":     350.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 350.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-xA",
+            "uid": 2280627699717,
             "pID": "l202_crossover_a",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr1",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-divergent",
-                "signals":    []
+                "neighborUID": 2284922667009,
+                "izUID": 2310692470793,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr2",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-divergent",
-                "signals":    []
+                "neighborUID": 2284922667010,
+                "izUID": 2310692470794,
+                "signalUIDs": []
             },
-            "lengthM":     28.5,
-            "electrified":  true,
-            "maxSpeedKmh":  60,
-            "occupied":     false
+            "lengthM": 28.5,
+            "electrified": true,
+            "maxSpeedKmh": 60,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-xB",
+            "uid": 2280627699718,
             "pID": "l202_crossover_b",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr3",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-divergent",
-                "signals":    []
+                "neighborUID": 2284922667011,
+                "izUID": 2310692470795,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr4",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-divergent",
-                "signals":    []
+                "neighborUID": 2284922667012,
+                "izUID": 2310692470796,
+                "signalUIDs": []
             },
-            "lengthM":     28.5,
-            "electrified":  true,
-            "maxSpeedKmh":  60,
-            "occupied":     false
+            "lengthM": 28.5,
+            "electrified": true,
+            "maxSpeedKmh": 60,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-t1b",
+            "uid": 2280627699719,
             "pID": "l202_tor1b",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr3",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-straight",
-                "signals":    ["SEM-TRJ-GOr-l202-Ww1"]
+                "neighborUID": 2284922667011,
+                "izUID": 2310692470797,
+                "signalUIDs": [
+                    2289217634309
+                ]
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GOr-l202-N",
-                "itID":       "IT-TRJ-GOr-l202-t1b-B",
-                "signals":    ["SEM-TRJ-GOr-l202-Np1"]
+                "neighborUID": 2302102536194,
+                "itUID": 2310692470798,
+                "signalUIDs": [
+                    2289217634311
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l202-t2b",
+            "uid": 2280627699720,
             "pID": "l202_tor2a_out",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l202-zwr4",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-straight",
-                "signals":    ["SEM-TRJ-GOr-l202-Ww2"]
+                "neighborUID": 2284922667012,
+                "izUID": 2310692470799,
+                "signalUIDs": [
+                    2289217634310
+                ]
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GOr-l202-N",
-                "itID":       "IT-TRJ-GOr-l202-t2b-B",
-                "signals":    ["SEM-TRJ-GOr-l202-Np2"]
+                "neighborUID": 2302102536194,
+                "itUID": 2310692470800,
+                "signalUIDs": [
+                    2289217634312
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  110,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t501a",
+            "uid": 2280627699721,
             "pID": "l250_tor501a_in",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GOr-l250-S",
-                "itID":       "IT-TRJ-GOr-l250-t501a-A",
-                "signals":    ["SEM-TRJ-GOr-l250-Wp501"]
+                "neighborUID": 2302102536195,
+                "itUID": 2310692470801,
+                "signalUIDs": [
+                    2289217634313
+                ]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr5",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-trunk",
-                "signals":    ["SEM-TRJ-GOr-l250-Op501"]
+                "neighborUID": 2284922667013,
+                "izUID": 2310692470802,
+                "signalUIDs": [
+                    2289217634315
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t502a",
+            "uid": 2280627699722,
             "pID": "l250_tor502a_in",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "BND-TRJ-GOr-l250-S",
-                "itID":       "IT-TRJ-GOr-l250-t502a-A",
-                "signals":    ["SEM-TRJ-GOr-l250-Wp502"]
+                "neighborUID": 2302102536195,
+                "itUID": 2310692470803,
+                "signalUIDs": [
+                    2289217634314
+                ]
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr6",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-trunk",
-                "signals":    ["SEM-TRJ-GOr-l250-Op502"]
+                "neighborUID": 2284922667014,
+                "izUID": 2310692470804,
+                "signalUIDs": [
+                    2289217634316
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t501p",
+            "uid": 2280627699723,
             "pID": "l250_tor501a_peron",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr5",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-straight",
-                "signals":    []
+                "neighborUID": 2284922667013,
+                "izUID": 2310692470805,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr7",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-trunk",
-                "signals":    []
+                "neighborUID": 2284922667015,
+                "izUID": 2310692470806,
+                "signalUIDs": []
             },
-            "lengthM":     350.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 350.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t502p",
+            "uid": 2280627699724,
             "pID": "l250_tor502a_peron",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr6",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-straight",
-                "signals":    []
+                "neighborUID": 2284922667014,
+                "izUID": 2310692470807,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr8",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-trunk",
-                "signals":    []
+                "neighborUID": 2284922667016,
+                "izUID": 2310692470808,
+                "signalUIDs": []
             },
-            "lengthM":     350.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 350.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-xS",
+            "uid": 2280627699725,
             "pID": "l250_crossover_s",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr5",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-divergent",
-                "signals":    []
+                "neighborUID": 2284922667013,
+                "izUID": 2310692470809,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr6",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-divergent",
-                "signals":    []
+                "neighborUID": 2284922667014,
+                "izUID": 2310692470810,
+                "signalUIDs": []
             },
-            "lengthM":     28.5,
-            "electrified":  true,
-            "maxSpeedKmh":  60,
-            "occupied":     false
+            "lengthM": 28.5,
+            "electrified": true,
+            "maxSpeedKmh": 60,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-xN",
+            "uid": 2280627699726,
             "pID": "l250_crossover_n",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr7",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-divergent",
-                "signals":    []
+                "neighborUID": 2284922667015,
+                "izUID": 2310692470811,
+                "signalUIDs": []
             },
             "sideB": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr8",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-divergent",
-                "signals":    []
+                "neighborUID": 2284922667016,
+                "izUID": 2310692470812,
+                "signalUIDs": []
             },
-            "lengthM":     28.5,
-            "electrified":  true,
-            "maxSpeedKmh":  60,
-            "occupied":     false
+            "lengthM": 28.5,
+            "electrified": true,
+            "maxSpeedKmh": 60,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t501b",
+            "uid": 2280627699727,
             "pID": "l250_tor501a_out",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr7",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-straight",
-                "signals":    ["SEM-TRJ-GOr-l250-Ww501"]
+                "neighborUID": 2284922667015,
+                "izUID": 2310692470813,
+                "signalUIDs": [
+                    2289217634317
+                ]
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GOr-l250-N",
-                "itID":       "IT-TRJ-GOr-l250-t501b-B",
-                "signals":    ["SEM-TRJ-GOr-l250-Np501"]
+                "neighborUID": 2302102536196,
+                "itUID": 2310692470814,
+                "signalUIDs": [
+                    2289217634319
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         },
         {
-            "gID": "OT-TRJ-GOr-l250-t502b",
+            "uid": 2280627699728,
             "pID": "l250_tor502a_out",
-            "sID": "GOr",
             "sideA": {
-                "neighborID": "ZWR-TRJ-GOr-l250-zwr8",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-straight",
-                "signals":    ["SEM-TRJ-GOr-l250-Ww502"]
+                "neighborUID": 2284922667016,
+                "izUID": 2310692470815,
+                "signalUIDs": [
+                    2289217634318
+                ]
             },
             "sideB": {
-                "neighborID": "BND-TRJ-GOr-l250-N",
-                "itID":       "IT-TRJ-GOr-l250-t502b-B",
-                "signals":    ["SEM-TRJ-GOr-l250-Np502"]
+                "neighborUID": 2302102536196,
+                "itUID": 2310692470816,
+                "signalUIDs": [
+                    2289217634320
+                ]
             },
-            "lengthM":     200.0,
-            "electrified":  true,
-            "maxSpeedKmh":  70,
-            "occupied":     false
+            "lengthM": 200.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
         }
     ],
-
     "switches": [
         {
-            "gID":    "ZWR-TRJ-GOr-l202-zwr1",
-            "pID":    "l202_zwr1",
-            "sID":    "GOr",
+            "uid": 2284922667009,
+            "pID": "l202_zwr1",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l202-t1a",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-trunk",
-                "signals":    []
+                "neighborUID": 2280627699713,
+                "izUID": 2310692470786,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l202-t1p",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-straight",
-                "signals":    []
+                "neighborUID": 2280627699715,
+                "izUID": 2310692470789,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l202-xA",
-                "izID":       "IZ-TRJ-GOr-l202-zwr1-divergent",
-                "signals":    []
+                "neighborUID": 2280627699717,
+                "izUID": 2310692470793,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  110,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 110,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l202-zwr2",
-            "pID":    "l202_zwr2",
-            "sID":    "GOr",
+            "uid": 2284922667010,
+            "pID": "l202_zwr2",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l202-t2a",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-trunk",
-                "signals":    []
+                "neighborUID": 2280627699714,
+                "izUID": 2310692470788,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l202-t2p",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-straight",
-                "signals":    []
+                "neighborUID": 2280627699716,
+                "izUID": 2310692470791,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l202-xA",
-                "izID":       "IZ-TRJ-GOr-l202-zwr2-divergent",
-                "signals":    []
+                "neighborUID": 2280627699717,
+                "izUID": 2310692470794,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  110,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 110,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l202-zwr3",
-            "pID":    "l202_zwr3",
-            "sID":    "GOr",
+            "uid": 2284922667011,
+            "pID": "l202_zwr3",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l202-t1p",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-trunk",
-                "signals":    []
+                "neighborUID": 2280627699715,
+                "izUID": 2310692470790,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l202-t1b",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-straight",
-                "signals":    []
+                "neighborUID": 2280627699719,
+                "izUID": 2310692470797,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l202-xB",
-                "izID":       "IZ-TRJ-GOr-l202-zwr3-divergent",
-                "signals":    []
+                "neighborUID": 2280627699718,
+                "izUID": 2310692470795,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  110,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 110,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l202-zwr4",
-            "pID":    "l202_zwr4",
-            "sID":    "GOr",
+            "uid": 2284922667012,
+            "pID": "l202_zwr4",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l202-t2p",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-trunk",
-                "signals":    []
+                "neighborUID": 2280627699716,
+                "izUID": 2310692470792,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l202-t2b",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-straight",
-                "signals":    []
+                "neighborUID": 2280627699720,
+                "izUID": 2310692470799,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l202-xB",
-                "izID":       "IZ-TRJ-GOr-l202-zwr4-divergent",
-                "signals":    []
+                "neighborUID": 2280627699718,
+                "izUID": 2310692470796,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  110,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 110,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l250-zwr5",
-            "pID":    "l250_zwr5",
-            "sID":    "GOr",
+            "uid": 2284922667013,
+            "pID": "l250_zwr5",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l250-t501a",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-trunk",
-                "signals":    []
+                "neighborUID": 2280627699721,
+                "izUID": 2310692470802,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l250-t501p",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-straight",
-                "signals":    []
+                "neighborUID": 2280627699723,
+                "izUID": 2310692470805,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l250-xS",
-                "izID":       "IZ-TRJ-GOr-l250-zwr5-divergent",
-                "signals":    []
+                "neighborUID": 2280627699725,
+                "izUID": 2310692470809,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  70,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 70,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l250-zwr6",
-            "pID":    "l250_zwr6",
-            "sID":    "GOr",
+            "uid": 2284922667014,
+            "pID": "l250_zwr6",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l250-t502a",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-trunk",
-                "signals":    []
+                "neighborUID": 2280627699722,
+                "izUID": 2310692470804,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l250-t502p",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-straight",
-                "signals":    []
+                "neighborUID": 2280627699724,
+                "izUID": 2310692470807,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l250-xS",
-                "izID":       "IZ-TRJ-GOr-l250-zwr6-divergent",
-                "signals":    []
+                "neighborUID": 2280627699725,
+                "izUID": 2310692470810,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  70,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 70,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l250-zwr7",
-            "pID":    "l250_zwr7",
-            "sID":    "GOr",
+            "uid": 2284922667015,
+            "pID": "l250_zwr7",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l250-t501p",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-trunk",
-                "signals":    []
+                "neighborUID": 2280627699723,
+                "izUID": 2310692470806,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l250-t501b",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-straight",
-                "signals":    []
+                "neighborUID": 2280627699727,
+                "izUID": 2310692470813,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l250-xN",
-                "izID":       "IZ-TRJ-GOr-l250-zwr7-divergent",
-                "signals":    []
+                "neighborUID": 2280627699726,
+                "izUID": 2310692470811,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  70,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 70,
             "maxSpeedDivergentKmh": 60
         },
         {
-            "gID":    "ZWR-TRJ-GOr-l250-zwr8",
-            "pID":    "l250_zwr8",
-            "sID":    "GOr",
+            "uid": 2284922667016,
+            "pID": "l250_zwr8",
             "typeID": "DVT-GLB-ZWR-EEA4-0000002",
             "trunk": {
-                "neighborID": "OT-TRJ-GOr-l250-t502p",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-trunk",
-                "signals":    []
+                "neighborUID": 2280627699724,
+                "izUID": 2310692470808,
+                "signalUIDs": []
             },
             "straight": {
-                "neighborID": "OT-TRJ-GOr-l250-t502b",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-straight",
-                "signals":    []
+                "neighborUID": 2280627699728,
+                "izUID": 2310692470815,
+                "signalUIDs": []
             },
             "divergent": {
-                "neighborID": "OT-TRJ-GOr-l250-xN",
-                "izID":       "IZ-TRJ-GOr-l250-zwr8-divergent",
-                "signals":    []
+                "neighborUID": 2280627699726,
+                "izUID": 2310692470812,
+                "signalUIDs": []
             },
-            "lengthM":              28.5,
-            "maxSpeedStraightKmh":  70,
+            "lengthM": 28.5,
+            "maxSpeedStraightKmh": 70,
             "maxSpeedDivergentKmh": 60
         }
     ]

@@ -31,71 +31,70 @@ table OperatorCommandRuntimeState {
 }
 
 table SwitchState {
-    g_id:      string (required);
+    uid:       uint64;
     position:  SwitchPosition;
     occupied:  bool;
     axle_count: int32;
-    train_g_id: string;
-    /// True when a route is currently locking this switch.
+    train_uid:  uint64;
     locked_by_route: bool;
     operator_state: OperatorCommandRuntimeState;
 }
 
 table TrackSectionState {
-    g_id:      string (required);
+    uid:       uint64;
     occupied:  bool;
     axle_count: int32;
-    train_g_id: string;
+    train_uid:  uint64;
     operator_state: OperatorCommandRuntimeState;
 }
 
 table SignalState {
-    g_id:   string (required);
+    uid:    uint64;
     aspect: Aspect;
     operator_state: OperatorCommandRuntimeState;
 }
 
 table DerailerState {
-    g_id:     string (required);
+    uid:      uint64;
     position: DerailerPosition;
     operator_state: OperatorCommandRuntimeState;
 }
 
 table BlockSectionSnapshotState {
-    g_id:            string (required);
+    uid:             uint64;
     state:           BlockSectionState;
     block_direction: BlockDirectionState;
     operator_state:  OperatorCommandRuntimeState;
 }
 
 table RouteState {
-    route_id:    string (required);
-    from_g_id:   string (required);
-    to_g_id:     string (required);
-    section_ids: [string];
+    uid:              uint64;
+    from_signal_uid:  uint64;
+    to_signal_uid:    uint64;
+    section_uids:     [uint64];
 }
 
 table AlarmState {
-    alarm_id:    string (required);
-    alarm_type:  int8;   // AlarmType byte value — cross-file enum reference
-    object_g_id: string;
-    message:     string;
+    uid:        uint64;
+    alarm_type: int8;   // AlarmType byte value — cross-file enum reference
+    object_uid: uint64;
+    message:    string;
 }
 
 table DispatchAreaOwnership {
-    dispatch_area_id: string (required);
-    station_sid:     string (required);
-    owner_client_id: string;   // null = unassigned
+    dispatch_area_uid: uint64;
+    station_uid:       uint64;
+    owner_client_id:   string;   // null = unassigned
 }
 
 table TrainState {
-    train_g_id:      string (required);
-    vehicle_g_ids:   [string];
-    section_g_id:    string;        // current section
-    direction:       int8;          // Direction byte value
-    speed_kmh:       float;
-    total_length_m:  float;
-    total_axles:     int32;
+    uid:            uint64;
+    vehicle_uids:   [uint64];
+    section_uid:    uint64;    // current section
+    direction:      int8;      // Direction byte value
+    speed_kmh:      float;
+    total_length_m: float;
+    total_axles:    int32;
 }
 
 // ── Root snapshot table ──────────────────────────────────────────────────────

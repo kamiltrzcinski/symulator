@@ -25,8 +25,8 @@ struct TakeoverResponseT;
 
 struct TakeoverRequestT : public ::flatbuffers::NativeTable {
   typedef TakeoverRequest TableType;
-  std::string dispatch_area_id{};
-  std::string station_sid{};
+  uint64_t dispatch_area_uid = 0;
+  uint64_t station_uid = 0;
   bool release = false;
   std::string reason_text{};
 };
@@ -36,16 +36,16 @@ struct TakeoverRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TakeoverRequestT NativeTableType;
   typedef TakeoverRequestBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DISPATCH_AREA_ID = 4,
-    VT_STATION_SID = 6,
+    VT_DISPATCH_AREA_UID = 4,
+    VT_STATION_UID = 6,
     VT_RELEASE = 8,
     VT_REASON_TEXT = 10
   };
-  const ::flatbuffers::String *dispatch_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_DISPATCH_AREA_ID);
+  uint64_t dispatch_area_uid() const {
+    return GetField<uint64_t>(VT_DISPATCH_AREA_UID, 0);
   }
-  const ::flatbuffers::String *station_sid() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_STATION_SID);
+  uint64_t station_uid() const {
+    return GetField<uint64_t>(VT_STATION_UID, 0);
   }
   /// True means release ownership instead of acquire.
   bool release() const {
@@ -58,10 +58,8 @@ struct TakeoverRequest FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_DISPATCH_AREA_ID) &&
-           verifier.VerifyString(dispatch_area_id()) &&
-           VerifyOffsetRequired(verifier, VT_STATION_SID) &&
-           verifier.VerifyString(station_sid()) &&
+           VerifyField<uint64_t>(verifier, VT_DISPATCH_AREA_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_STATION_UID, 8) &&
            VerifyField<uint8_t>(verifier, VT_RELEASE, 1) &&
            VerifyOffset(verifier, VT_REASON_TEXT) &&
            verifier.VerifyString(reason_text()) &&
@@ -76,11 +74,11 @@ struct TakeoverRequestBuilder {
   typedef TakeoverRequest Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_dispatch_area_id(::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id) {
-    fbb_.AddOffset(TakeoverRequest::VT_DISPATCH_AREA_ID, dispatch_area_id);
+  void add_dispatch_area_uid(uint64_t dispatch_area_uid) {
+    fbb_.AddElement<uint64_t>(TakeoverRequest::VT_DISPATCH_AREA_UID, dispatch_area_uid, 0);
   }
-  void add_station_sid(::flatbuffers::Offset<::flatbuffers::String> station_sid) {
-    fbb_.AddOffset(TakeoverRequest::VT_STATION_SID, station_sid);
+  void add_station_uid(uint64_t station_uid) {
+    fbb_.AddElement<uint64_t>(TakeoverRequest::VT_STATION_UID, station_uid, 0);
   }
   void add_release(bool release) {
     fbb_.AddElement<uint8_t>(TakeoverRequest::VT_RELEASE, static_cast<uint8_t>(release), 0);
@@ -95,39 +93,35 @@ struct TakeoverRequestBuilder {
   ::flatbuffers::Offset<TakeoverRequest> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TakeoverRequest>(end);
-    fbb_.Required(o, TakeoverRequest::VT_DISPATCH_AREA_ID);
-    fbb_.Required(o, TakeoverRequest::VT_STATION_SID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<TakeoverRequest> CreateTakeoverRequest(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> station_sid = 0,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     bool release = false,
     ::flatbuffers::Offset<::flatbuffers::String> reason_text = 0) {
   TakeoverRequestBuilder builder_(_fbb);
+  builder_.add_station_uid(station_uid);
+  builder_.add_dispatch_area_uid(dispatch_area_uid);
   builder_.add_reason_text(reason_text);
-  builder_.add_station_sid(station_sid);
-  builder_.add_dispatch_area_id(dispatch_area_id);
   builder_.add_release(release);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<TakeoverRequest> CreateTakeoverRequestDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *dispatch_area_id = nullptr,
-    const char *station_sid = nullptr,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     bool release = false,
     const char *reason_text = nullptr) {
-  auto dispatch_area_id__ = dispatch_area_id ? _fbb.CreateString(dispatch_area_id) : 0;
-  auto station_sid__ = station_sid ? _fbb.CreateString(station_sid) : 0;
   auto reason_text__ = reason_text ? _fbb.CreateString(reason_text) : 0;
   return proto::CreateTakeoverRequest(
       _fbb,
-      dispatch_area_id__,
-      station_sid__,
+      dispatch_area_uid,
+      station_uid,
       release,
       reason_text__);
 }
@@ -137,8 +131,8 @@ inline ::flatbuffers::Offset<TakeoverRequest> CreateTakeoverRequestDirect(
 struct TakeoverResponseT : public ::flatbuffers::NativeTable {
   typedef TakeoverResponse TableType;
   bool granted = false;
-  std::string dispatch_area_id{};
-  std::string station_sid{};
+  uint64_t dispatch_area_uid = 0;
+  uint64_t station_uid = 0;
   std::string reject_reason{};
 };
 
@@ -148,18 +142,18 @@ struct TakeoverResponse FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TakeoverResponseBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_GRANTED = 4,
-    VT_DISPATCH_AREA_ID = 6,
-    VT_STATION_SID = 8,
+    VT_DISPATCH_AREA_UID = 6,
+    VT_STATION_UID = 8,
     VT_REJECT_REASON = 10
   };
   bool granted() const {
     return GetField<uint8_t>(VT_GRANTED, 0) != 0;
   }
-  const ::flatbuffers::String *dispatch_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_DISPATCH_AREA_ID);
+  uint64_t dispatch_area_uid() const {
+    return GetField<uint64_t>(VT_DISPATCH_AREA_UID, 0);
   }
-  const ::flatbuffers::String *station_sid() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_STATION_SID);
+  uint64_t station_uid() const {
+    return GetField<uint64_t>(VT_STATION_UID, 0);
   }
   /// Present only when granted=false.
   const ::flatbuffers::String *reject_reason() const {
@@ -169,10 +163,8 @@ struct TakeoverResponse FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_GRANTED, 1) &&
-           VerifyOffsetRequired(verifier, VT_DISPATCH_AREA_ID) &&
-           verifier.VerifyString(dispatch_area_id()) &&
-           VerifyOffsetRequired(verifier, VT_STATION_SID) &&
-           verifier.VerifyString(station_sid()) &&
+           VerifyField<uint64_t>(verifier, VT_DISPATCH_AREA_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_STATION_UID, 8) &&
            VerifyOffset(verifier, VT_REJECT_REASON) &&
            verifier.VerifyString(reject_reason()) &&
            verifier.EndTable();
@@ -189,11 +181,11 @@ struct TakeoverResponseBuilder {
   void add_granted(bool granted) {
     fbb_.AddElement<uint8_t>(TakeoverResponse::VT_GRANTED, static_cast<uint8_t>(granted), 0);
   }
-  void add_dispatch_area_id(::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id) {
-    fbb_.AddOffset(TakeoverResponse::VT_DISPATCH_AREA_ID, dispatch_area_id);
+  void add_dispatch_area_uid(uint64_t dispatch_area_uid) {
+    fbb_.AddElement<uint64_t>(TakeoverResponse::VT_DISPATCH_AREA_UID, dispatch_area_uid, 0);
   }
-  void add_station_sid(::flatbuffers::Offset<::flatbuffers::String> station_sid) {
-    fbb_.AddOffset(TakeoverResponse::VT_STATION_SID, station_sid);
+  void add_station_uid(uint64_t station_uid) {
+    fbb_.AddElement<uint64_t>(TakeoverResponse::VT_STATION_UID, station_uid, 0);
   }
   void add_reject_reason(::flatbuffers::Offset<::flatbuffers::String> reject_reason) {
     fbb_.AddOffset(TakeoverResponse::VT_REJECT_REASON, reject_reason);
@@ -205,8 +197,6 @@ struct TakeoverResponseBuilder {
   ::flatbuffers::Offset<TakeoverResponse> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<TakeoverResponse>(end);
-    fbb_.Required(o, TakeoverResponse::VT_DISPATCH_AREA_ID);
-    fbb_.Required(o, TakeoverResponse::VT_STATION_SID);
     return o;
   }
 };
@@ -214,13 +204,13 @@ struct TakeoverResponseBuilder {
 inline ::flatbuffers::Offset<TakeoverResponse> CreateTakeoverResponse(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     bool granted = false,
-    ::flatbuffers::Offset<::flatbuffers::String> dispatch_area_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> station_sid = 0,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     ::flatbuffers::Offset<::flatbuffers::String> reject_reason = 0) {
   TakeoverResponseBuilder builder_(_fbb);
+  builder_.add_station_uid(station_uid);
+  builder_.add_dispatch_area_uid(dispatch_area_uid);
   builder_.add_reject_reason(reject_reason);
-  builder_.add_station_sid(station_sid);
-  builder_.add_dispatch_area_id(dispatch_area_id);
   builder_.add_granted(granted);
   return builder_.Finish();
 }
@@ -228,17 +218,15 @@ inline ::flatbuffers::Offset<TakeoverResponse> CreateTakeoverResponse(
 inline ::flatbuffers::Offset<TakeoverResponse> CreateTakeoverResponseDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     bool granted = false,
-    const char *dispatch_area_id = nullptr,
-    const char *station_sid = nullptr,
+    uint64_t dispatch_area_uid = 0,
+    uint64_t station_uid = 0,
     const char *reject_reason = nullptr) {
-  auto dispatch_area_id__ = dispatch_area_id ? _fbb.CreateString(dispatch_area_id) : 0;
-  auto station_sid__ = station_sid ? _fbb.CreateString(station_sid) : 0;
   auto reject_reason__ = reject_reason ? _fbb.CreateString(reject_reason) : 0;
   return proto::CreateTakeoverResponse(
       _fbb,
       granted,
-      dispatch_area_id__,
-      station_sid__,
+      dispatch_area_uid,
+      station_uid,
       reject_reason__);
 }
 
@@ -253,8 +241,8 @@ inline TakeoverRequestT *TakeoverRequest::UnPack(const ::flatbuffers::resolver_f
 inline void TakeoverRequest::UnPackTo(TakeoverRequestT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = dispatch_area_id(); if (_e) _o->dispatch_area_id = _e->str(); }
-  { auto _e = station_sid(); if (_e) _o->station_sid = _e->str(); }
+  { auto _e = dispatch_area_uid(); _o->dispatch_area_uid = _e; }
+  { auto _e = station_uid(); _o->station_uid = _e; }
   { auto _e = release(); _o->release = _e; }
   { auto _e = reason_text(); if (_e) _o->reason_text = _e->str(); }
 }
@@ -267,14 +255,14 @@ inline ::flatbuffers::Offset<TakeoverRequest> TakeoverRequest::Pack(::flatbuffer
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TakeoverRequestT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _dispatch_area_id = _fbb.CreateString(_o->dispatch_area_id);
-  auto _station_sid = _fbb.CreateString(_o->station_sid);
+  auto _dispatch_area_uid = _o->dispatch_area_uid;
+  auto _station_uid = _o->station_uid;
   auto _release = _o->release;
   auto _reason_text = _o->reason_text.empty() ? 0 : _fbb.CreateString(_o->reason_text);
   return proto::CreateTakeoverRequest(
       _fbb,
-      _dispatch_area_id,
-      _station_sid,
+      _dispatch_area_uid,
+      _station_uid,
       _release,
       _reason_text);
 }
@@ -289,8 +277,8 @@ inline void TakeoverResponse::UnPackTo(TakeoverResponseT *_o, const ::flatbuffer
   (void)_o;
   (void)_resolver;
   { auto _e = granted(); _o->granted = _e; }
-  { auto _e = dispatch_area_id(); if (_e) _o->dispatch_area_id = _e->str(); }
-  { auto _e = station_sid(); if (_e) _o->station_sid = _e->str(); }
+  { auto _e = dispatch_area_uid(); _o->dispatch_area_uid = _e; }
+  { auto _e = station_uid(); _o->station_uid = _e; }
   { auto _e = reject_reason(); if (_e) _o->reject_reason = _e->str(); }
 }
 
@@ -303,14 +291,14 @@ inline ::flatbuffers::Offset<TakeoverResponse> TakeoverResponse::Pack(::flatbuff
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TakeoverResponseT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _granted = _o->granted;
-  auto _dispatch_area_id = _fbb.CreateString(_o->dispatch_area_id);
-  auto _station_sid = _fbb.CreateString(_o->station_sid);
+  auto _dispatch_area_uid = _o->dispatch_area_uid;
+  auto _station_uid = _o->station_uid;
   auto _reject_reason = _o->reject_reason.empty() ? 0 : _fbb.CreateString(_o->reject_reason);
   return proto::CreateTakeoverResponse(
       _fbb,
       _granted,
-      _dispatch_area_id,
-      _station_sid,
+      _dispatch_area_uid,
+      _station_uid,
       _reject_reason);
 }
 

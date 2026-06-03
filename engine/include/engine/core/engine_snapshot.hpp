@@ -25,24 +25,24 @@ struct EngineSnapshot final : public IStateView
     std::string session;  // the session UUID
     uint64_t tick = 0;
 
-    std::unordered_map<GID, BoundaryNode, std::hash<GID>> boundary_nodes;
-    std::unordered_map<GID, TrackSection, std::hash<GID>> track_sections;
-    std::unordered_map<GID, Switch, std::hash<GID>> switches;
-    std::unordered_map<GID, Signal, std::hash<GID>> signals;
-    std::unordered_map<GID, Derailer, std::hash<GID>> derailers;
-    std::unordered_map<GID, BlockSection, std::hash<GID>> block_sections;
-    std::unordered_map<GID, RouteState, std::hash<GID>> routes;
-    std::unordered_map<GID, AlarmState, std::hash<GID>> alarms;
+    std::unordered_map<UID, BoundaryNode, std::hash<UID>> boundary_nodes;
+    std::unordered_map<UID, TrackSection, std::hash<UID>> track_sections;
+    std::unordered_map<UID, Switch, std::hash<UID>> switches;
+    std::unordered_map<UID, Signal, std::hash<UID>> signals;
+    std::unordered_map<UID, Derailer, std::hash<UID>> derailers;
+    std::unordered_map<UID, BlockSection, std::hash<UID>> block_sections;
+    std::unordered_map<UID, RouteState, std::hash<UID>> routes;
+    std::unordered_map<UID, AlarmState, std::hash<UID>> alarms;
 
     // ── IStateView ────────────────────────────────────────────────────────────
-    const BoundaryNode* find_boundary_node(const GID& gid) const noexcept override;
-    const TrackSection* find_track_section(const GID& gid) const noexcept override;
-    const Switch* find_switch(const GID& gid) const noexcept override;
-    const Signal* find_signal(const GID& gid) const noexcept override;
-    const Derailer* find_derailer(const GID& gid) const noexcept override;
-    const BlockSection* find_block_section(const GID& gid) const noexcept override;
-    const RouteState* find_route(const GID& route_id) const noexcept override;
-    const AlarmState* find_alarm(const GID& alarm_id) const noexcept override;
+    const BoundaryNode* find_boundary_node(UID uid) const noexcept override;
+    const TrackSection* find_track_section(UID uid) const noexcept override;
+    const Switch* find_switch(UID uid) const noexcept override;
+    const Signal* find_signal(UID uid) const noexcept override;
+    const Derailer* find_derailer(UID uid) const noexcept override;
+    const BlockSection* find_block_section(UID uid) const noexcept override;
+    const RouteState* find_route(UID route_uid) const noexcept override;
+    const AlarmState* find_alarm(UID alarm_uid) const noexcept override;
 
     void for_each_track_section(std::function<void(const TrackSection&)> fn) const override;
     void for_each_switch(std::function<void(const Switch&)> fn) const override;

@@ -90,6 +90,10 @@ jobs:
       - name: Validate FlatBuffers schemas
         run: cmake --build build/ninja-debug-headless --target validate_proto_schemas
 
+      # ── UID registry validation ───────────────────────────────────────────
+      - name: Validate UID registry
+        run: cmake --build build/ninja-debug-headless --target validate_uid_registry
+
       # ── Build ─────────────────────────────────────────────────────────────
       - name: Build
         run: cmake --build build/ninja-debug-headless --parallel $(nproc)

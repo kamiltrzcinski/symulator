@@ -24,15 +24,15 @@ class IStateView
 public:
     virtual ~IStateView() = default;
 
-    // ── Topology lookup by GID ────────────────────────────────────────────────
-    virtual const BoundaryNode* find_boundary_node(const GID& gid) const noexcept = 0;
-    virtual const TrackSection* find_track_section(const GID& gid) const noexcept = 0;
-    virtual const Switch* find_switch(const GID& gid) const noexcept = 0;
-    virtual const Signal* find_signal(const GID& gid) const noexcept = 0;
-    virtual const Derailer* find_derailer(const GID& gid) const noexcept = 0;
-    virtual const BlockSection* find_block_section(const GID& gid) const noexcept = 0;
-    virtual const RouteState* find_route(const GID& route_id) const noexcept = 0;
-    virtual const AlarmState* find_alarm(const GID& alarm_id) const noexcept = 0;
+    // ── Topology lookup by UID ────────────────────────────────────────────────
+    virtual const BoundaryNode* find_boundary_node(UID uid) const noexcept = 0;
+    virtual const TrackSection* find_track_section(UID uid) const noexcept = 0;
+    virtual const Switch* find_switch(UID uid) const noexcept = 0;
+    virtual const Signal* find_signal(UID uid) const noexcept = 0;
+    virtual const Derailer* find_derailer(UID uid) const noexcept = 0;
+    virtual const BlockSection* find_block_section(UID uid) const noexcept = 0;
+    virtual const RouteState* find_route(UID route_uid) const noexcept = 0;
+    virtual const AlarmState* find_alarm(UID alarm_uid) const noexcept = 0;
 
     // ── Iteration (needed for BFS and full-snapshot copy) ────────────────────
     virtual void for_each_track_section(std::function<void(const TrackSection&)> fn) const = 0;

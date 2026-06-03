@@ -5,51 +5,51 @@ namespace engine::core
 
 // ── IStateView: find_* ────────────────────────────────────────────────────────
 
-const BoundaryNode* EngineSnapshot::find_boundary_node(const GID& gid) const noexcept
+const BoundaryNode* EngineSnapshot::find_boundary_node(UID uid) const noexcept
 {
-    auto it = boundary_nodes.find(gid);
+    auto it = boundary_nodes.find(uid);
     return it != boundary_nodes.end() ? &it->second : nullptr;
 }
 
-const TrackSection* EngineSnapshot::find_track_section(const GID& gid) const noexcept
+const TrackSection* EngineSnapshot::find_track_section(UID uid) const noexcept
 {
-    auto it = track_sections.find(gid);
+    auto it = track_sections.find(uid);
     return it != track_sections.end() ? &it->second : nullptr;
 }
 
-const Switch* EngineSnapshot::find_switch(const GID& gid) const noexcept
+const Switch* EngineSnapshot::find_switch(UID uid) const noexcept
 {
-    auto it = switches.find(gid);
+    auto it = switches.find(uid);
     return it != switches.end() ? &it->second : nullptr;
 }
 
-const Signal* EngineSnapshot::find_signal(const GID& gid) const noexcept
+const Signal* EngineSnapshot::find_signal(UID uid) const noexcept
 {
-    auto it = signals.find(gid);
+    auto it = signals.find(uid);
     return it != signals.end() ? &it->second : nullptr;
 }
 
-const Derailer* EngineSnapshot::find_derailer(const GID& gid) const noexcept
+const Derailer* EngineSnapshot::find_derailer(UID uid) const noexcept
 {
-    auto it = derailers.find(gid);
+    auto it = derailers.find(uid);
     return it != derailers.end() ? &it->second : nullptr;
 }
 
-const BlockSection* EngineSnapshot::find_block_section(const GID& gid) const noexcept
+const BlockSection* EngineSnapshot::find_block_section(UID uid) const noexcept
 {
-    auto it = block_sections.find(gid);
+    auto it = block_sections.find(uid);
     return it != block_sections.end() ? &it->second : nullptr;
 }
 
-const RouteState* EngineSnapshot::find_route(const GID& route_id) const noexcept
+const RouteState* EngineSnapshot::find_route(UID route_uid) const noexcept
 {
-    auto it = routes.find(route_id);
+    auto it = routes.find(route_uid);
     return it != routes.end() ? &it->second : nullptr;
 }
 
-const AlarmState* EngineSnapshot::find_alarm(const GID& alarm_id) const noexcept
+const AlarmState* EngineSnapshot::find_alarm(UID alarm_uid) const noexcept
 {
-    auto it = alarms.find(alarm_id);
+    auto it = alarms.find(alarm_uid);
     return it != alarms.end() ? &it->second : nullptr;
 }
 

@@ -347,32 +347,32 @@ void FleetRegistry::load(const std::filesystem::path& data_root)
     load_consists_(data_root / "trains");
 }
 
-const VehicleType& FleetRegistry::get_type(const GID& type_id) const
+const VehicleType& FleetRegistry::get_type(UID uid) const
 {
-    const auto it = types_.find(type_id);
+    const auto it = types_.find(uid);
     if (it == types_.end())
     {
-        throw FleetLoadError("VehicleType not found: " + type_id.value);
+        throw FleetLoadError("VehicleType not found: " + std::to_string(uid.value));
     }
     return it->second;
 }
 
-const Vehicle& FleetRegistry::get_vehicle(const GID& gid) const
+const Vehicle& FleetRegistry::get_vehicle(UID uid) const
 {
-    const auto it = vehicles_.find(gid);
+    const auto it = vehicles_.find(uid);
     if (it == vehicles_.end())
     {
-        throw FleetLoadError("Vehicle not found: " + gid.value);
+        throw FleetLoadError("Vehicle not found: " + std::to_string(uid.value));
     }
     return it->second;
 }
 
-const TrainConsist& FleetRegistry::get_consist(const GID& gid) const
+const TrainConsist& FleetRegistry::get_consist(UID uid) const
 {
-    const auto it = consists_.find(gid);
+    const auto it = consists_.find(uid);
     if (it == consists_.end())
     {
-        throw FleetLoadError("TrainConsist not found: " + gid.value);
+        throw FleetLoadError("TrainConsist not found: " + std::to_string(uid.value));
     }
     return it->second;
 }
@@ -385,7 +385,7 @@ void FleetRegistry::load_types_(const std::filesystem::path& types_dir)
         const json j = parse_json_file(path);
 
         VehicleType type{};
-        type.type_id = GID{require_string(j, "typeID", path)};
+        type.uid = require_uid(j, "uid", path);
         type.type_name = require_string(j, "typeName", path);
         type.pkp_series = optional_string(j, "pkpSeries");
         type.family = optional_string(j, "family");
@@ -430,10 +430,11 @@ void FleetRegistry::load_types_(const std::filesystem::path& types_dir)
                 davis_defaults_(type.vehicle_type, type.vehicle_subtype, type.max_speed_kmh);
         }
 
-        const auto [it, inserted] = types_.emplace(type.type_id, std::move(type));
+        const auto [it, inserted] = types_.emplace(type.uid, std::move(type));
         if (!inserted)
         {
-            throw FleetLoadError("Duplicate typeID: " + it->first.value + " in " + path.string());
+            throw FleetLoadError("Duplicate type uid: " + std::to_string(it->first.value) + " in " +
+                                 path.string());
         }
     }
 }
@@ -446,16 +447,16 @@ void FleetRegistry::load_vehicles_(const std::filesystem::path& vehicles_dir)
         const json j = parse_json_file(path);
 
         Vehicle vehicle{};
-        vehicle.gid = GID{require_string(j, "gID", path)};
+        vehicle.uid = require_uid(j, "uid", path);
         vehicle.pid = require_string(j, "pID", path);
-        vehicle.type_id = GID{require_string(j, "typeID", path)};
+        vehicle.type_uid = require_uid(j, "type_uid", path);
         vehicle.display_name = require_string(j, "displayName", path);
 
-        const auto type_it = types_.find(vehicle.type_id);
+        const auto type_it = types_.find(vehicle.type_uid);
         if (type_it == types_.end())
         {
-            throw FleetLoadError("Vehicle references unknown typeID '" + vehicle.type_id.value +
-                                 "' in " + path.string());
+            throw FleetLoadError("Vehicle references unknown type_uid '" +
+                                 std::to_string(vehicle.type_uid.value) + "' in " + path.string());
         }
         const VehicleType& type = type_it->second;
 
@@ -523,11 +524,11 @@ void FleetRegistry::load_vehicles_(const std::filesystem::path& vehicles_dir)
             vehicle.davis = type.davis;
         }
 
-        const auto [it, inserted] = vehicles_.emplace(vehicle.gid, std::move(vehicle));
+        const auto [it, inserted] = vehicles_.emplace(vehicle.uid, std::move(vehicle));
         if (!inserted)
         {
-            throw FleetLoadError("Duplicate vehicle gID: " + it->first.value + " in " +
-                                 path.string());
+            throw FleetLoadError("Duplicate vehicle uid: " + std::to_string(it->first.value) +
+                                 " in " + path.string());
         }
     }
 }
@@ -540,7 +541,7 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
         const json j = parse_json_file(path);
 
         TrainConsist consist{};
-        consist.gid = GID{require_string(j, "gID", path)};
+        consist.uid = require_uid(j, "uid", path);
         consist.pid = require_string(j, "pID", path);
         consist.display_name = require_string(j, "displayName", path);
         consist.train_category =
@@ -568,9 +569,10 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             consist.carrier_id = carrier_id;
         }
 
-        if (!j.contains("vehicles") || !j.at("vehicles").is_array())
+        if (!j.contains("vehicle_uids") || !j.at("vehicle_uids").is_array())
         {
-            throw FleetLoadError("Missing or invalid array field 'vehicles' in " + path.string());
+            throw FleetLoadError("Missing or invalid array field 'vehicle_uids' in " +
+                                 path.string());
         }
 
         const auto folder_category = category_from_folder(path, consists_dir);
@@ -589,21 +591,21 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
         double lambda_mass_sum = 0.0;
         std::vector<const Vehicle*> operational_locomotives;
 
-        for (const auto& item : j.at("vehicles"))
+        for (const auto& item : j.at("vehicle_uids"))
         {
-            if (!item.is_string())
+            if (!item.is_number_unsigned())
             {
-                throw FleetLoadError("Invalid vehicle gID entry in " + path.string());
+                throw FleetLoadError("Invalid vehicle uid entry in " + path.string());
             }
 
-            const GID vehicle_gid{item.get<std::string>()};
-            consist.vehicle_gids.push_back(vehicle_gid);
+            const UID vehicle_uid{item.get<std::uint64_t>()};
+            consist.vehicle_uids.push_back(vehicle_uid);
 
-            const auto vehicle_it = vehicles_.find(vehicle_gid);
+            const auto vehicle_it = vehicles_.find(vehicle_uid);
             if (vehicle_it == vehicles_.end())
             {
-                throw FleetLoadError("Consist references unknown vehicle gID '" +
-                                     vehicle_gid.value + "' in " + path.string());
+                throw FleetLoadError("Consist references unknown vehicle uid '" +
+                                     std::to_string(vehicle_uid.value) + "' in " + path.string());
             }
 
             const Vehicle& vehicle = vehicle_it->second;
@@ -650,7 +652,7 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
                 const bool same_type =
                     std::all_of(operational_locomotives.begin(), operational_locomotives.end(),
                                 [&first](const Vehicle* vehicle)
-                                { return vehicle->type_id.value == first.type_id.value; });
+                                { return vehicle->type_uid == first.type_uid; });
                 const bool coupling_allowed =
                     same_type && first.multiple_coupling_capable.value_or(false);
 
@@ -669,7 +671,7 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             }
         }
 
-        if (consist.vehicle_gids.empty())
+        if (consist.vehicle_uids.empty())
         {
             throw FleetLoadError("Train consist has no vehicles in " + path.string());
         }
@@ -688,11 +690,11 @@ void FleetRegistry::load_consists_(const std::filesystem::path& consists_dir)
             consist.consist_lambda_pct = 0.0f;
         }
 
-        const auto [it, inserted] = consists_.emplace(consist.gid, std::move(consist));
+        const auto [it, inserted] = consists_.emplace(consist.uid, std::move(consist));
         if (!inserted)
         {
-            throw FleetLoadError("Duplicate consist gID: " + it->first.value + " in " +
-                                 path.string());
+            throw FleetLoadError("Duplicate consist uid: " + std::to_string(it->first.value) +
+                                 " in " + path.string());
         }
     }
 }

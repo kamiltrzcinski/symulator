@@ -10,6 +10,11 @@
 #   2. Every staged C/C++ source/header file must comply with clang-format
 #      (checked via `git clang-format --diff`).
 #
+# To apply formatting manually before committing (excludes autogens + JSON):
+#   git clang-format HEAD -- $(git diff --cached --name-only \
+#       | grep -E '\.(c|cc|cpp|cxx|h|hh|hpp|hxx)$' \
+#       | grep -Ev '^(autogens/|3rdParty/|build/)')
+#
 # To skip for a draft/WIP commit:  git commit --no-verify
 
 set -euo pipefail

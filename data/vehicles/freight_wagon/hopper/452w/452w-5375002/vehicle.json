@@ -1,7 +1,7 @@
 {
-    "gID":         "VEH-TRJ-452W-537-0000002",
-    "pID":         "452W-5375002",
-    "typeID":      "VT-GLB-452W-0000002",
-    "displayName": "452W-5375002",
-    "massGrossT":  22.0
+  "uid": 1108101562372,
+  "type_uid": 1103806595181,
+  "pID": "452W-5375002",
+  "displayName": "452W-5375002",
+  "massGrossT": 22.0
 }

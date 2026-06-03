@@ -55,7 +55,7 @@ struct DavisCoefficients
 
 struct VehicleType
 {
-    GID type_id;
+    UID uid;
     std::string type_name;
     std::string pkp_series;  // e.g. ET22; empty when unknown
     std::string family;      // optional grouping label; empty when unknown
@@ -86,9 +86,9 @@ struct VehicleType
 
 struct Vehicle
 {
-    GID gid;
+    UID uid;
     std::string pid;  // operational number, e.g. "ET22-001"
-    GID type_id;
+    UID type_uid;
     std::string display_name;
 
     // ── Resolved properties ────────────────────────────────────────────────────
@@ -124,12 +124,12 @@ struct Carrier
 
 struct TrainConsist
 {
-    GID gid;
+    UID uid;
     std::string pid;
     std::string display_name;
     TrainCategory train_category;
     std::optional<UID> carrier_id;
-    std::vector<GID> vehicle_gids;  // front → rear
+    std::vector<UID> vehicle_uids;  // front → rear
 
     // ── Derived (computed at load time) ────────────────────────────────────────
     float total_length_m;
@@ -155,9 +155,9 @@ struct FleetLoadError : std::runtime_error
 
 class FleetRegistry
 {
-    std::unordered_map<GID, VehicleType, std::hash<GID>> types_;
-    std::unordered_map<GID, Vehicle, std::hash<GID>> vehicles_;
-    std::unordered_map<GID, TrainConsist, std::hash<GID>> consists_;
+    std::unordered_map<UID, VehicleType, std::hash<UID>> types_;
+    std::unordered_map<UID, Vehicle, std::hash<UID>> vehicles_;
+    std::unordered_map<UID, TrainConsist, std::hash<UID>> consists_;
     std::unordered_map<UID, Carrier, std::hash<UID>> carriers_;
 
 public:
@@ -167,12 +167,12 @@ public:
 
     // ── Accessors (read-only after load) ───────────────────────────────────────
 
-    const VehicleType& get_type(const GID& type_id) const;
-    const Vehicle& get_vehicle(const GID& gid) const;
-    const TrainConsist& get_consist(const GID& gid) const;
+    const VehicleType& get_type(UID uid) const;
+    const Vehicle& get_vehicle(UID uid) const;
+    const TrainConsist& get_consist(UID uid) const;
 
-    bool has_vehicle(const GID& gid) const { return vehicles_.count(gid) > 0; }
-    bool has_consist(const GID& gid) const { return consists_.count(gid) > 0; }
+    bool has_vehicle(UID uid) const { return vehicles_.count(uid) > 0; }
+    bool has_consist(UID uid) const { return consists_.count(uid) > 0; }
     bool has_carrier(UID id) const { return carriers_.count(id) > 0; }
 
     // Iteration support for snapshot building.

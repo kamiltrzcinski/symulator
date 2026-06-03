@@ -13,11 +13,23 @@
 
 #include <cstdint>
 #include <span>
+#include <string>
 
 namespace
 {
 
 using namespace engine::core;
+
+// UIDs for test data
+constexpr UID kSigX = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+constexpr UID kSwY = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
+constexpr UID kOtZ = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+constexpr UID kDerWk1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
+constexpr UID kBlSec1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+constexpr UID kBlOpen = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 2);
+constexpr UID kRt1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
+constexpr UID kSigY = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
+constexpr UID kAlm1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 1);
 
 // Build a populated EngineSnapshot for testing.
 EngineSnapshot make_snapshot()
@@ -26,60 +38,60 @@ EngineSnapshot make_snapshot()
     snap.session = "SVC_TEST";
     snap.tick = 42;
 
-    // Signal: S1_STOP aspect
+    // Signal: S2_PROCEED aspect
     Signal sig;
-    sig.gid = GID{"SEM-X"};
+    sig.uid = kSigX;
     sig.pid = "Wx";
     sig.current_aspect = SignalAspect::S2_PROCEED;
-    snap.signals[sig.gid] = sig;
+    snap.signals[sig.uid] = sig;
 
     // Switch: DIVERGENT, locked
     Switch sw;
-    sw.gid = GID{"ZWR-Y"};
+    sw.uid = kSwY;
     sw.pid = "zy";
     sw.position = SwitchPosition::DIVERGENT;
-    sw.locked_by_route = GID{"RT-1"};
+    sw.locked_by_route_uid = kRt1;
     sw.occupancy = TrackOccupancy::FREE;
-    snap.switches[sw.gid] = sw;
+    snap.switches[sw.uid] = sw;
 
     // Track section: occupied
     TrackSection ts;
-    ts.gid = GID{"OT-Z"};
+    ts.uid = kOtZ;
     ts.pid = "tz";
     ts.occupancy = TrackOccupancy::OCCUPIED;
     ts.axle_count = 4;
-    snap.track_sections[ts.gid] = ts;
+    snap.track_sections[ts.uid] = ts;
 
     // Derailer: UNLOCKED
     Derailer der;
-    der.gid = GID{"WK-1"};
+    der.uid = kDerWk1;
     der.pid = "wk1";
     der.state = DerailerState::UNLOCKED;
-    snap.derailers[der.gid] = der;
+    snap.derailers[der.uid] = der;
 
     // Block section: CLOSED, OUTBOUND direction
     BlockSection bs;
-    bs.gid = GID{"BL-1"};
+    bs.uid = kBlSec1;
     bs.pid = "bl1";
     bs.state = BlockSectionState::CLOSED;
     bs.direction = BlockDirectionState::OUTBOUND;
-    snap.block_sections[bs.gid] = bs;
+    snap.block_sections[bs.uid] = bs;
 
     // Active route
     RouteState rt;
-    rt.route_id = GID{"RT-1"};
-    rt.from_signal_gid = GID{"SEM-X"};
-    rt.to_signal_gid = GID{"SEM-Y"};
-    rt.section_gids = {GID{"OT-Z"}};
-    snap.routes[rt.route_id] = rt;
+    rt.uid = kRt1;
+    rt.from_signal_uid = kSigX;
+    rt.to_signal_uid = kSigY;
+    rt.section_uids = {kOtZ};
+    snap.routes[rt.uid] = rt;
 
     // Active alarm
     AlarmState al;
-    al.alarm_id = GID{"ALM-1"};
+    al.uid = kAlm1;
     al.kind = "SWITCH_POSITION_MISMATCH";
-    al.object_gid = GID{"ZWR-Y"};
+    al.object_uid = kSwY;
     al.message = "Switch disagreement";
-    snap.alarms[al.alarm_id] = al;
+    snap.alarms[al.uid] = al;
 
     return snap;
 }
@@ -132,7 +144,7 @@ TEST(SnapshotService, SignalAspectRoundTrip)
     ASSERT_NE(parsed->signals(), nullptr);
     ASSERT_EQ(parsed->signals()->size(), 1u);
     const auto* sig = parsed->signals()->Get(0);
-    EXPECT_EQ(sig->g_id()->str(), "SEM-X");
+    EXPECT_EQ(sig->uid(), kSigX.value);
     EXPECT_EQ(sig->aspect(), proto::Aspect_S2_PROCEED);
 }
 
@@ -145,7 +157,7 @@ TEST(SnapshotService, SwitchPositionAndLockRoundTrip)
     ASSERT_NE(parsed->switches(), nullptr);
     ASSERT_EQ(parsed->switches()->size(), 1u);
     const auto* sw = parsed->switches()->Get(0);
-    EXPECT_EQ(sw->g_id()->str(), "ZWR-Y");
+    EXPECT_EQ(sw->uid(), kSwY.value);
     EXPECT_EQ(sw->position(), proto::SwitchPosition_DIVERGENT);
     EXPECT_TRUE(sw->locked_by_route());
     EXPECT_FALSE(sw->occupied());
@@ -160,7 +172,7 @@ TEST(SnapshotService, TrackSectionOccupancyRoundTrip)
     ASSERT_NE(parsed->track_sections(), nullptr);
     ASSERT_EQ(parsed->track_sections()->size(), 1u);
     const auto* ts = parsed->track_sections()->Get(0);
-    EXPECT_EQ(ts->g_id()->str(), "OT-Z");
+    EXPECT_EQ(ts->uid(), kOtZ.value);
     EXPECT_TRUE(ts->occupied());
     EXPECT_EQ(ts->axle_count(), 4);
 }
@@ -197,11 +209,11 @@ TEST(SnapshotService, BlockSectionStateEnumMappingIsExplicit)
     snap.session = "MAP";
 
     BlockSection open_bs;
-    open_bs.gid = GID{"BL-OPEN"};
+    open_bs.uid = kBlOpen;
     open_bs.pid = "blo";
     open_bs.state = BlockSectionState::OPEN;  // C++ == 1
     open_bs.direction = BlockDirectionState::NEUTRAL;
-    snap.block_sections[open_bs.gid] = open_bs;
+    snap.block_sections[open_bs.uid] = open_bs;
 
     const auto bin = SnapshotService::serialize(snap);
     const auto* parsed = proto::GetSnapshot(bin.data());
@@ -219,12 +231,12 @@ TEST(SnapshotService, RouteRoundTrip)
     ASSERT_NE(parsed->active_routes(), nullptr);
     ASSERT_EQ(parsed->active_routes()->size(), 1u);
     const auto* rt = parsed->active_routes()->Get(0);
-    EXPECT_EQ(rt->route_id()->str(), "RT-1");
-    EXPECT_EQ(rt->from_g_id()->str(), "SEM-X");
-    EXPECT_EQ(rt->to_g_id()->str(), "SEM-Y");
-    ASSERT_NE(rt->section_ids(), nullptr);
-    ASSERT_EQ(rt->section_ids()->size(), 1u);
-    EXPECT_EQ(rt->section_ids()->Get(0)->str(), "OT-Z");
+    EXPECT_EQ(rt->uid(), kRt1.value);
+    EXPECT_EQ(rt->from_signal_uid(), kSigX.value);
+    EXPECT_EQ(rt->to_signal_uid(), kSigY.value);
+    ASSERT_NE(rt->section_uids(), nullptr);
+    ASSERT_EQ(rt->section_uids()->size(), 1u);
+    EXPECT_EQ(rt->section_uids()->Get(0), kOtZ.value);
 }
 
 TEST(SnapshotService, AlarmRoundTrip)
@@ -236,7 +248,7 @@ TEST(SnapshotService, AlarmRoundTrip)
     ASSERT_NE(parsed->active_alarms(), nullptr);
     ASSERT_EQ(parsed->active_alarms()->size(), 1u);
     const auto* al = parsed->active_alarms()->Get(0);
-    EXPECT_EQ(al->alarm_id()->str(), "ALM-1");
+    EXPECT_EQ(al->uid(), kAlm1.value);
     EXPECT_EQ(al->alarm_type(), 1);  // SWITCH_POSITION_MISMATCH = 1
     EXPECT_EQ(al->message()->str(), "Switch disagreement");
 }

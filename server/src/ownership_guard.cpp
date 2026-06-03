@@ -5,14 +5,14 @@
 namespace server
 {
 
-void OwnershipGuard::set_owner(const engine::core::DispatchAreaID& dispatch_area,
+void OwnershipGuard::set_owner(engine::core::UID dispatch_area,
                                const engine::core::PlayerID& player)
 {
     std::scoped_lock lock{mutex_};
     owners_[dispatch_area] = player;
 }
 
-void OwnershipGuard::release(const engine::core::DispatchAreaID& dispatch_area)
+void OwnershipGuard::release(engine::core::UID dispatch_area)
 {
     std::scoped_lock lock{mutex_};
     owners_.erase(dispatch_area);
@@ -30,7 +30,7 @@ void OwnershipGuard::release_all(const engine::core::PlayerID& player)
     }
 }
 
-bool OwnershipGuard::check(const engine::core::DispatchAreaID& dispatch_area,
+bool OwnershipGuard::check(engine::core::UID dispatch_area,
                            const engine::core::PlayerID& player) const
 {
     std::scoped_lock lock{mutex_};
@@ -39,7 +39,7 @@ bool OwnershipGuard::check(const engine::core::DispatchAreaID& dispatch_area,
 }
 
 std::optional<engine::core::PlayerID> OwnershipGuard::get_owner(
-    const engine::core::DispatchAreaID& dispatch_area) const
+    engine::core::UID dispatch_area) const
 {
     std::scoped_lock lock{mutex_};
     const auto it = owners_.find(dispatch_area);

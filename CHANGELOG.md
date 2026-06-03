@@ -2,6 +2,37 @@
 
 All notable changes are documented here.
 
+## [0.5.7] - 2026-06-03
+
+### Changed
+- **Universal UID refactor**: replaced all string-based identity types (`GID`, `SID`,
+  `DispatchAreaID`, `ControlSystemID`) with a single 48-bit, JSON-safe `UID` (`uint64_t`)
+  across the entire codebase — engine, server, SRK, proto schemas, JSON data files, and
+  database schema.
+- **UID bit layout** (`docs/21-uid-legend.md`): DOMAIN\[47:40\] | KIND\[39:32\] | SCOPE\[31:16\] | INSTANCE\[15:0\].
+  19 KIND values cover rolling-stock, infrastructure, and operational entities.
+- **Station registry** (`data/stations.json`): added numeric instance map (GOr=1, Sp=2, GGO=3, OT=4);
+  infrastructure UIDs encode the owning station in the SCOPE field.
+- **JSON data migration**: `data/vehicle_types`, `data/vehicles`, `data/trains`, and
+  `scenarios/*/topology.json` + `objects.json` now use numeric `uid`, `type_uid`,
+  `vehicle_uids`, `neighborUID`, `itUID`, `izUID`, `governs_section`, etc.
+- **FlatBuffers proto schemas**: all `string g_id`/`route_id`/`alarm_id` fields replaced
+  with `uint64 uid`/`route_uid`/`alarm_uid`; all generated headers regenerated.
+- **Database schema**: `station_sid TEXT` → `station_uid BIGINT`, `object_gid TEXT` →
+  `object_uid BIGINT`, `section_gid TEXT` → `section_uid BIGINT` across all tables.
+- **Layer1/Layer2 validators**: updated to validate numeric `uid` fields and UID-encoded
+  cross-references instead of string GIDs and sID fields.
+
+### Added
+- **UID codec tests** (`tests/engine/test_uid_codec.cpp`): encode/decode roundtrip,
+  boundary values, JSON-safety, and no-collision assertions for every domain/kind.
+- **UID registry validator** (`scripts/validate_uid_registry.py`): enforces valid UIDs,
+  no duplicates, and correct SCOPE in all data and topology JSON files; wired into CI as
+  a cmake target after FlatBuffers schema validation.
+- **UID registry integration test** (`tests/integration/test_uid_registry.cpp`): loads
+  the real scenario files and verifies UID validity, uniqueness, and station-SCOPE
+  consistency.
+
 ## [0.5.6] - 2026-06-01
 
 ### Changed

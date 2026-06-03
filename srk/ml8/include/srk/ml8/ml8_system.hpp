@@ -36,7 +36,7 @@ class Ml8System final : public engine::core::IControlSystem
 public:
     explicit Ml8System(int eea4_throw_ticks = 90);
 
-    engine::core::ControlSystemID system_id() const override;
+    std::string system_id() const override;
 
     std::optional<engine::core::InterlockingViolation> check_command(
         const engine::core::IStateView& state, const engine::core::Command& cmd) const override;
@@ -52,8 +52,8 @@ public:
 private:
     int eea4_throw_ticks_;
 
-    std::unordered_map<engine::core::GID, engine::core::SwitchPosition,
-                       std::hash<engine::core::GID>>
+    std::unordered_map<engine::core::UID, engine::core::SwitchPosition,
+                       std::hash<engine::core::UID>>
         pending_targets_;
 
     // ── ML8-specific commands ─────────────────────────────────────────────────

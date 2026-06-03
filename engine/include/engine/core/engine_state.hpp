@@ -25,14 +25,14 @@ class EngineState final : public IStateView
 {
 public:
     // ── IStateView ────────────────────────────────────────────────────────────
-    const BoundaryNode* find_boundary_node(const GID& gid) const noexcept override;
-    const TrackSection* find_track_section(const GID& gid) const noexcept override;
-    const Switch* find_switch(const GID& gid) const noexcept override;
-    const Signal* find_signal(const GID& gid) const noexcept override;
-    const Derailer* find_derailer(const GID& gid) const noexcept override;
-    const BlockSection* find_block_section(const GID& gid) const noexcept override;
-    const RouteState* find_route(const GID& route_id) const noexcept override;
-    const AlarmState* find_alarm(const GID& alarm_id) const noexcept override;
+    const BoundaryNode* find_boundary_node(UID uid) const noexcept override;
+    const TrackSection* find_track_section(UID uid) const noexcept override;
+    const Switch* find_switch(UID uid) const noexcept override;
+    const Signal* find_signal(UID uid) const noexcept override;
+    const Derailer* find_derailer(UID uid) const noexcept override;
+    const BlockSection* find_block_section(UID uid) const noexcept override;
+    const RouteState* find_route(UID route_uid) const noexcept override;
+    const AlarmState* find_alarm(UID alarm_uid) const noexcept override;
 
     void for_each_track_section(std::function<void(const TrackSection&)> fn) const override;
     void for_each_switch(std::function<void(const Switch&)> fn) const override;
@@ -61,58 +61,58 @@ public:
     void insert_block_section(BlockSection b);
 
     // Apply runtime state changes (called by StateApplier during ENGINE tick)
-    void apply_track_section_occupancy(const GID& gid, TrackOccupancy occ, int axle_count);
-    void apply_switch_position(const GID& gid, SwitchPosition pos, int moving_ticks);
-    void apply_switch_lock(const GID& gid, std::optional<GID> route_id);
-    void apply_switch_occupancy(const GID& gid, TrackOccupancy occ, int axle_count);
-    void apply_signal_aspect(const GID& gid, SignalAspect aspect);
-    void apply_signal_lock(const GID& gid, std::optional<GID> route_id);
-    void apply_derailer_state(const GID& gid, DerailerState state);
-    void apply_derailer_lock(const GID& gid, std::optional<GID> route_id);
-    void apply_block_section_state(const GID& gid, BlockSectionState state);
-    void apply_block_section_direction(const GID& gid, BlockDirectionState dir);
-    void apply_block_section_axle_count(const GID& gid, int axle_count);
-    void apply_operator_command_state(const GID& gid, OperatorTargetKind target_kind,
+    void apply_track_section_occupancy(UID uid, TrackOccupancy occ, int axle_count);
+    void apply_switch_position(UID uid, SwitchPosition pos, int moving_ticks);
+    void apply_switch_lock(UID uid, std::optional<UID> route_uid);
+    void apply_switch_occupancy(UID uid, TrackOccupancy occ, int axle_count);
+    void apply_signal_aspect(UID uid, SignalAspect aspect);
+    void apply_signal_lock(UID uid, std::optional<UID> route_uid);
+    void apply_derailer_state(UID uid, DerailerState state);
+    void apply_derailer_lock(UID uid, std::optional<UID> route_uid);
+    void apply_block_section_state(UID uid, BlockSectionState state);
+    void apply_block_section_direction(UID uid, BlockDirectionState dir);
+    void apply_block_section_axle_count(UID uid, int axle_count);
+    void apply_operator_command_state(UID uid, OperatorTargetKind target_kind,
                                       OperatorCommandCode code, bool active);
-    void apply_ml8_command_state(const GID& gid, OperatorTargetKind target_kind,
-                                 Ml8CommandCode code, bool active);
-    void apply_axle_counter_reset(const GID& gid, OperatorTargetKind target_kind);
+    void apply_ml8_command_state(UID uid, OperatorTargetKind target_kind, Ml8CommandCode code,
+                                 bool active);
+    void apply_axle_counter_reset(UID uid, OperatorTargetKind target_kind);
     void add_route(RouteState route);
-    void remove_route(const GID& route_id);
+    void remove_route(UID route_uid);
     void add_alarm(AlarmState alarm);
-    void remove_alarm(const GID& alarm_id);
+    void remove_alarm(UID alarm_uid);
 
     // Direct mutable access for scenario loader and test harnesses
-    std::unordered_map<GID, BoundaryNode, std::hash<GID>>& boundary_nodes()
+    std::unordered_map<UID, BoundaryNode, std::hash<UID>>& boundary_nodes()
     {
         return boundary_nodes_;
     }
-    std::unordered_map<GID, TrackSection, std::hash<GID>>& track_sections()
+    std::unordered_map<UID, TrackSection, std::hash<UID>>& track_sections()
     {
         return track_sections_;
     }
-    std::unordered_map<GID, Switch, std::hash<GID>>& switches() { return switches_; }
-    std::unordered_map<GID, Signal, std::hash<GID>>& signals() { return signals_; }
-    std::unordered_map<GID, Derailer, std::hash<GID>>& derailers() { return derailers_; }
-    std::unordered_map<GID, BlockSection, std::hash<GID>>& block_sections()
+    std::unordered_map<UID, Switch, std::hash<UID>>& switches() { return switches_; }
+    std::unordered_map<UID, Signal, std::hash<UID>>& signals() { return signals_; }
+    std::unordered_map<UID, Derailer, std::hash<UID>>& derailers() { return derailers_; }
+    std::unordered_map<UID, BlockSection, std::hash<UID>>& block_sections()
     {
         return block_sections_;
     }
-    std::unordered_map<GID, RouteState, std::hash<GID>>& routes() { return routes_; }
-    std::unordered_map<GID, AlarmState, std::hash<GID>>& alarms() { return alarms_; }
+    std::unordered_map<UID, RouteState, std::hash<UID>>& routes() { return routes_; }
+    std::unordered_map<UID, AlarmState, std::hash<UID>>& alarms() { return alarms_; }
 
 private:
     std::string session_id_;
     uint64_t current_tick_ = 0;
 
-    std::unordered_map<GID, BoundaryNode, std::hash<GID>> boundary_nodes_;
-    std::unordered_map<GID, TrackSection, std::hash<GID>> track_sections_;
-    std::unordered_map<GID, Switch, std::hash<GID>> switches_;
-    std::unordered_map<GID, Signal, std::hash<GID>> signals_;
-    std::unordered_map<GID, Derailer, std::hash<GID>> derailers_;
-    std::unordered_map<GID, BlockSection, std::hash<GID>> block_sections_;
-    std::unordered_map<GID, RouteState, std::hash<GID>> routes_;
-    std::unordered_map<GID, AlarmState, std::hash<GID>> alarms_;
+    std::unordered_map<UID, BoundaryNode, std::hash<UID>> boundary_nodes_;
+    std::unordered_map<UID, TrackSection, std::hash<UID>> track_sections_;
+    std::unordered_map<UID, Switch, std::hash<UID>> switches_;
+    std::unordered_map<UID, Signal, std::hash<UID>> signals_;
+    std::unordered_map<UID, Derailer, std::hash<UID>> derailers_;
+    std::unordered_map<UID, BlockSection, std::hash<UID>> block_sections_;
+    std::unordered_map<UID, RouteState, std::hash<UID>> routes_;
+    std::unordered_map<UID, AlarmState, std::hash<UID>> alarms_;
 };
 
 }  // namespace engine::core

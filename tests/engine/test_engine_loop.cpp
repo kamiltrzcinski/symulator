@@ -24,7 +24,7 @@ using namespace engine::core;
 class StubControlSystem final : public IControlSystem
 {
 public:
-    ControlSystemID system_id() const override { return ControlSystemID{"stub"}; }
+    std::string system_id() const override { return "stub"; }
 
     std::optional<InterlockingViolation> check_command(const IStateView&,
                                                        const Command&) const override
@@ -54,7 +54,7 @@ public:
 class RejectAllControlSystem final : public IControlSystem
 {
 public:
-    ControlSystemID system_id() const override { return ControlSystemID{"reject-all"}; }
+    std::string system_id() const override { return "reject-all"; }
 
     std::optional<InterlockingViolation> check_command(const IStateView&,
                                                        const Command&) const override
@@ -170,9 +170,8 @@ TEST(EngineLoop, CommandIsExecuted)
     auto st = make_state();
     // Insert a switch so the command can be valid
     Switch sw;
-    sw.gid = GID{"ZWR-X"};
+    sw.uid = UID{0x020400000001ULL};
     sw.pid = "zwrX";
-    sw.sid = SID{"TST"};
     st.insert_switch(sw);
 
     StubControlSystem ctrl;
@@ -186,7 +185,7 @@ TEST(EngineLoop, CommandIsExecuted)
     EnvelopedCommand cmd;
     cmd.meta.seq_id = 1;
     cmd.meta.priority = CommandPriority::NORMAL;
-    cmd.payload = SetSwitchPositionCmd{GID{"ZWR-X"}, SwitchPosition::DIVERGENT};
+    cmd.payload = SetSwitchPositionCmd{UID{0x020400000001ULL}, SwitchPosition::DIVERGENT};
     q.push(std::move(cmd), CommandPriority::NORMAL);
 
     EXPECT_TRUE(
@@ -212,7 +211,7 @@ TEST(EngineLoop, RejectedCommandInvokesNakCallback)
     EnvelopedCommand cmd;
     cmd.meta.seq_id = 42;
     cmd.meta.priority = CommandPriority::NORMAL;
-    cmd.payload = SetSignalAspectCmd{GID{"SEM-X"}, SignalAspect::S2_PROCEED};
+    cmd.payload = SetSignalAspectCmd{UID{0x020500000001ULL}, SignalAspect::S2_PROCEED};
     q.push(std::move(cmd), CommandPriority::NORMAL);
 
     EXPECT_TRUE(wait_for([&] { return nak_count.load() >= 1; }, std::chrono::milliseconds{400}));

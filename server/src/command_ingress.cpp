@@ -7,6 +7,8 @@
 
 #include <flatbuffers/verifier.h>
 
+#include <cstdint>
+
 namespace server
 {
 
@@ -45,26 +47,23 @@ static engine::core::SwitchPosition from_proto(proto::SwitchPosition p)
 
 static engine::core::SignalAspect from_proto(proto::Aspect a)
 {
-    // Both enums have identical ordinal layout (verified by static_assert in types.hpp).
     return static_cast<engine::core::SignalAspect>(a);
 }
 
 static engine::core::DerailerState from_proto(proto::DerailerPosition p)
 {
-    using DS = engine::core::DerailerState;
-    return (p == proto::DerailerPosition_UNLOCKED) ? DS::UNLOCKED : DS::LOCKED;
+    return (p == proto::DerailerPosition_UNLOCKED) ? engine::core::DerailerState::UNLOCKED
+                                                   : engine::core::DerailerState::LOCKED;
 }
 
 static engine::core::BlockSectionState from_proto(proto::BlockSectionState s)
 {
-    // Proto: OPEN=0, CLOSED=1.  Engine: CLOSED=0, OPEN=1 — inverted.
     using BS = engine::core::BlockSectionState;
     return (s == proto::BlockSectionState_OPEN) ? BS::OPEN : BS::CLOSED;
 }
 
 static engine::core::Shl12Op from_proto(proto::Shl12Op op)
 {
-    // Ordinals match.
     return static_cast<engine::core::Shl12Op>(op);
 }
 
@@ -91,7 +90,6 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
 {
     using namespace engine::core;
 
-    // Verify FlatBuffers buffer is minimally sane.
     flatbuffers::Verifier verifier(fb_data, static_cast<std::size_t>(fb_size));
 
     switch (cmd_type)
@@ -101,9 +99,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::SetSwitchPosition>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::SetSwitchPosition>(fb_data);
-            if (!msg->g_id())
+            if (msg->uid() == 0)
                 return std::nullopt;
-            return SetSwitchPositionCmd{GID{msg->g_id()->str()}, from_proto(msg->position())};
+            return SetSwitchPositionCmd{UID{msg->uid()}, from_proto(msg->position())};
         }
 
         case cmd::kSetSignalAspect:
@@ -111,9 +109,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::SetSignalAspect>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::SetSignalAspect>(fb_data);
-            if (!msg->g_id())
+            if (msg->uid() == 0)
                 return std::nullopt;
-            return SetSignalAspectCmd{GID{msg->g_id()->str()}, from_proto(msg->aspect())};
+            return SetSignalAspectCmd{UID{msg->uid()}, from_proto(msg->aspect())};
         }
 
         case cmd::kSetDerailerPosition:
@@ -121,9 +119,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::SetDerailerPosition>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::SetDerailerPosition>(fb_data);
-            if (!msg->g_id())
+            if (msg->uid() == 0)
                 return std::nullopt;
-            return SetDerailerPositionCmd{GID{msg->g_id()->str()}, from_proto(msg->position())};
+            return SetDerailerPositionCmd{UID{msg->uid()}, from_proto(msg->position())};
         }
 
         case cmd::kSetBlockSection:
@@ -131,9 +129,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::SetBlockSection>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::SetBlockSection>(fb_data);
-            if (!msg->g_id())
+            if (msg->uid() == 0)
                 return std::nullopt;
-            return SetBlockSectionCmd{GID{msg->g_id()->str()}, from_proto(msg->state())};
+            return SetBlockSectionCmd{UID{msg->uid()}, from_proto(msg->state())};
         }
 
         case cmd::kRequestRoute:
@@ -141,10 +139,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::RequestRoute>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::RequestRoute>(fb_data);
-            if (!msg->from_signal_g_id() || !msg->to_signal_g_id())
+            if (msg->from_signal_uid() == 0 || msg->to_signal_uid() == 0)
                 return std::nullopt;
-            return RequestRouteCmd{GID{msg->from_signal_g_id()->str()},
-                                   GID{msg->to_signal_g_id()->str()}};
+            return RequestRouteCmd{UID{msg->from_signal_uid()}, UID{msg->to_signal_uid()}};
         }
 
         case cmd::kCancelRoute:
@@ -152,9 +149,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::CancelRoute>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::CancelRoute>(fb_data);
-            if (!msg->route_id())
+            if (msg->route_uid() == 0)
                 return std::nullopt;
-            return CancelRouteCmd{GID{msg->route_id()->str()}, false};
+            return CancelRouteCmd{UID{msg->route_uid()}, false};
         }
 
         case cmd::kAcknowledgeAlarm:
@@ -162,9 +159,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::AcknowledgeAlarm>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::AcknowledgeAlarm>(fb_data);
-            if (!msg->alarm_id())
+            if (msg->alarm_uid() == 0)
                 return std::nullopt;
-            return AcknowledgeAlarmCmd{GID{msg->alarm_id()->str()}};
+            return AcknowledgeAlarmCmd{UID{msg->alarm_uid()}};
         }
 
         case cmd::kSetBlockDirection:
@@ -172,9 +169,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::SetBlockDirection>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::SetBlockDirection>(fb_data);
-            if (!msg->block_section_g_id())
+            if (msg->block_section_uid() == 0)
                 return std::nullopt;
-            return SetBlockDirectionCmd{GID{msg->block_section_g_id()->str()},
+            return SetBlockDirectionCmd{UID{msg->block_section_uid()},
                                         from_proto(msg->operation())};
         }
 
@@ -183,9 +180,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::InitAxleCounterReset>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::InitAxleCounterReset>(fb_data);
-            if (!msg->block_section_g_id())
+            if (msg->block_section_uid() == 0)
                 return std::nullopt;
-            return InitAxleCounterResetCmd{GID{msg->block_section_g_id()->str()}};
+            return InitAxleCounterResetCmd{UID{msg->block_section_uid()}};
         }
 
         case cmd::kResetAxleCounter:
@@ -193,9 +190,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::ResetAxleCounter>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::ResetAxleCounter>(fb_data);
-            if (!msg->block_section_g_id())
+            if (msg->block_section_uid() == 0)
                 return std::nullopt;
-            return ResetAxleCounterCmd{GID{msg->block_section_g_id()->str()}};
+            return ResetAxleCounterCmd{UID{msg->block_section_uid()}};
         }
 
         case cmd::kOperatorCommand:
@@ -203,10 +200,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::OperatorCommand>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::OperatorCommand>(fb_data);
-            if (!msg->target_g_id())
+            if (msg->target_uid() == 0)
                 return std::nullopt;
-            return OperatorCommandCmd{GID{msg->target_g_id()->str()},
-                                      from_proto(msg->target_kind()),
+            return OperatorCommandCmd{UID{msg->target_uid()}, from_proto(msg->target_kind()),
                                       from_proto(msg->command_code())};
         }
 
@@ -215,9 +211,9 @@ std::optional<engine::core::Command> CommandIngress::parse_command(uint8_t cmd_t
             if (!verifier.VerifyBuffer<proto::Ml8Command>())
                 return std::nullopt;
             const auto* msg = flatbuffers::GetRoot<proto::Ml8Command>(fb_data);
-            if (!msg->target_g_id())
+            if (msg->target_uid() == 0)
                 return std::nullopt;
-            return Ml8CommandCmd{GID{msg->target_g_id()->str()}, from_proto(msg->target_kind()),
+            return Ml8CommandCmd{UID{msg->target_uid()}, from_proto(msg->target_kind()),
                                  from_proto(msg->command_code())};
         }
 

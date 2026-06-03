@@ -11,6 +11,21 @@ namespace
 
 using namespace engine::core;
 
+// UIDs for test topology elements
+constexpr UID kSemA = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+constexpr UID kOtTor = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+constexpr UID kZwr1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
+constexpr UID kWk1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
+constexpr UID kBl1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+constexpr UID kSta1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+constexpr UID kRtA = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
+constexpr UID kRt2 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 2);
+constexpr UID kRt3 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 3);
+constexpr UID kRtX = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 10);
+constexpr UID kAlm1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 1);
+constexpr UID kSemMl8 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
+constexpr UID kSemB = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 3);
+
 // Minimal topology: one signal, one switch, one derailer, one block section.
 EngineState make_state()
 {
@@ -19,29 +34,29 @@ EngineState make_state()
     st.set_current_tick(1);
 
     Signal sig;
-    sig.gid = GID{"SEM-A"};
+    sig.uid = kSemA;
     sig.pid = "Wa";
     sig.type = Signal::Type::ENTRY;
-    sig.governs_track_section_gid = GID{"OT-tor"};
+    sig.governs_section_uid = kOtTor;
     sig.current_aspect = SignalAspect::S1_STOP;
     st.insert_signal(sig);
 
     Switch sw;
-    sw.gid = GID{"ZWR-1"};
+    sw.uid = kZwr1;
     sw.pid = "zwr1";
-    sw.sid = SID{"TST"};
+    sw.station_uid = kSta1;
     sw.position = SwitchPosition::STRAIGHT;
     st.insert_switch(sw);
 
     Derailer der;
-    der.gid = GID{"WK-1"};
+    der.uid = kWk1;
     der.pid = "wk1";
-    der.sid = SID{"TST"};
+    der.station_uid = kSta1;
     der.state = DerailerState::LOCKED;
     st.insert_derailer(der);
 
     BlockSection bs;
-    bs.gid = GID{"BL-1"};
+    bs.uid = kBl1;
     bs.pid = "bl1";
     bs.state = BlockSectionState::OPEN;
     bs.direction = BlockDirectionState::NEUTRAL;
@@ -56,33 +71,30 @@ EngineState make_state()
 TEST(StateApplier, SignalAspectChange_setsAspect)
 {
     auto st = make_state();
-    apply(st, SignalAspectChange{GID{"SEM-A"}, SignalAspect::S2_PROCEED, ChangeCause::COMMAND,
-                                 std::nullopt});
-    EXPECT_EQ(st.find_signal(GID{"SEM-A"})->current_aspect, SignalAspect::S2_PROCEED);
+    apply(st,
+          SignalAspectChange{kSemA, SignalAspect::S2_PROCEED, ChangeCause::COMMAND, std::nullopt});
+    EXPECT_EQ(st.find_signal(kSemA)->current_aspect, SignalAspect::S2_PROCEED);
 }
 
 TEST(StateApplier, SignalAspectChange_setsLockWhenRouteIdPresent)
 {
     auto st = make_state();
-    GID route{"RT-1"};
-    apply(st, SignalAspectChange{GID{"SEM-A"}, SignalAspect::S2_PROCEED, ChangeCause::AUTO, route});
-    const auto* sig = st.find_signal(GID{"SEM-A"});
+    apply(st, SignalAspectChange{kSemA, SignalAspect::S2_PROCEED, ChangeCause::AUTO, kRtA});
+    const auto* sig = st.find_signal(kSemA);
     EXPECT_EQ(sig->current_aspect, SignalAspect::S2_PROCEED);
-    EXPECT_TRUE(sig->locked_by_route.has_value());
-    EXPECT_EQ(*sig->locked_by_route, route);
+    EXPECT_TRUE(sig->locked_by_route_uid.has_value());
+    EXPECT_EQ(*sig->locked_by_route_uid, kRtA);
 }
 
 TEST(StateApplier, SignalAspectChange_clearsLockOnStop)
 {
     auto st = make_state();
-    GID route{"RT-1"};
     // First: set proceed + lock
-    apply(st, SignalAspectChange{GID{"SEM-A"}, SignalAspect::S2_PROCEED, ChangeCause::AUTO, route});
-    ASSERT_TRUE(st.find_signal(GID{"SEM-A"})->locked_by_route.has_value());
-    // Then: return to STOP (no route_id → clears lock)
-    apply(st, SignalAspectChange{GID{"SEM-A"}, SignalAspect::S1_STOP, ChangeCause::COMMAND,
-                                 std::nullopt});
-    EXPECT_FALSE(st.find_signal(GID{"SEM-A"})->locked_by_route.has_value());
+    apply(st, SignalAspectChange{kSemA, SignalAspect::S2_PROCEED, ChangeCause::AUTO, kRtA});
+    ASSERT_TRUE(st.find_signal(kSemA)->locked_by_route_uid.has_value());
+    // Then: return to STOP (no route_uid → clears lock)
+    apply(st, SignalAspectChange{kSemA, SignalAspect::S1_STOP, ChangeCause::COMMAND, std::nullopt});
+    EXPECT_FALSE(st.find_signal(kSemA)->locked_by_route_uid.has_value());
 }
 
 // ── SwitchPositionChange ─────────────────────────────────────────────────────
@@ -90,15 +102,15 @@ TEST(StateApplier, SignalAspectChange_clearsLockOnStop)
 TEST(StateApplier, SwitchPositionChange_setsPosition)
 {
     auto st = make_state();
-    apply(st, SwitchPositionChange{GID{"ZWR-1"}, SwitchPosition::DIVERGENT, ChangeCause::COMMAND});
-    EXPECT_EQ(st.find_switch(GID{"ZWR-1"})->position, SwitchPosition::DIVERGENT);
+    apply(st, SwitchPositionChange{kZwr1, SwitchPosition::DIVERGENT, ChangeCause::COMMAND});
+    EXPECT_EQ(st.find_switch(kZwr1)->position, SwitchPosition::DIVERGENT);
 }
 
 TEST(StateApplier, SwitchPositionChange_movingWithTicks)
 {
     auto st = make_state();
-    apply(st, SwitchPositionChange{GID{"ZWR-1"}, SwitchPosition::MOVING, ChangeCause::COMMAND, 10});
-    const auto* sw = st.find_switch(GID{"ZWR-1"});
+    apply(st, SwitchPositionChange{kZwr1, SwitchPosition::MOVING, ChangeCause::COMMAND, 10});
+    const auto* sw = st.find_switch(kZwr1);
     EXPECT_EQ(sw->position, SwitchPosition::MOVING);
     EXPECT_EQ(sw->moving_ticks_remaining, 10);
 }
@@ -108,20 +120,18 @@ TEST(StateApplier, SwitchPositionChange_movingWithTicks)
 TEST(StateApplier, SwitchLocked_setsRouteId)
 {
     auto st = make_state();
-    GID route{"RT-2"};
-    apply(st, SwitchLocked{GID{"ZWR-1"}, route});
-    const auto* sw = st.find_switch(GID{"ZWR-1"});
-    EXPECT_TRUE(sw->locked_by_route.has_value());
-    EXPECT_EQ(*sw->locked_by_route, route);
+    apply(st, SwitchLocked{kZwr1, kRt2});
+    const auto* sw = st.find_switch(kZwr1);
+    EXPECT_TRUE(sw->locked_by_route_uid.has_value());
+    EXPECT_EQ(*sw->locked_by_route_uid, kRt2);
 }
 
 TEST(StateApplier, SwitchUnlocked_clearsRouteId)
 {
     auto st = make_state();
-    GID route{"RT-2"};
-    apply(st, SwitchLocked{GID{"ZWR-1"}, route});
-    apply(st, SwitchUnlocked{GID{"ZWR-1"}, route});
-    EXPECT_FALSE(st.find_switch(GID{"ZWR-1"})->locked_by_route.has_value());
+    apply(st, SwitchLocked{kZwr1, kRt2});
+    apply(st, SwitchUnlocked{kZwr1, kRt2});
+    EXPECT_FALSE(st.find_switch(kZwr1)->locked_by_route_uid.has_value());
 }
 
 // ── DerailerStateChange ───────────────────────────────────────────────────────
@@ -129,29 +139,25 @@ TEST(StateApplier, SwitchUnlocked_clearsRouteId)
 TEST(StateApplier, DerailerStateChange_setsState)
 {
     auto st = make_state();
-    apply(st, DerailerStateChange{GID{"WK-1"}, DerailerState::UNLOCKED, ChangeCause::AUTO,
-                                  std::nullopt});
-    EXPECT_EQ(st.find_derailer(GID{"WK-1"})->state, DerailerState::UNLOCKED);
+    apply(st, DerailerStateChange{kWk1, DerailerState::UNLOCKED, ChangeCause::AUTO, std::nullopt});
+    EXPECT_EQ(st.find_derailer(kWk1)->state, DerailerState::UNLOCKED);
 }
 
 TEST(StateApplier, DerailerStateChange_setsLockWhenRouteIdPresent)
 {
     auto st = make_state();
-    GID route{"RT-3"};
-    apply(st, DerailerStateChange{GID{"WK-1"}, DerailerState::UNLOCKED, ChangeCause::AUTO, route});
-    const auto* der = st.find_derailer(GID{"WK-1"});
-    EXPECT_TRUE(der->locked_by_route.has_value());
-    EXPECT_EQ(*der->locked_by_route, route);
+    apply(st, DerailerStateChange{kWk1, DerailerState::UNLOCKED, ChangeCause::AUTO, kRt3});
+    const auto* der = st.find_derailer(kWk1);
+    EXPECT_TRUE(der->locked_by_route_uid.has_value());
+    EXPECT_EQ(*der->locked_by_route_uid, kRt3);
 }
 
 TEST(StateApplier, DerailerStateChange_clearsLockOnLocked)
 {
     auto st = make_state();
-    GID route{"RT-3"};
-    apply(st, DerailerStateChange{GID{"WK-1"}, DerailerState::UNLOCKED, ChangeCause::AUTO, route});
-    apply(st,
-          DerailerStateChange{GID{"WK-1"}, DerailerState::LOCKED, ChangeCause::AUTO, std::nullopt});
-    EXPECT_FALSE(st.find_derailer(GID{"WK-1"})->locked_by_route.has_value());
+    apply(st, DerailerStateChange{kWk1, DerailerState::UNLOCKED, ChangeCause::AUTO, kRt3});
+    apply(st, DerailerStateChange{kWk1, DerailerState::LOCKED, ChangeCause::AUTO, std::nullopt});
+    EXPECT_FALSE(st.find_derailer(kWk1)->locked_by_route_uid.has_value());
 }
 
 // ── BlockSectionStateChange ───────────────────────────────────────────────────
@@ -159,8 +165,8 @@ TEST(StateApplier, DerailerStateChange_clearsLockOnLocked)
 TEST(StateApplier, BlockSectionStateChange_setsState)
 {
     auto st = make_state();
-    apply(st, BlockSectionStateChange{GID{"BL-1"}, BlockSectionState::CLOSED});
-    EXPECT_EQ(st.find_block_section(GID{"BL-1"})->state, BlockSectionState::CLOSED);
+    apply(st, BlockSectionStateChange{kBl1, BlockSectionState::CLOSED});
+    EXPECT_EQ(st.find_block_section(kBl1)->state, BlockSectionState::CLOSED);
 }
 
 // ── BlockDirectionChange ─────────────────────────────────────────────────────
@@ -168,8 +174,8 @@ TEST(StateApplier, BlockSectionStateChange_setsState)
 TEST(StateApplier, BlockDirectionChange_setsDirection)
 {
     auto st = make_state();
-    apply(st, BlockDirectionChange{GID{"BL-1"}, BlockDirectionState::OUTBOUND_PENDING});
-    EXPECT_EQ(st.find_block_section(GID{"BL-1"})->direction, BlockDirectionState::OUTBOUND_PENDING);
+    apply(st, BlockDirectionChange{kBl1, BlockDirectionState::OUTBOUND_PENDING});
+    EXPECT_EQ(st.find_block_section(kBl1)->direction, BlockDirectionState::OUTBOUND_PENDING);
 }
 
 // ── RouteAdded / RouteRemoved ─────────────────────────────────────────────────
@@ -177,26 +183,26 @@ TEST(StateApplier, BlockDirectionChange_setsDirection)
 TEST(StateApplier, OperatorCommandStateChange_setsSignalStopFlag)
 {
     auto st = make_state();
-    apply(st, OperatorCommandStateChange{GID{"SEM-A"}, OperatorTargetKind::SIGNAL,
+    apply(st, OperatorCommandStateChange{kSemA, OperatorTargetKind::SIGNAL,
                                          OperatorCommandCode::SES, true});
-    EXPECT_TRUE(st.find_signal(GID{"SEM-A"})->operator_state.stopped);
+    EXPECT_TRUE(st.find_signal(kSemA)->operator_state.stopped);
 
-    apply(st, OperatorCommandStateChange{GID{"SEM-A"}, OperatorTargetKind::SIGNAL,
+    apply(st, OperatorCommandStateChange{kSemA, OperatorTargetKind::SIGNAL,
                                          OperatorCommandCode::SEO, false});
-    EXPECT_FALSE(st.find_signal(GID{"SEM-A"})->operator_state.stopped);
+    EXPECT_FALSE(st.find_signal(kSemA)->operator_state.stopped);
 }
 
 TEST(StateApplier, Ml8CommandStateChange_recordsLastMl8Command)
 {
     EngineState st;
     Signal sig;
-    sig.gid = GID{"SEM-ML8"};
+    sig.uid = kSemMl8;
     st.insert_signal(sig);
 
-    apply(st, Ml8CommandStateChange{GID{"SEM-ML8"}, OperatorTargetKind::SIGNAL,
-                                    Ml8CommandCode::STOJ, true});
+    apply(st,
+          Ml8CommandStateChange{kSemMl8, OperatorTargetKind::SIGNAL, Ml8CommandCode::STOJ, true});
 
-    const auto* stored = st.find_signal(GID{"SEM-ML8"});
+    const auto* stored = st.find_signal(kSemMl8);
     ASSERT_NE(stored, nullptr);
     ASSERT_TRUE(stored->operator_state.active_ml8_command.has_value());
     EXPECT_EQ(stored->operator_state.active_ml8_command.value(), Ml8CommandCode::STOJ);
@@ -205,33 +211,33 @@ TEST(StateApplier, Ml8CommandStateChange_recordsLastMl8Command)
 TEST(StateApplier, AxleCounterResetChange_resetsBlockAxleCount)
 {
     auto st = make_state();
-    st.apply_block_section_axle_count(GID{"BL-1"}, 4);
-    apply(st, AxleCounterResetChange{GID{"BL-1"}, OperatorTargetKind::BLOCK_SECTION});
-    EXPECT_EQ(st.find_block_section(GID{"BL-1"})->axle_count, 0);
+    st.apply_block_section_axle_count(kBl1, 4);
+    apply(st, AxleCounterResetChange{kBl1, OperatorTargetKind::BLOCK_SECTION});
+    EXPECT_EQ(st.find_block_section(kBl1)->axle_count, 0);
 }
 
 TEST(StateApplier, RouteAdded_addsRoute)
 {
     auto st = make_state();
     RouteState rs;
-    rs.route_id = GID{"RT-A"};
-    rs.from_signal_gid = GID{"SEM-A"};
-    rs.to_signal_gid = GID{"SEM-B"};
+    rs.uid = kRtA;
+    rs.from_signal_uid = kSemA;
+    rs.to_signal_uid = kSemB;
     apply(st, RouteAdded{rs});
-    EXPECT_NE(st.find_route(GID{"RT-A"}), nullptr);
+    EXPECT_NE(st.find_route(kRtA), nullptr);
 }
 
 TEST(StateApplier, RouteRemoved_removesRoute)
 {
     auto st = make_state();
     RouteState rs;
-    rs.route_id = GID{"RT-A"};
-    rs.from_signal_gid = GID{"SEM-A"};
-    rs.to_signal_gid = GID{"SEM-B"};
+    rs.uid = kRtA;
+    rs.from_signal_uid = kSemA;
+    rs.to_signal_uid = kSemB;
     apply(st, RouteAdded{rs});
-    ASSERT_NE(st.find_route(GID{"RT-A"}), nullptr);
-    apply(st, RouteRemoved{GID{"RT-A"}, "OPERATOR_CANCEL"});
-    EXPECT_EQ(st.find_route(GID{"RT-A"}), nullptr);
+    ASSERT_NE(st.find_route(kRtA), nullptr);
+    apply(st, RouteRemoved{kRtA, "OPERATOR_CANCEL"});
+    EXPECT_EQ(st.find_route(kRtA), nullptr);
 }
 
 // ── AlarmRaised / AlarmCleared ────────────────────────────────────────────────
@@ -240,24 +246,24 @@ TEST(StateApplier, AlarmRaised_addsAlarm)
 {
     auto st = make_state();
     AlarmState al;
-    al.alarm_id = GID{"ALM-1"};
+    al.uid = kAlm1;
     al.kind = "TRACK_OCCUPIED_UNEXPECTEDLY";
-    al.object_gid = GID{"OT-tor"};
+    al.object_uid = kOtTor;
     al.message = "Unexpected occupancy";
     apply(st, AlarmRaised{al});
-    EXPECT_NE(st.find_alarm(GID{"ALM-1"}), nullptr);
+    EXPECT_NE(st.find_alarm(kAlm1), nullptr);
 }
 
 TEST(StateApplier, AlarmCleared_removesAlarm)
 {
     auto st = make_state();
     AlarmState al;
-    al.alarm_id = GID{"ALM-1"};
+    al.uid = kAlm1;
     al.kind = "ENGINE_FAULT";
     al.message = "Fault";
     apply(st, AlarmRaised{al});
-    apply(st, AlarmCleared{GID{"ALM-1"}});
-    EXPECT_EQ(st.find_alarm(GID{"ALM-1"}), nullptr);
+    apply(st, AlarmCleared{kAlm1});
+    EXPECT_EQ(st.find_alarm(kAlm1), nullptr);
 }
 
 // ── apply_all ────────────────────────────────────────────────────────────────
@@ -265,19 +271,18 @@ TEST(StateApplier, AlarmCleared_removesAlarm)
 TEST(StateApplier, ApplyAll_appliesChangesInOrder)
 {
     auto st = make_state();
-    GID route{"RT-X"};
 
     std::vector<DeviceStateChange> changes{
-        SwitchPositionChange{GID{"ZWR-1"}, SwitchPosition::DIVERGENT, ChangeCause::AUTO},
-        SwitchLocked{GID{"ZWR-1"}, route},
-        SignalAspectChange{GID{"SEM-A"}, SignalAspect::S2_PROCEED, ChangeCause::AUTO, route},
+        SwitchPositionChange{kZwr1, SwitchPosition::DIVERGENT, ChangeCause::AUTO},
+        SwitchLocked{kZwr1, kRtX},
+        SignalAspectChange{kSemA, SignalAspect::S2_PROCEED, ChangeCause::AUTO, kRtX},
     };
     apply_all(st, changes);
 
-    EXPECT_EQ(st.find_switch(GID{"ZWR-1"})->position, SwitchPosition::DIVERGENT);
-    EXPECT_TRUE(st.find_switch(GID{"ZWR-1"})->locked_by_route.has_value());
-    EXPECT_EQ(st.find_signal(GID{"SEM-A"})->current_aspect, SignalAspect::S2_PROCEED);
-    EXPECT_TRUE(st.find_signal(GID{"SEM-A"})->locked_by_route.has_value());
+    EXPECT_EQ(st.find_switch(kZwr1)->position, SwitchPosition::DIVERGENT);
+    EXPECT_TRUE(st.find_switch(kZwr1)->locked_by_route_uid.has_value());
+    EXPECT_EQ(st.find_signal(kSemA)->current_aspect, SignalAspect::S2_PROCEED);
+    EXPECT_TRUE(st.find_signal(kSemA)->locked_by_route_uid.has_value());
 }
 
 }  // namespace

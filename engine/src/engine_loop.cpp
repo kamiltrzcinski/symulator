@@ -22,9 +22,9 @@ EngineLoop::EngineLoop(EngineState& state, IControlSystem& control,
 {
 }
 
-void EngineLoop::add_train(sim::TrainSimState initial, GID from_gid)
+void EngineLoop::add_train(sim::TrainSimState initial, UID from_uid)
 {
-    train_fleet_.add_train(std::move(initial), std::move(from_gid));
+    train_fleet_.add_train(std::move(initial), from_uid);
 }
 
 EngineLoop::~EngineLoop()

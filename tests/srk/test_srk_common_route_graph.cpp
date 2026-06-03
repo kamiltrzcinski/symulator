@@ -2,7 +2,7 @@
 //
 // Unit tests for srk::common route-graph functions:
 //   find_route_path()  — BFS path search between two signals
-//   make_route_id()    — deterministic route GID generation
+//   make_route_uid()   — stable OPERATIONS/ROUTE UID generation
 
 #include <gtest/gtest.h>
 
@@ -16,31 +16,30 @@ namespace
 using namespace engine::core;
 using namespace srk::common;
 
-// ── Shared topology IDs ───────────────────────────────────────────────────────
-// Layout A (linear, STRAIGHT route):
-//   BND-N ── [tor_a] ── [zwr1] ── [tor_b] ── BND-S
-//                                  (divergent → [tor_c] ── BND-S2)
-//
-// Signals:
-//   SEM-W  : governs tor_a  (entry from BND-N)
-//   SEM-E  : governs tor_b  (departure toward BND-S, via STRAIGHT leg of zwr1)
-//   SEM-D  : governs tor_c  (departure toward BND-S2, via DIVERGENT leg of zwr1)
-//   SEM-W2 : also governs tor_a (for same-section test)
-//
-// Derailer WK1 guards tor_a.
+// ── UID constants for test topology ──────────────────────────────────────────
+// All with station SCOPE=1 (arbitrary test station).
 
-static const GID BND_N = GID{"BND-N"};
-static const GID BND_S = GID{"BND-S"};
-static const GID BND_S2 = GID{"BND-S2"};
-static const GID TOR_A = GID{"OT-tor_a"};
-static const GID TOR_B = GID{"OT-tor_b"};
-static const GID TOR_C = GID{"OT-tor_c"};
-static const GID ZWR1 = GID{"ZWR-zwr1"};
-static const GID SEM_W = GID{"SEM-W"};
-static const GID SEM_W2 = GID{"SEM-W2"};
-static const GID SEM_E = GID{"SEM-E"};
-static const GID SEM_D = GID{"SEM-D"};
-static const GID WK1 = GID{"WK-wk1"};
+constexpr UID BND_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 1);
+constexpr UID BND_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 2);
+constexpr UID BND_S2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 3);
+constexpr UID TOR_A = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+constexpr UID TOR_B = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 2);
+constexpr UID TOR_C = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 3);
+constexpr UID ZWR1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
+constexpr UID SEM_W = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
+constexpr UID SEM_W2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
+constexpr UID SEM_E = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 3);
+constexpr UID SEM_D = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 4);
+constexpr UID WK1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
+constexpr UID STA1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+
+// Axle counter UIDs (needed for TrackPort::counter_uid)
+constexpr UID IT_A_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 1);
+constexpr UID IZ_A_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 2);
+constexpr UID IZ_B_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 3);
+constexpr UID IT_B_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 4);
+constexpr UID IZ_C_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 5);
+constexpr UID IT_C_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 6);
 
 EngineState make_state()
 {
@@ -50,119 +49,126 @@ EngineState make_state()
 
     // Boundary nodes
     BoundaryNode bn_n;
-    bn_n.gid = BND_N;
+    bn_n.uid = BND_N;
     bn_n.pid = "BND-N";
+    bn_n.station_uid = STA1;
     BoundaryNode bn_s;
-    bn_s.gid = BND_S;
+    bn_s.uid = BND_S;
     bn_s.pid = "BND-S";
+    bn_s.station_uid = STA1;
     BoundaryNode bn_s2;
-    bn_s2.gid = BND_S2;
+    bn_s2.uid = BND_S2;
     bn_s2.pid = "BND-S2";
+    bn_s2.station_uid = STA1;
     st.insert_boundary_node(bn_n);
     st.insert_boundary_node(bn_s);
     st.insert_boundary_node(bn_s2);
 
     // Signals
-    Signal sw;
-    sw.gid = SEM_W;
-    sw.pid = "Wp1";
-    sw.type = Signal::Type::ENTRY;
-    sw.governs_track_section_gid = TOR_A;
-    sw.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sw);
+    Signal sem_w;
+    sem_w.uid = SEM_W;
+    sem_w.pid = "Wp1";
+    sem_w.station_uid = STA1;
+    sem_w.type = Signal::Type::ENTRY;
+    sem_w.governs_section_uid = TOR_A;
+    sem_w.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_w);
 
-    Signal sw2;
-    sw2.gid = SEM_W2;
-    sw2.pid = "Wp2";
-    sw2.type = Signal::Type::ENTRY;
-    sw2.governs_track_section_gid = TOR_A;  // same section as SEM_W
-    sw2.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sw2);
+    Signal sem_w2;
+    sem_w2.uid = SEM_W2;
+    sem_w2.pid = "Wp2";
+    sem_w2.station_uid = STA1;
+    sem_w2.type = Signal::Type::ENTRY;
+    sem_w2.governs_section_uid = TOR_A;
+    sem_w2.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_w2);
 
-    Signal se;
-    se.gid = SEM_E;
-    se.pid = "Wy1";
-    se.type = Signal::Type::DEPARTURE;
-    se.governs_track_section_gid = TOR_B;
-    se.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(se);
+    Signal sem_e;
+    sem_e.uid = SEM_E;
+    sem_e.pid = "Wy1";
+    sem_e.station_uid = STA1;
+    sem_e.type = Signal::Type::DEPARTURE;
+    sem_e.governs_section_uid = TOR_B;
+    sem_e.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_e);
 
-    Signal sd;
-    sd.gid = SEM_D;
-    sd.pid = "Wd1";
-    sd.type = Signal::Type::DEPARTURE;
-    sd.governs_track_section_gid = TOR_C;
-    sd.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sd);
+    Signal sem_d;
+    sem_d.uid = SEM_D;
+    sem_d.pid = "Wd1";
+    sem_d.station_uid = STA1;
+    sem_d.type = Signal::Type::DEPARTURE;
+    sem_d.governs_section_uid = TOR_C;
+    sem_d.current_aspect = SignalAspect::S1_STOP;
+    st.insert_signal(sem_d);
 
     // tor_a: BND-N ── [tor_a] ── ZWR1
     TrackSection ta;
-    ta.gid = TOR_A;
+    ta.uid = TOR_A;
     ta.pid = "tor_a";
-    ta.sid = SID{"TST"};
-    ta.side_a.neighbor_gid = BND_N;
-    ta.side_a.counter_gid = GID{"IT-a-N"};
+    ta.station_uid = STA1;
+    ta.side_a.neighbor_uid = BND_N;
+    ta.side_a.counter_uid = IT_A_N;
     ta.side_a.counter_kind = TrackPort::CounterKind::IT;
-    ta.side_a.signal_gids = {SEM_W};
-    ta.side_b.neighbor_gid = ZWR1;
-    ta.side_b.counter_gid = GID{"IZ-a-S"};
+    ta.side_a.signal_uids = {SEM_W};
+    ta.side_b.neighbor_uid = ZWR1;
+    ta.side_b.counter_uid = IZ_A_S;
     ta.side_b.counter_kind = TrackPort::CounterKind::IZ;
     ta.occupancy = TrackOccupancy::FREE;
     st.insert_track_section(ta);
 
     // tor_b: ZWR1 ── [tor_b] ── BND-S  (straight leg)
     TrackSection tb;
-    tb.gid = TOR_B;
+    tb.uid = TOR_B;
     tb.pid = "tor_b";
-    tb.sid = SID{"TST"};
-    tb.side_a.neighbor_gid = ZWR1;
-    tb.side_a.counter_gid = GID{"IZ-b-N"};
+    tb.station_uid = STA1;
+    tb.side_a.neighbor_uid = ZWR1;
+    tb.side_a.counter_uid = IZ_B_N;
     tb.side_a.counter_kind = TrackPort::CounterKind::IZ;
-    tb.side_b.neighbor_gid = BND_S;
-    tb.side_b.counter_gid = GID{"IT-b-S"};
+    tb.side_b.neighbor_uid = BND_S;
+    tb.side_b.counter_uid = IT_B_S;
     tb.side_b.counter_kind = TrackPort::CounterKind::IT;
-    tb.side_b.signal_gids = {SEM_E};
+    tb.side_b.signal_uids = {SEM_E};
     tb.occupancy = TrackOccupancy::FREE;
     st.insert_track_section(tb);
 
     // tor_c: ZWR1 ── [tor_c] ── BND-S2  (divergent leg)
     TrackSection tc;
-    tc.gid = TOR_C;
+    tc.uid = TOR_C;
     tc.pid = "tor_c";
-    tc.sid = SID{"TST"};
-    tc.side_a.neighbor_gid = ZWR1;
-    tc.side_a.counter_gid = GID{"IZ-c-N"};
+    tc.station_uid = STA1;
+    tc.side_a.neighbor_uid = ZWR1;
+    tc.side_a.counter_uid = IZ_C_N;
     tc.side_a.counter_kind = TrackPort::CounterKind::IZ;
-    tc.side_b.neighbor_gid = BND_S2;
-    tc.side_b.counter_gid = GID{"IT-c-S"};
+    tc.side_b.neighbor_uid = BND_S2;
+    tc.side_b.counter_uid = IT_C_S;
     tc.side_b.counter_kind = TrackPort::CounterKind::IT;
-    tc.side_b.signal_gids = {SEM_D};
+    tc.side_b.signal_uids = {SEM_D};
     tc.occupancy = TrackOccupancy::FREE;
     st.insert_track_section(tc);
 
     // zwr1: trunk → tor_a, straight → tor_b, divergent → tor_c
     Switch sw1;
-    sw1.gid = ZWR1;
+    sw1.uid = ZWR1;
     sw1.pid = "zwr1";
-    sw1.sid = SID{"TST"};
+    sw1.station_uid = STA1;
     sw1.type_id = "DVT-GLB-ZWR-EEA4-0000002";
-    sw1.trunk.neighbor_gid = TOR_A;
-    sw1.trunk.iz_gid = GID{"IZ-a-S"};
-    sw1.straight.neighbor_gid = TOR_B;
-    sw1.straight.iz_gid = GID{"IZ-b-N"};
-    sw1.divergent.neighbor_gid = TOR_C;
-    sw1.divergent.iz_gid = GID{"IZ-c-N"};
+    sw1.trunk.neighbor_uid = TOR_A;
+    sw1.trunk.iz_uid = IZ_A_S;
+    sw1.straight.neighbor_uid = TOR_B;
+    sw1.straight.iz_uid = IZ_B_N;
+    sw1.divergent.neighbor_uid = TOR_C;
+    sw1.divergent.iz_uid = IZ_C_N;
     sw1.position = SwitchPosition::STRAIGHT;
     sw1.occupancy = TrackOccupancy::FREE;
     st.insert_switch(sw1);
 
     // Derailer WK1 guards tor_a
     Derailer wk;
-    wk.gid = WK1;
+    wk.uid = WK1;
     wk.pid = "wk1";
-    wk.sid = SID{"TST"};
+    wk.station_uid = STA1;
     wk.type_id = "DVT-GLB-WK-0000004";
-    wk.guards_track_section_gid = TOR_A;
+    wk.guards_section_uid = TOR_A;
     wk.state = DerailerState::LOCKED;
     st.insert_derailer(wk);
 
@@ -179,23 +185,20 @@ TEST(SrkCommonRouteGraph, FindRoutePath_LinearPath_StraightSwitch)
     const auto result = find_route_path(st, SEM_W, SEM_E);
 
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->from_signal_gid, SEM_W);
-    EXPECT_EQ(result->to_signal_gid, SEM_E);
+    EXPECT_EQ(result->from_signal_uid, SEM_W);
+    EXPECT_EQ(result->to_signal_uid, SEM_E);
 
-    // Sections: tor_a, tor_b
-    ASSERT_EQ(result->section_gids.size(), 2u);
-    EXPECT_EQ(result->section_gids[0], TOR_A);
-    EXPECT_EQ(result->section_gids[1], TOR_B);
+    ASSERT_EQ(result->section_uids.size(), 2u);
+    EXPECT_EQ(result->section_uids[0], TOR_A);
+    EXPECT_EQ(result->section_uids[1], TOR_B);
 
-    // Switch: zwr1
-    ASSERT_EQ(result->switch_gids.size(), 1u);
-    EXPECT_EQ(result->switch_gids[0], ZWR1);
+    ASSERT_EQ(result->switch_uids.size(), 1u);
+    EXPECT_EQ(result->switch_uids[0], ZWR1);
 
-    // The switch node must require STRAIGHT (trunk→TOR_A, going to TOR_B via straight)
     bool found_switch_node = false;
     for (const auto& node : result->nodes)
     {
-        if (node.kind == RoutePathNode::Kind::SWITCH && node.gid == ZWR1)
+        if (node.kind == RoutePathNode::Kind::SWITCH && node.uid == ZWR1)
         {
             EXPECT_EQ(node.required_position, SwitchPosition::STRAIGHT);
             found_switch_node = true;
@@ -210,19 +213,17 @@ TEST(SrkCommonRouteGraph, FindRoutePath_LinearPath_DivergentSwitch)
     const auto result = find_route_path(st, SEM_W, SEM_D);
 
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->from_signal_gid, SEM_W);
-    EXPECT_EQ(result->to_signal_gid, SEM_D);
+    EXPECT_EQ(result->from_signal_uid, SEM_W);
+    EXPECT_EQ(result->to_signal_uid, SEM_D);
 
-    // Sections: tor_a, tor_c
-    ASSERT_EQ(result->section_gids.size(), 2u);
-    EXPECT_EQ(result->section_gids[0], TOR_A);
-    EXPECT_EQ(result->section_gids[1], TOR_C);
+    ASSERT_EQ(result->section_uids.size(), 2u);
+    EXPECT_EQ(result->section_uids[0], TOR_A);
+    EXPECT_EQ(result->section_uids[1], TOR_C);
 
-    // Switch node must require DIVERGENT (trunk→TOR_A, going to TOR_C via divergent)
     bool found_switch_node = false;
     for (const auto& node : result->nodes)
     {
-        if (node.kind == RoutePathNode::Kind::SWITCH && node.gid == ZWR1)
+        if (node.kind == RoutePathNode::Kind::SWITCH && node.uid == ZWR1)
         {
             EXPECT_EQ(node.required_position, SwitchPosition::DIVERGENT);
             found_switch_node = true;
@@ -234,37 +235,33 @@ TEST(SrkCommonRouteGraph, FindRoutePath_LinearPath_DivergentSwitch)
 TEST(SrkCommonRouteGraph, FindRoutePath_SameSection_ReturnsSingleSectionPath)
 {
     const auto st = make_state();
-    // SEM_W and SEM_W2 both govern TOR_A
     const auto result = find_route_path(st, SEM_W, SEM_W2);
 
     ASSERT_TRUE(result.has_value());
-    ASSERT_EQ(result->section_gids.size(), 1u);
-    EXPECT_EQ(result->section_gids[0], TOR_A);
-    EXPECT_TRUE(result->switch_gids.empty());
+    ASSERT_EQ(result->section_uids.size(), 1u);
+    EXPECT_EQ(result->section_uids[0], TOR_A);
+    EXPECT_TRUE(result->switch_uids.empty());
 }
 
-TEST(SrkCommonRouteGraph, FindRoutePath_PopulatesDerailerGids)
+TEST(SrkCommonRouteGraph, FindRoutePath_PopulatesDerailerUids)
 {
     const auto st = make_state();
     const auto result = find_route_path(st, SEM_W, SEM_E);
 
     ASSERT_TRUE(result.has_value());
-    ASSERT_EQ(result->derailer_gids.size(), 1u);
-    EXPECT_EQ(result->derailer_gids[0], WK1);
+    ASSERT_EQ(result->derailer_uids.size(), 1u);
+    EXPECT_EQ(result->derailer_uids[0], WK1);
 }
 
 TEST(SrkCommonRouteGraph, FindRoutePath_DerailerNotIncluded_WhenNotOnPath)
 {
     const auto st = make_state();
-    // Route SEM_E → SEM_D does not pass through tor_a (where WK1 is).
-    // BFS from tor_b via zwr1 to tor_c.
     const auto result = find_route_path(st, SEM_E, SEM_D);
 
     ASSERT_TRUE(result.has_value());
-    // WK1 guards tor_a which is NOT on this path
-    for (const auto& dgid : result->derailer_gids)
+    for (const auto& duid : result->derailer_uids)
     {
-        EXPECT_NE(dgid, WK1) << "WK1 should not appear on a path that skips tor_a";
+        EXPECT_NE(duid, WK1) << "WK1 should not appear on a path that skips tor_a";
     }
 }
 
@@ -273,43 +270,47 @@ TEST(SrkCommonRouteGraph, FindRoutePath_DerailerNotIncluded_WhenNotOnPath)
 TEST(SrkCommonRouteGraph, FindRoutePath_NulloptWhenFromSignalMissing)
 {
     const auto st = make_state();
-    const auto result = find_route_path(st, GID{"SEM-NONEXISTENT"}, SEM_E);
+    const UID nonexistent = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 99);
+    const auto result = find_route_path(st, nonexistent, SEM_E);
     EXPECT_FALSE(result.has_value());
 }
 
 TEST(SrkCommonRouteGraph, FindRoutePath_NulloptWhenToSignalMissing)
 {
     const auto st = make_state();
-    const auto result = find_route_path(st, SEM_W, GID{"SEM-NONEXISTENT"});
+    const UID nonexistent = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 99);
+    const auto result = find_route_path(st, SEM_W, nonexistent);
     EXPECT_FALSE(result.has_value());
 }
 
-// ── make_route_id ─────────────────────────────────────────────────────────────
+// ── make_route_uid ───────────────────────────────────────────────────────────
 
-TEST(SrkCommonRouteGraph, MakeRouteId_IsDeterministicForSameInputs)
+TEST(SrkCommonRouteGraph, MakeRouteUid_IsDeterministicForSameInputs)
 {
-    const GID id1 = make_route_id(SEM_W, SEM_E, 42);
-    const GID id2 = make_route_id(SEM_W, SEM_E, 42);
+    const UID id1 = make_route_uid(SEM_W, SEM_E, 42);
+    const UID id2 = make_route_uid(SEM_W, SEM_E, 42);
     EXPECT_EQ(id1, id2);
 }
 
-TEST(SrkCommonRouteGraph, MakeRouteId_DifferentTicksProduceDifferentIds)
+TEST(SrkCommonRouteGraph, MakeRouteUid_DifferentTicksProduceDifferentIds)
 {
-    const GID id_tick10 = make_route_id(SEM_W, SEM_E, 10);
-    const GID id_tick99 = make_route_id(SEM_W, SEM_E, 99);
+    const UID id_tick10 = make_route_uid(SEM_W, SEM_E, 10);
+    const UID id_tick99 = make_route_uid(SEM_W, SEM_E, 99);
     EXPECT_NE(id_tick10, id_tick99);
 }
 
-TEST(SrkCommonRouteGraph, MakeRouteId_DifferentSignalsDifferentIds)
+TEST(SrkCommonRouteGraph, MakeRouteUid_DifferentSignalsDifferentIds)
 {
-    const GID id_we = make_route_id(SEM_W, SEM_E, 1);
-    const GID id_wd = make_route_id(SEM_W, SEM_D, 1);
+    const UID id_we = make_route_uid(SEM_W, SEM_E, 1);
+    const UID id_wd = make_route_uid(SEM_W, SEM_D, 1);
     EXPECT_NE(id_we, id_wd);
 }
 
-TEST(SrkCommonRouteGraph, MakeRouteId_ContainsSignalGidValues)
+TEST(SrkCommonRouteGraph, MakeRouteUid_IsOperationsRouteKind)
 {
-    const GID id = make_route_id(SEM_W, SEM_E, 5);
-    EXPECT_NE(id.value.find("SEM-W"), std::string::npos);
-    EXPECT_NE(id.value.find("SEM-E"), std::string::npos);
+    const UID id = make_route_uid(SEM_W, SEM_E, 5);
+    EXPECT_NE(id.value, 0u);
+    EXPECT_EQ(uid_domain(id), UIDDomain::OPERATIONS);
+    EXPECT_EQ(uid_kind(id), UIDKind::ROUTE);
+    EXPECT_TRUE(uid_is_safe_json_integer(id));
 }

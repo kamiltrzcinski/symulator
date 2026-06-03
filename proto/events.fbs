@@ -12,53 +12,53 @@ namespace proto;
 
 // ── event_type 0x01 ──────────────────────────────────────────────────────────
 table SwitchPositionChanged {
-    g_id:         string (required);
+    uid:          uint64;
     new_position: SwitchPosition;
     cause:        ChangeCause;
 }
 
 // ── event_type 0x02 ──────────────────────────────────────────────────────────
 table SwitchOccupancyChanged {
-    g_id:       string (required);
+    uid:        uint64;
     occupied:   bool;
     axle_count: int32;
-    train_g_id: string;   // null when not occupied
+    train_uid:  uint64;
 }
 
 // ── event_type 0x03 ──────────────────────────────────────────────────────────
 table SignalAspectChanged {
-    g_id:       string (required);
+    uid:        uint64;
     new_aspect: Aspect;
     cause:      ChangeCause;
 }
 
 // ── event_type 0x04 ──────────────────────────────────────────────────────────
 table TrackSectionOccupancyChanged {
-    g_id:       string (required);
+    uid:        uint64;
     occupied:   bool;
     axle_count: int32;
-    train_g_id: string;   // null when not occupied
+    train_uid:  uint64;
 }
 
 // ── event_type 0x05 ──────────────────────────────────────────────────────────
 table DerailerPositionChanged {
-    g_id:         string (required);
+    uid:          uint64;
     new_position: DerailerPosition;
     cause:        ChangeCause;
 }
 
 // ── event_type 0x06 ──────────────────────────────────────────────────────────
 table BlockSectionStateChanged {
-    g_id:      string (required);
+    uid:       uint64;
     new_state: BlockSectionState;
 }
 
 // ── event_type 0x07 ──────────────────────────────────────────────────────────
 table RouteSet {
-    route_id:    string (required);
-    from_g_id:   string (required);   // entry signal g_id
-    to_g_id:     string (required);   // exit signal g_id
-    section_ids: [string];            // ordered list of track-section g_ids
+    uid:              uint64;
+    from_signal_uid:  uint64;
+    to_signal_uid:    uint64;
+    section_uids:     [uint64];
 }
 
 // ── event_type 0x08 ──────────────────────────────────────────────────────────
@@ -70,8 +70,8 @@ enum RouteReleaseReason : byte {
 }
 
 table RouteReleased {
-    route_id: string (required);
-    reason:   RouteReleaseReason;
+    route_uid: uint64;
+    reason:    RouteReleaseReason;
 }
 
 // ── event_type 0x09 ──────────────────────────────────────────────────────────
@@ -81,8 +81,8 @@ enum Direction : byte {
 }
 
 table TrainMovement {
-    train_g_id:  string (required);
-    section_g_id: string (required);  // section the train is currently on / entering
+    train_uid:   uint64;
+    section_uid: uint64;
     direction:   Direction;
     speed_kmh:   float;
 }
@@ -98,21 +98,21 @@ enum AlarmType : byte {
 }
 
 table AlarmRaised {
-    alarm_id:   string (required);
+    alarm_uid:  uint64;
     alarm_type: AlarmType;
-    object_g_id: string;   // object that triggered the alarm (may be null)
+    object_uid: uint64;
     message:    string;
 }
 
 // ── event_type 0x0B ──────────────────────────────────────────────────────────
 table AlarmCleared {
-    alarm_id: string (required);
+    alarm_uid: uint64;
 }
 
 // ── event_type 0x0C ──────────────────────────────────────────────────────────
 table DispatchAreaOwnershipChanged {
-    dispatch_area_id:  string (required);
-    station_sid:       string (required);
+    dispatch_area_uid:   uint64;
+    station_uid:         uint64;
     new_owner_client_id: string;   // null = released (no owner)
 }
 
@@ -123,8 +123,8 @@ table SessionStateChanged {
 
 // ── event_type 0x0E ──────────────────────────────────────────────────────────
 table TrainComposed {
-    train_g_id:     string (required);
-    vehicle_g_ids:  [string];
+    train_uid:      uint64;
+    vehicle_uids:   [uint64];
     total_length_m: float;
     total_axles:    int32;
 }
@@ -137,20 +137,20 @@ enum TrainDecomposeReason : byte {
 }
 
 table TrainDecomposed {
-    train_g_id: string (required);
-    reason:     TrainDecomposeReason;
+    train_uid: uint64;
+    reason:    TrainDecomposeReason;
 }
 
 // ── event_type 0x10 ────────────────────────────────────────────────────────────
 table BlockDirectionStateChanged {
-    g_id:          string (required);
+    uid:           uint64;
     new_direction: BlockDirectionState;
     cause:         ChangeCause;
 }
 
 // ── event_type 0x11 ────────────────────────────────────────────────────────────
 table OperatorCommandStateChanged {
-    g_id:         string (required);
+    uid:          uint64;
     target_kind:  OperatorTargetKind;
     command_code: OperatorCommandCode;
     active:       bool;
@@ -158,21 +158,20 @@ table OperatorCommandStateChanged {
 
 // ── event_type 0x12 ────────────────────────────────────────────────────────────
 table Ml8CommandStateChanged {
-    g_id:         string (required);
+    uid:          uint64;
     target_kind:  OperatorTargetKind;
     command_code: Ml8CommandCode;
     active:       bool;
 }
 
 // ── event_type 0x13 ────────────────────────────────────────────────────────────
-// Broadcast to the (src_area_id, dst_area_id) pair only.
 table DispatchTelegramStateChanged {
-    exchange_id:     string (required);
-    src_area_id:     string (required);
-    dst_area_id:     string (required);
-    form_type:       DispatchFormType;
-    direction:       TelegramDirection;
-    train_number:    string;
-    new_status:      ExchangeStatus;
-    timestamp_us:    uint64 = 0;
+    exchange_uid:        uint64;
+    src_area_uid:        uint64;
+    dst_area_uid:        uint64;
+    form_type:           DispatchFormType;
+    direction:           TelegramDirection;
+    train_number:        string;
+    new_status:          ExchangeStatus;
+    timestamp_us:        uint64 = 0;
 }

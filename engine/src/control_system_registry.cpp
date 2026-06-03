@@ -11,27 +11,27 @@ ControlSystemRegistry& ControlSystemRegistry::instance()
     return reg;
 }
 
-void ControlSystemRegistry::register_system(ControlSystemID id, FactoryFn factory)
+void ControlSystemRegistry::register_system(std::string id, FactoryFn factory)
 {
-    if (factories_.count(id.value))
-        throw std::logic_error("ControlSystemRegistry: ID '" + id.value + "' already registered");
-    factories_.emplace(id.value, std::move(factory));
+    if (factories_.count(id))
+        throw std::logic_error("ControlSystemRegistry: ID '" + id + "' already registered");
+    factories_.emplace(std::move(id), std::move(factory));
 }
 
-std::unique_ptr<IControlSystem> ControlSystemRegistry::create(const ControlSystemID& id) const
+std::unique_ptr<IControlSystem> ControlSystemRegistry::create(const std::string& id) const
 {
-    auto it = factories_.find(id.value);
+    auto it = factories_.find(id);
     if (it == factories_.end())
-        throw std::out_of_range("ControlSystemRegistry: unknown system ID '" + id.value + "'");
+        throw std::out_of_range("ControlSystemRegistry: unknown system ID '" + id + "'");
     return it->second();
 }
 
-bool ControlSystemRegistry::has(const ControlSystemID& id) const
+bool ControlSystemRegistry::has(const std::string& id) const
 {
-    return factories_.count(id.value) != 0;
+    return factories_.count(id) != 0;
 }
 
-bool ControlSystemRegistry::register_static(ControlSystemID id, FactoryFn factory)
+bool ControlSystemRegistry::register_static(std::string id, FactoryFn factory)
 {
     instance().register_system(std::move(id), std::move(factory));
     return true;

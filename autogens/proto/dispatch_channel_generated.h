@@ -345,12 +345,12 @@ inline ::flatbuffers::Offset<FreeTextPayload> CreateFreeTextPayloadDirect(
 
 struct DispatchChannelMessageT : public ::flatbuffers::NativeTable {
   typedef DispatchChannelMessage TableType;
-  std::string src_area_id{};
-  std::string dst_area_id{};
+  uint64_t src_area_uid = 0;
+  uint64_t dst_area_uid = 0;
   proto::TelegramDirection direction = proto::TelegramDirection_SENT;
   proto::DispatchChannelMessageKind kind = proto::DispatchChannelMessageKind_DISPATCH_FORM;
   proto::DispatchChannelMessageBodyUnion body{};
-  std::string exchange_id{};
+  uint64_t exchange_uid = 0;
   proto::ExchangeStatus exchange_status = proto::ExchangeStatus_PENDING;
   uint64_t timestamp_us = 0;
   std::string sender_id{};
@@ -360,24 +360,24 @@ struct DispatchChannelMessage FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   typedef DispatchChannelMessageT NativeTableType;
   typedef DispatchChannelMessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SRC_AREA_ID = 4,
-    VT_DST_AREA_ID = 6,
+    VT_SRC_AREA_UID = 4,
+    VT_DST_AREA_UID = 6,
     VT_DIRECTION = 8,
     VT_KIND = 10,
     VT_BODY_TYPE = 12,
     VT_BODY = 14,
-    VT_EXCHANGE_ID = 16,
+    VT_EXCHANGE_UID = 16,
     VT_EXCHANGE_STATUS = 18,
     VT_TIMESTAMP_US = 20,
     VT_SENDER_ID = 22
   };
-  /// Dispatch area id of the initiating side (always filled by sender).
-  const ::flatbuffers::String *src_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_SRC_AREA_ID);
+  /// Dispatch area UID of the initiating side (always filled by sender).
+  uint64_t src_area_uid() const {
+    return GetField<uint64_t>(VT_SRC_AREA_UID, 0);
   }
-  /// Dispatch area id of the receiving side (always filled by sender).
-  const ::flatbuffers::String *dst_area_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_DST_AREA_ID);
+  /// Dispatch area UID of the receiving side (always filled by sender).
+  uint64_t dst_area_uid() const {
+    return GetField<uint64_t>(VT_DST_AREA_UID, 0);
   }
   proto::TelegramDirection direction() const {
     return static_cast<proto::TelegramDirection>(GetField<int8_t>(VT_DIRECTION, 0));
@@ -398,8 +398,8 @@ struct DispatchChannelMessage FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   const proto::FreeTextPayload *body_as_FreeTextPayload() const {
     return body_type() == proto::DispatchChannelMessageBody_FreeTextPayload ? static_cast<const proto::FreeTextPayload *>(body()) : nullptr;
   }
-  const ::flatbuffers::String *exchange_id() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_EXCHANGE_ID);
+  uint64_t exchange_uid() const {
+    return GetField<uint64_t>(VT_EXCHANGE_UID, 0);
   }
   proto::ExchangeStatus exchange_status() const {
     return static_cast<proto::ExchangeStatus>(GetField<int8_t>(VT_EXCHANGE_STATUS, 0));
@@ -413,17 +413,14 @@ struct DispatchChannelMessage FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::T
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_SRC_AREA_ID) &&
-           verifier.VerifyString(src_area_id()) &&
-           VerifyOffsetRequired(verifier, VT_DST_AREA_ID) &&
-           verifier.VerifyString(dst_area_id()) &&
+           VerifyField<uint64_t>(verifier, VT_SRC_AREA_UID, 8) &&
+           VerifyField<uint64_t>(verifier, VT_DST_AREA_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_DIRECTION, 1) &&
            VerifyField<int8_t>(verifier, VT_KIND, 1) &&
            VerifyField<uint8_t>(verifier, VT_BODY_TYPE, 1) &&
            VerifyOffset(verifier, VT_BODY) &&
            VerifyDispatchChannelMessageBody(verifier, body(), body_type()) &&
-           VerifyOffset(verifier, VT_EXCHANGE_ID) &&
-           verifier.VerifyString(exchange_id()) &&
+           VerifyField<uint64_t>(verifier, VT_EXCHANGE_UID, 8) &&
            VerifyField<int8_t>(verifier, VT_EXCHANGE_STATUS, 1) &&
            VerifyField<uint64_t>(verifier, VT_TIMESTAMP_US, 8) &&
            VerifyOffset(verifier, VT_SENDER_ID) &&
@@ -447,11 +444,11 @@ struct DispatchChannelMessageBuilder {
   typedef DispatchChannelMessage Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
-  void add_src_area_id(::flatbuffers::Offset<::flatbuffers::String> src_area_id) {
-    fbb_.AddOffset(DispatchChannelMessage::VT_SRC_AREA_ID, src_area_id);
+  void add_src_area_uid(uint64_t src_area_uid) {
+    fbb_.AddElement<uint64_t>(DispatchChannelMessage::VT_SRC_AREA_UID, src_area_uid, 0);
   }
-  void add_dst_area_id(::flatbuffers::Offset<::flatbuffers::String> dst_area_id) {
-    fbb_.AddOffset(DispatchChannelMessage::VT_DST_AREA_ID, dst_area_id);
+  void add_dst_area_uid(uint64_t dst_area_uid) {
+    fbb_.AddElement<uint64_t>(DispatchChannelMessage::VT_DST_AREA_UID, dst_area_uid, 0);
   }
   void add_direction(proto::TelegramDirection direction) {
     fbb_.AddElement<int8_t>(DispatchChannelMessage::VT_DIRECTION, static_cast<int8_t>(direction), 0);
@@ -465,8 +462,8 @@ struct DispatchChannelMessageBuilder {
   void add_body(::flatbuffers::Offset<void> body) {
     fbb_.AddOffset(DispatchChannelMessage::VT_BODY, body);
   }
-  void add_exchange_id(::flatbuffers::Offset<::flatbuffers::String> exchange_id) {
-    fbb_.AddOffset(DispatchChannelMessage::VT_EXCHANGE_ID, exchange_id);
+  void add_exchange_uid(uint64_t exchange_uid) {
+    fbb_.AddElement<uint64_t>(DispatchChannelMessage::VT_EXCHANGE_UID, exchange_uid, 0);
   }
   void add_exchange_status(proto::ExchangeStatus exchange_status) {
     fbb_.AddElement<int8_t>(DispatchChannelMessage::VT_EXCHANGE_STATUS, static_cast<int8_t>(exchange_status), 0);
@@ -484,31 +481,29 @@ struct DispatchChannelMessageBuilder {
   ::flatbuffers::Offset<DispatchChannelMessage> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = ::flatbuffers::Offset<DispatchChannelMessage>(end);
-    fbb_.Required(o, DispatchChannelMessage::VT_SRC_AREA_ID);
-    fbb_.Required(o, DispatchChannelMessage::VT_DST_AREA_ID);
     return o;
   }
 };
 
 inline ::flatbuffers::Offset<DispatchChannelMessage> CreateDispatchChannelMessage(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    ::flatbuffers::Offset<::flatbuffers::String> src_area_id = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> dst_area_id = 0,
+    uint64_t src_area_uid = 0,
+    uint64_t dst_area_uid = 0,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     proto::DispatchChannelMessageKind kind = proto::DispatchChannelMessageKind_DISPATCH_FORM,
     proto::DispatchChannelMessageBody body_type = proto::DispatchChannelMessageBody_NONE,
     ::flatbuffers::Offset<void> body = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> exchange_id = 0,
+    uint64_t exchange_uid = 0,
     proto::ExchangeStatus exchange_status = proto::ExchangeStatus_PENDING,
     uint64_t timestamp_us = 0,
     ::flatbuffers::Offset<::flatbuffers::String> sender_id = 0) {
   DispatchChannelMessageBuilder builder_(_fbb);
   builder_.add_timestamp_us(timestamp_us);
+  builder_.add_exchange_uid(exchange_uid);
+  builder_.add_dst_area_uid(dst_area_uid);
+  builder_.add_src_area_uid(src_area_uid);
   builder_.add_sender_id(sender_id);
-  builder_.add_exchange_id(exchange_id);
   builder_.add_body(body);
-  builder_.add_dst_area_id(dst_area_id);
-  builder_.add_src_area_id(src_area_id);
   builder_.add_exchange_status(exchange_status);
   builder_.add_body_type(body_type);
   builder_.add_kind(kind);
@@ -518,29 +513,26 @@ inline ::flatbuffers::Offset<DispatchChannelMessage> CreateDispatchChannelMessag
 
 inline ::flatbuffers::Offset<DispatchChannelMessage> CreateDispatchChannelMessageDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const char *src_area_id = nullptr,
-    const char *dst_area_id = nullptr,
+    uint64_t src_area_uid = 0,
+    uint64_t dst_area_uid = 0,
     proto::TelegramDirection direction = proto::TelegramDirection_SENT,
     proto::DispatchChannelMessageKind kind = proto::DispatchChannelMessageKind_DISPATCH_FORM,
     proto::DispatchChannelMessageBody body_type = proto::DispatchChannelMessageBody_NONE,
     ::flatbuffers::Offset<void> body = 0,
-    const char *exchange_id = nullptr,
+    uint64_t exchange_uid = 0,
     proto::ExchangeStatus exchange_status = proto::ExchangeStatus_PENDING,
     uint64_t timestamp_us = 0,
     const char *sender_id = nullptr) {
-  auto src_area_id__ = src_area_id ? _fbb.CreateString(src_area_id) : 0;
-  auto dst_area_id__ = dst_area_id ? _fbb.CreateString(dst_area_id) : 0;
-  auto exchange_id__ = exchange_id ? _fbb.CreateString(exchange_id) : 0;
   auto sender_id__ = sender_id ? _fbb.CreateString(sender_id) : 0;
   return proto::CreateDispatchChannelMessage(
       _fbb,
-      src_area_id__,
-      dst_area_id__,
+      src_area_uid,
+      dst_area_uid,
       direction,
       kind,
       body_type,
       body,
-      exchange_id__,
+      exchange_uid,
       exchange_status,
       timestamp_us,
       sender_id__);
@@ -618,13 +610,13 @@ inline DispatchChannelMessageT *DispatchChannelMessage::UnPack(const ::flatbuffe
 inline void DispatchChannelMessage::UnPackTo(DispatchChannelMessageT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = src_area_id(); if (_e) _o->src_area_id = _e->str(); }
-  { auto _e = dst_area_id(); if (_e) _o->dst_area_id = _e->str(); }
+  { auto _e = src_area_uid(); _o->src_area_uid = _e; }
+  { auto _e = dst_area_uid(); _o->dst_area_uid = _e; }
   { auto _e = direction(); _o->direction = _e; }
   { auto _e = kind(); _o->kind = _e; }
   { auto _e = body_type(); _o->body.type = _e; }
   { auto _e = body(); if (_e) _o->body.value = proto::DispatchChannelMessageBodyUnion::UnPack(_e, body_type(), _resolver); }
-  { auto _e = exchange_id(); if (_e) _o->exchange_id = _e->str(); }
+  { auto _e = exchange_uid(); _o->exchange_uid = _e; }
   { auto _e = exchange_status(); _o->exchange_status = _e; }
   { auto _e = timestamp_us(); _o->timestamp_us = _e; }
   { auto _e = sender_id(); if (_e) _o->sender_id = _e->str(); }
@@ -638,25 +630,25 @@ inline ::flatbuffers::Offset<DispatchChannelMessage> DispatchChannelMessage::Pac
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DispatchChannelMessageT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _src_area_id = _fbb.CreateString(_o->src_area_id);
-  auto _dst_area_id = _fbb.CreateString(_o->dst_area_id);
+  auto _src_area_uid = _o->src_area_uid;
+  auto _dst_area_uid = _o->dst_area_uid;
   auto _direction = _o->direction;
   auto _kind = _o->kind;
   auto _body_type = _o->body.type;
   auto _body = _o->body.Pack(_fbb);
-  auto _exchange_id = _o->exchange_id.empty() ? 0 : _fbb.CreateString(_o->exchange_id);
+  auto _exchange_uid = _o->exchange_uid;
   auto _exchange_status = _o->exchange_status;
   auto _timestamp_us = _o->timestamp_us;
   auto _sender_id = _o->sender_id.empty() ? 0 : _fbb.CreateString(_o->sender_id);
   return proto::CreateDispatchChannelMessage(
       _fbb,
-      _src_area_id,
-      _dst_area_id,
+      _src_area_uid,
+      _dst_area_uid,
       _direction,
       _kind,
       _body_type,
       _body,
-      _exchange_id,
+      _exchange_uid,
       _exchange_status,
       _timestamp_us,
       _sender_id);

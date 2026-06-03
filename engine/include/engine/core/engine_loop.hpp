@@ -4,7 +4,7 @@
 //
 // Usage:
 //   EngineLoop loop(state, control_system, command_queue, atomic_snapshot);
-//   loop.add_train(train_state, from_gid);   // before start()
+//   loop.add_train(train_state, from_uid);   // before start()
 //   loop.start();
 //   // ... run scenario ...
 //   loop.stop();  // blocks until the ENGINE thread has exited
@@ -64,9 +64,9 @@ public:
 
     /// Add a train to the fleet.  Must be called before start().
     /// @param initial  Initial TrainSimState (use make_train_sim_state()).
-    /// @param from_gid GID of the section/node behind the train's current
+    /// @param from_uid UID of the section/node behind the train's current
     ///                 section — determines which direction is "ahead".
-    void add_train(sim::TrainSimState initial, GID from_gid);
+    void add_train(sim::TrainSimState initial, UID from_uid);
 
     /// Spawn the ENGINE thread and begin ticking.  No-op if already running.
     void start();

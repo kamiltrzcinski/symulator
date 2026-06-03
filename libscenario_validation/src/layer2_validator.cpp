@@ -11,146 +11,151 @@ namespace
 {
 
 using Severity = ValidationIssue::Severity;
+using json = nlohmann::json;
 
-std::unordered_set<std::string> collect_gids(const nlohmann::json& arr)
+// Extract SCOPE field (bits 31-16) from a UID value.
+static uint16_t uid_scope(uint64_t uid)
 {
-    std::unordered_set<std::string> out;
-    for (const auto& obj : arr)
-        if (obj.contains("gID"))
-            out.insert(obj["gID"].get<std::string>());
-    return out;
+    return static_cast<uint16_t>((uid >> 16) & 0xFFFF);
 }
 
-// Check sID of every object in the array against the expected station_sid.
-void check_sids(const nlohmann::json& arr, const std::string& expected_sid,
-                const std::string& array_name, ValidationResult& result)
+std::unordered_set<uint64_t> collect_uids(const json& arr)
 {
+    std::unordered_set<uint64_t> out;
     for (const auto& obj : arr)
-    {
-        if (!obj.contains("sID"))
-            continue;
-        const auto sid = obj["sID"].get<std::string>();
-        if (sid != expected_sid)
-        {
-            const std::string gid =
-                obj.contains("gID") ? obj["gID"].get<std::string>() : "(unknown)";
-            result.issues.push_back({Severity::ERROR, "L2-001",
-                                     array_name + " " + gid + ": sID '" + sid +
-                                         "' does not match station_sid '" + expected_sid + "'",
-                                     gid});
-        }
-    }
+        if (obj.contains("uid") && obj["uid"].is_number_unsigned())
+            out.insert(obj["uid"].get<uint64_t>());
+    return out;
 }
 
 }  // anonymous namespace
 
 // ── Layer2Validator ───────────────────────────────────────────────────────────
 
-ValidationResult Layer2Validator::validate(const std::string& station_sid,
-                                           const nlohmann::json& topology,
-                                           const nlohmann::json& objects) const
+ValidationResult Layer2Validator::validate(int station_instance, const json& topology,
+                                           const json& objects) const
 {
     ValidationResult result;
 
-    const auto ot_gids = collect_gids(topology.value("track_sections", nlohmann::json::array()));
-    const auto bnd_gids = collect_gids(topology.value("boundary_nodes", nlohmann::json::array()));
-    const auto zwr_gids = collect_gids(topology.value("switches", nlohmann::json::array()));
+    const auto ot_uids = collect_uids(topology.value("track_sections", json::array()));
+    const auto bnd_uids = collect_uids(topology.value("boundary_nodes", json::array()));
+    const auto zwr_uids = collect_uids(topology.value("switches", json::array()));
 
-    // 1. sID consistency across all arrays.
-    check_sids(topology.value("boundary_nodes", nlohmann::json::array()), station_sid,
-               "boundary_node", result);
-    check_sids(topology.value("track_sections", nlohmann::json::array()), station_sid,
-               "track_section", result);
-    check_sids(topology.value("switches", nlohmann::json::array()), station_sid, "switch", result);
-    check_sids(objects.value("signals", nlohmann::json::array()), station_sid, "signal", result);
+    // Union of all topology UIDs (used to check neighborUID for boundary-crossing refs).
+    std::unordered_set<uint64_t> all_topo_uids;
+    all_topo_uids.insert(ot_uids.begin(), ot_uids.end());
+    all_topo_uids.insert(bnd_uids.begin(), bnd_uids.end());
+    all_topo_uids.insert(zwr_uids.begin(), zwr_uids.end());
 
-    // 2. OT neighborID references.
-    for (const auto& ot : topology.value("track_sections", nlohmann::json::array()))
+    // 1. SCOPE consistency: all topology UIDs must have the same station SCOPE.
+    auto check_scope = [&](const json& arr, const std::string& kind)
     {
-        const std::string gid = ot.contains("gID") ? ot["gID"].get<std::string>() : "(unknown)";
+        for (const auto& obj : arr)
+        {
+            if (!obj.contains("uid") || !obj["uid"].is_number_unsigned())
+                continue;
+            const auto uid = obj["uid"].get<uint64_t>();
+            const int scope = static_cast<int>(uid_scope(uid));
+            if (scope != station_instance)
+            {
+                result.issues.push_back(
+                    {Severity::ERROR, "L2-001",
+                     kind + " uid=" + std::to_string(uid) + " has SCOPE=" + std::to_string(scope) +
+                         " but expected station_instance=" + std::to_string(station_instance),
+                     std::nullopt});
+            }
+        }
+    };
+
+    check_scope(topology.value("boundary_nodes", json::array()), "boundary_node");
+    check_scope(topology.value("track_sections", json::array()), "track_section");
+    check_scope(topology.value("switches", json::array()), "switch");
+    check_scope(objects.value("signals", json::array()), "signal");
+
+    // 2. Track section neighborUID references.
+    for (const auto& ot : topology.value("track_sections", json::array()))
+    {
+        const uint64_t uid = ot.contains("uid") ? ot["uid"].get<uint64_t>() : 0;
 
         for (const auto* side : {"sideA", "sideB"})
         {
             if (!ot.contains(side))
                 continue;
             const auto& s = ot[side];
-            if (!s.contains("neighborID"))
+            if (!s.contains("neighborUID") || !s["neighborUID"].is_number_unsigned())
                 continue;
 
-            const auto neighbor = s["neighborID"].get<std::string>();
-            if (neighbor.rfind("ZWR-", 0) == 0)
+            const auto neighbor = s["neighborUID"].get<uint64_t>();
+            if (neighbor == 0)
+                continue;
+
+            // Neighbor should be a switch (KIND=0x14) or boundary_node (KIND=0x18)
+            const uint8_t kind = static_cast<uint8_t>((neighbor >> 32) & 0xFF);
+            if (kind == 0x14)  // SWITCH
             {
-                if (zwr_gids.find(neighbor) == zwr_gids.end())
-                {
+                if (zwr_uids.find(neighbor) == zwr_uids.end())
                     result.issues.push_back({Severity::ERROR, "L2-002",
-                                             "track_section " + gid + " " + side + ".neighborID '" +
-                                                 neighbor + "' references unknown switch",
-                                             gid});
-                }
+                                             "track_section uid=" + std::to_string(uid) + " " +
+                                                 side + ".neighborUID=" + std::to_string(neighbor) +
+                                                 " references unknown switch",
+                                             std::nullopt});
             }
-            else if (neighbor.rfind("BND-", 0) == 0)
+            else if (kind == 0x18)  // BOUNDARY_NODE
             {
-                if (bnd_gids.find(neighbor) == bnd_gids.end())
-                {
+                if (bnd_uids.find(neighbor) == bnd_uids.end())
                     result.issues.push_back({Severity::ERROR, "L2-003",
-                                             "track_section " + gid + " " + side + ".neighborID '" +
-                                                 neighbor + "' references unknown boundary_node",
-                                             gid});
-                }
+                                             "track_section uid=" + std::to_string(uid) + " " +
+                                                 side + ".neighborUID=" + std::to_string(neighbor) +
+                                                 " references unknown boundary_node",
+                                             std::nullopt});
             }
         }
     }
 
-    // 3. ZWR leg neighborID references must be existing OTs.
-    for (const auto& sw : topology.value("switches", nlohmann::json::array()))
+    // 3. Switch leg neighborUID must be existing track sections or boundary nodes.
+    for (const auto& sw : topology.value("switches", json::array()))
     {
-        const std::string gid = sw.contains("gID") ? sw["gID"].get<std::string>() : "(unknown)";
+        const uint64_t uid = sw.contains("uid") ? sw["uid"].get<uint64_t>() : 0;
 
         for (const auto* leg : {"trunk", "straight", "divergent"})
         {
             if (!sw.contains(leg))
                 continue;
             const auto& l = sw[leg];
-            if (!l.contains("neighborID"))
+            if (!l.contains("neighborUID") || !l["neighborUID"].is_number_unsigned())
                 continue;
 
-            const auto neighbor = l["neighborID"].get<std::string>();
-            if (!neighbor.empty() && ot_gids.find(neighbor) == ot_gids.end())
+            const auto neighbor = l["neighborUID"].get<uint64_t>();
+            if (neighbor == 0)
+                continue;
+
+            if (ot_uids.find(neighbor) == ot_uids.end() &&
+                bnd_uids.find(neighbor) == bnd_uids.end())
             {
                 result.issues.push_back({Severity::ERROR, "L2-004",
-                                         "switch " + gid + " " + leg + ".neighborID '" + neighbor +
-                                             "' references unknown track_section",
-                                         gid});
+                                         "switch uid=" + std::to_string(uid) + " " + leg +
+                                             ".neighborUID=" + std::to_string(neighbor) +
+                                             " references unknown track_section or boundary_node",
+                                         std::nullopt});
             }
         }
     }
 
-    // 4. Signal governs_track_section — must be in same station (sID check already covers OT side).
-    //    Here we check the OT actually exists (L1-005 covers the existence itself; L2-005 is
-    //    for cross-station reference).
-    for (const auto& sig : objects.value("signals", nlohmann::json::array()))
+    // 4. Signal governs_section must be in track_sections.
+    for (const auto& sig : objects.value("signals", json::array()))
     {
-        if (!sig.contains("governs_track_section") || !sig.contains("sID"))
+        const uint64_t uid = sig.contains("uid") ? sig["uid"].get<uint64_t>() : 0;
+        if (!sig.contains("governs_section") || !sig["governs_section"].is_number_unsigned())
             continue;
 
-        const std::string gid = sig.contains("gID") ? sig["gID"].get<std::string>() : "(unknown)";
-        const auto ot_ref = sig["governs_track_section"].get<std::string>();
-        const auto sig_sid = sig["sID"].get<std::string>();
-
-        // Find the referenced OT's sID.
-        for (const auto& ot : topology.value("track_sections", nlohmann::json::array()))
+        const auto ot_uid = sig["governs_section"].get<uint64_t>();
+        if (ot_uid != 0 && ot_uids.find(ot_uid) == ot_uids.end())
         {
-            if (!ot.contains("gID") || ot["gID"].get<std::string>() != ot_ref)
-                continue;
-            if (ot.contains("sID") && ot["sID"].get<std::string>() != sig_sid)
-            {
-                result.issues.push_back(
-                    {Severity::ERROR, "L2-005",
-                     "signal " + gid + " governs OT '" + ot_ref + "' from different station ('" +
-                         ot["sID"].get<std::string>() + "' vs '" + sig_sid + "')",
-                     gid});
-            }
-            break;
+            result.issues.push_back({Severity::ERROR, "L2-005",
+                                     "signal uid=" + std::to_string(uid) +
+                                         " governs_section=" + std::to_string(ot_uid) +
+                                         " references unknown track_section",
+                                     std::nullopt});
         }
     }
 

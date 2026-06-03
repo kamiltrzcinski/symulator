@@ -15,9 +15,9 @@ TEST(ProtoSchemas, CommandPayloadRoundTrip)
 {
     flatbuffers::FlatBufferBuilder builder;
 
-    const auto gid = builder.CreateString("SW-1");
+    // SetSwitchPosition now uses uint64 uid, not string g_id.
     proto::SetSwitchPositionBuilder cmd(builder);
-    cmd.add_g_id(gid);
+    cmd.add_uid(42001ULL);
     cmd.add_position(proto::SwitchPosition_STRAIGHT);
 
     const auto payload = cmd.Finish();
@@ -25,8 +25,7 @@ TEST(ProtoSchemas, CommandPayloadRoundTrip)
 
     const auto* parsed = flatbuffers::GetRoot<proto::SetSwitchPosition>(builder.GetBufferPointer());
     ASSERT_NE(parsed, nullptr);
-    ASSERT_NE(parsed->g_id(), nullptr);
-    EXPECT_EQ(parsed->g_id()->str(), "SW-1");
+    EXPECT_EQ(parsed->uid(), 42001ULL);
     EXPECT_EQ(parsed->position(), proto::SwitchPosition_STRAIGHT);
 }
 
@@ -50,11 +49,10 @@ TEST(ProtoSchemas, LifecycleOwnershipChatVoiceAndSnapshotPayloadsBuild)
 
     builder.Clear();
     {
-        const auto dispatch_area = builder.CreateString("GGO_A");
-        const auto station = builder.CreateString("GGO");
+        // TakeoverRequest now uses uint64 dispatch_area_uid and station_uid.
         proto::TakeoverRequestBuilder takeover(builder);
-        takeover.add_dispatch_area_id(dispatch_area);
-        takeover.add_station_sid(station);
+        takeover.add_dispatch_area_uid(55001ULL);
+        takeover.add_station_uid(22001ULL);
 
         const auto payload = takeover.Finish();
         builder.Finish(payload);
@@ -62,8 +60,8 @@ TEST(ProtoSchemas, LifecycleOwnershipChatVoiceAndSnapshotPayloadsBuild)
         const auto* parsed =
             flatbuffers::GetRoot<proto::TakeoverRequest>(builder.GetBufferPointer());
         ASSERT_NE(parsed, nullptr);
-        ASSERT_NE(parsed->dispatch_area_id(), nullptr);
-        EXPECT_EQ(parsed->dispatch_area_id()->str(), "GGO_A");
+        EXPECT_EQ(parsed->dispatch_area_uid(), 55001ULL);
+        EXPECT_EQ(parsed->station_uid(), 22001ULL);
     }
 
     builder.Clear();

@@ -15,7 +15,7 @@ CREATE SCHEMA IF NOT EXISTS session;
 -- Never modified during an active simulation session.
 
 CREATE TABLE IF NOT EXISTS fleet.vehicles (
-    gid               TEXT    PRIMARY KEY,           -- e.g. VEH-GGO-ET22-001-0000001
+    uid               BIGINT  PRIMARY KEY,           -- ROLLING_STOCK/VEHICLE UID
     pid               TEXT    NOT NULL,
     type              TEXT    NOT NULL,              -- LOCOMOTIVE | EMU_UNIT | PASSENGER_WAGON | ...
     subtype           TEXT,
@@ -34,23 +34,23 @@ CREATE TABLE IF NOT EXISTS fleet.vehicles (
 );
 
 CREATE TABLE IF NOT EXISTS fleet.train_definitions (
-    gid          TEXT PRIMARY KEY,                   -- e.g. TRN-GGO-IC12345-0000100
-    pid          TEXT NOT NULL,                      -- e.g. IC 12345
-    display_name TEXT NOT NULL
+    uid          BIGINT PRIMARY KEY,                 -- ROLLING_STOCK/TRAIN_CONSIST UID
+    pid          TEXT   NOT NULL,                    -- e.g. IC 12345
+    display_name TEXT   NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS fleet.train_definition_vehicles (
-    definition_gid TEXT    NOT NULL REFERENCES fleet.train_definitions(gid),
+    definition_uid BIGINT  NOT NULL REFERENCES fleet.train_definitions(uid),
     position       INTEGER NOT NULL,                 -- 0 = front of train
-    vehicle_gid    TEXT    NOT NULL REFERENCES fleet.vehicles(gid),
-    PRIMARY KEY (definition_gid, position)
+    vehicle_uid    BIGINT  NOT NULL REFERENCES fleet.vehicles(uid),
+    PRIMARY KEY (definition_uid, position)
 );
 
 CREATE TABLE IF NOT EXISTS fleet.timetable_templates (
     id                   SERIAL  PRIMARY KEY,
     train_number         TEXT    NOT NULL,           -- e.g. IC 12345
-    train_definition_gid TEXT    REFERENCES fleet.train_definitions(gid),
-    station_sid          TEXT    NOT NULL,           -- e.g. GGO
+    train_definition_uid BIGINT  REFERENCES fleet.train_definitions(uid),
+    station_uid          BIGINT  NOT NULL,           -- INFRASTRUCTURE/STATION UID
     operating_point_id   TEXT,                       -- NULL = whole station sees this train
     scheduled_arrival    INTERVAL,                   -- offset from session start; NULL for first origin
     scheduled_departure  INTERVAL NOT NULL,
@@ -82,10 +82,10 @@ BEGIN
 END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_timetable_train_station
-    ON fleet.timetable_templates (train_number, station_sid);
+    ON fleet.timetable_templates (train_number, station_uid);
 
 CREATE INDEX IF NOT EXISTS idx_timetable_station_dep
-    ON fleet.timetable_templates (station_sid, scheduled_departure);
+    ON fleet.timetable_templates (station_uid, scheduled_departure);
 CREATE INDEX IF NOT EXISTS idx_timetable_operating_days
     ON fleet.timetable_templates USING GIN (operating_days);
 
@@ -110,14 +110,14 @@ CREATE TABLE IF NOT EXISTS session.events (
     event_type   SMALLINT  NOT NULL,   -- mirrors DOMAIN_EVENT event_type byte (see docs/09)
     event_id     BIGINT    NOT NULL,   -- server monotonic counter
     timestamp_us BIGINT    NOT NULL,   -- microseconds since session epoch
-    object_gid   TEXT,                 -- NULL for session-level events
+    object_uid   BIGINT,               -- NULL for session-level events; INFRASTRUCTURE/OPERATIONS UID
     payload      BYTEA     NOT NULL    -- FlatBuffers-serialized body
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_session_event
     ON session.events (session_id, event_id);
 CREATE INDEX IF NOT EXISTS idx_events_session_object
-    ON session.events (session_id, object_gid) WHERE object_gid IS NOT NULL;
+    ON session.events (session_id, object_uid) WHERE object_uid IS NOT NULL;
 
 -- Periodic engine snapshots for fast reconnect and replay.
 CREATE TABLE IF NOT EXISTS session.snapshots (
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS session.edr_entries (
     id                   BIGSERIAL   PRIMARY KEY,
     session_id           UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     train_number         TEXT        NOT NULL,
-    station_sid          TEXT        NOT NULL,
+    station_uid          BIGINT      NOT NULL,   -- INFRASTRUCTURE/STATION UID
     operating_point_id   TEXT,
     scheduled_arrival    INTERVAL,
     actual_arrival       INTERVAL,
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS session.edr_entries (
 );
 
 CREATE INDEX IF NOT EXISTS idx_edr_station
-    ON session.edr_entries (session_id, station_sid, scheduled_departure);
+    ON session.edr_entries (session_id, station_uid, scheduled_departure);
 CREATE INDEX IF NOT EXISTS idx_edr_train
     ON session.edr_entries (session_id, train_number);
 
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS session.edr_journal_entries (
     id                    BIGSERIAL   PRIMARY KEY,
     session_id            UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     operating_point_id    TEXT        NOT NULL,
-    station_sid           TEXT        NOT NULL,
+    station_uid           BIGINT      NOT NULL,   -- INFRASTRUCTURE/STATION UID
     journal_page          TEXT        NOT NULL,
     entry_type            TEXT        NOT NULL,
                                       -- TRAIN | TELEGRAM | NOTE | TRACK_OCCUPANCY | CROSSING_NOTICE
@@ -197,9 +197,9 @@ CREATE TABLE IF NOT EXISTS session.operating_point_assignments (
     session_id         UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     operating_point_id TEXT        NOT NULL,
     station_sid        TEXT        NOT NULL,
-    client_id     TEXT        NOT NULL,
-    assigned_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    released_at   TIMESTAMPTZ          -- NULL = currently held
+    client_id          TEXT        NOT NULL,
+    assigned_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    released_at        TIMESTAMPTZ          -- NULL = currently held
 );
 
 CREATE INDEX IF NOT EXISTS idx_operating_point_active
@@ -225,10 +225,10 @@ CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
     id              BIGSERIAL   PRIMARY KEY,
     session_id      UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     form_type       TEXT        NOT NULL,   -- S2 | S24 | S25 | S26 | S55 | S56 | FREE_TEXT …
-    exchange_id     TEXT        NOT NULL,   -- e.g. "exch-0000001"
+    exchange_uid    BIGINT      NOT NULL,   -- OPERATIONS/DISPATCH_EXCHANGE UID
     train_number    TEXT        NOT NULL,
-    from_sid        TEXT        NOT NULL,   -- source dispatch area id
-    to_sid          TEXT        NOT NULL,   -- destination dispatch area id
+    from_uid        BIGINT      NOT NULL,   -- source dispatch area UID
+    to_uid          BIGINT      NOT NULL,   -- destination dispatch area UID
     direction       TEXT        NOT NULL,   -- SENT | RECEIVED (from src perspective)
     status          TEXT        NOT NULL DEFAULT 'PENDING',
                                             -- PENDING | ACCEPTED | REJECTED | CLOSED
@@ -239,11 +239,11 @@ CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
 );
 
 CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_exchange
-    ON session.dispatch_telegrams (session_id, exchange_id);
+    ON session.dispatch_telegrams (session_id, exchange_uid);
 CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_train
     ON session.dispatch_telegrams (session_id, train_number);
 CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_areas
-    ON session.dispatch_telegrams (session_id, from_sid, to_sid);
+    ON session.dispatch_telegrams (session_id, from_uid, to_uid);
 
 -- ── Schema: pip ───────────────────────────────────────────────────────────────
 -- PIP (Pulse Interval Processing) track-state cache.
@@ -252,9 +252,9 @@ CREATE INDEX IF NOT EXISTS idx_dispatch_telegrams_session_areas
 CREATE SCHEMA IF NOT EXISTS pip;
 
 CREATE TABLE IF NOT EXISTS pip.track_state (
-    session_id  UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
-    section_gid TEXT        NOT NULL,
-    trains      JSONB       NOT NULL DEFAULT '[]'::jsonb,
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (session_id, section_gid)
+    session_id   UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
+    section_uid  BIGINT      NOT NULL,   -- INFRASTRUCTURE/TRACK_SECTION UID
+    trains       JSONB       NOT NULL DEFAULT '[]'::jsonb,
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (session_id, section_uid)
 );

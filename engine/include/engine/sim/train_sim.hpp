@@ -13,15 +13,15 @@ namespace engine::sim
 
 struct SectionCrossing
 {
-    core::GID from_section_gid;
-    core::GID to_section_gid;
+    core::UID from_section_uid;
+    core::UID to_section_uid;
     float overshoot_m = 0.0f;
 };
 
 struct TrainSimState
 {
-    core::GID train_gid;
-    core::GID current_section_gid;
+    core::UID train_uid;
+    core::UID current_section_uid;
 
     physics::TrainPhysicsParams physics_params{};
     physics::TrainPhysicsState physics_state{};
@@ -34,7 +34,7 @@ struct TrainSimTickInput
 {
     physics::DriverInput driver_input;
     float section_length_m = 0.0f;
-    std::optional<core::GID> next_section_gid;
+    std::optional<core::UID> next_section_uid;
 };
 
 struct TrainSimOutput
@@ -69,8 +69,7 @@ class ITrainEventSink
 public:
     virtual ~ITrainEventSink() = default;
 
-    virtual void on_section_crossing(const core::GID& train_gid,
-                                     const SectionCrossing& crossing) = 0;
+    virtual void on_section_crossing(core::UID train_uid, const SectionCrossing& crossing) = 0;
 };
 
 class DriverAIPolicy final : public ITrainControlPolicy
@@ -93,7 +92,7 @@ public:
 class NullTrainEventSink final : public ITrainEventSink
 {
 public:
-    void on_section_crossing(const core::GID& train_gid, const SectionCrossing& crossing) override;
+    void on_section_crossing(core::UID train_uid, const SectionCrossing& crossing) override;
 };
 
 class TrainSim
@@ -117,6 +116,6 @@ private:
 
 TrainSimState make_train_sim_state(const core::TrainConsist& consist,
                                    const std::vector<core::Vehicle>& vehicles,
-                                   const core::GID& initial_section_gid);
+                                   core::UID initial_section_uid);
 
 }  // namespace engine::sim

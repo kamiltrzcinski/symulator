@@ -11,7 +11,7 @@ namespace proto;
 // ── cmd_type 0x01 ────────────────────────────────────────────────────────────
 /// Move a switch (zwrotnica) to the requested position.
 table SetSwitchPosition {
-    g_id:     string (required);    // object global-ID
+    uid:      uint64;           // object UID
     position: SwitchPosition;
 }
 
@@ -19,21 +19,21 @@ table SetSwitchPosition {
 /// Override the aspect displayed on a signal (semafor).
 /// Prefer RequestRoute for normal operation; use this only for manual override.
 table SetSignalAspect {
-    g_id:   string (required);
+    uid:    uint64;
     aspect: Aspect;
 }
 
 // ── cmd_type 0x03 ────────────────────────────────────────────────────────────
 /// Toggle a derailer (wykolejnica).
 table SetDerailerPosition {
-    g_id:     string (required);
+    uid:      uint64;
     position: DerailerPosition;
 }
 
 // ── cmd_type 0x04 ────────────────────────────────────────────────────────────
 /// Open or close a block section (blok liniowy).
 table SetBlockSection {
-    g_id:  string (required);
+    uid:   uint64;
     state: BlockSectionState;
 }
 
@@ -41,20 +41,20 @@ table SetBlockSection {
 /// High-level route request.
 /// The engine resolves required switch positions and signal aspects internally.
 table RequestRoute {
-    from_signal_g_id: string (required);  // entry signal g_id
-    to_signal_g_id:   string (required);  // exit signal g_id
+    from_signal_uid: uint64;  // entry signal UID
+    to_signal_uid:   uint64;  // exit signal UID
 }
 
 // ── cmd_type 0x06 ────────────────────────────────────────────────────────────
 /// Cancel a previously set route.
 table CancelRoute {
-    route_id: string (required);
+    route_uid: uint64;
 }
 
 // ── cmd_type 0x07 ────────────────────────────────────────────────────────────
 /// Acknowledge an alarm displayed on the dispatcher's panel.
 table AcknowledgeAlarm {
-    alarm_id: string (required);
+    alarm_uid: uint64;
 }
 
 // ── cmd_type 0x08 ────────────────────────────────────────────────────────────
@@ -71,20 +71,20 @@ enum Shl12Op : byte {
 }
 
 table SetBlockDirection {
-    block_section_g_id: string (required);
-    operation:          Shl12Op;
+    block_section_uid: uint64;
+    operation:         Shl12Op;
 }
 
 // ── cmd_type 0x09 ────────────────────────────────────────────────────────────
 /// Initiate axle-counter reset sequence (SLI — ESTW ML8 only).
 table InitAxleCounterReset {
-    block_section_g_id: string (required);
+    block_section_uid: uint64;
 }
 
 // ── cmd_type 0x0A ────────────────────────────────────────────────────────────
 /// Execute axle-counter reset (SLK — ESTW ML8 only).
 table ResetAxleCounter {
-    block_section_g_id: string (required);
+    block_section_uid: uint64;
 }
 
 // cmd_type 0x20
@@ -180,7 +180,7 @@ enum OperatorCommandCode : byte {
 }
 
 table OperatorCommand {
-    target_g_id:  string (required);
+    target_uid:   uint64;
     target_kind:  OperatorTargetKind;
     command_code: OperatorCommandCode;
 }
@@ -261,7 +261,7 @@ enum Ml8CommandCode : byte {
 }
 
 table Ml8Command {
-    target_g_id:  string (required);
+    target_uid:   uint64;
     target_kind:  OperatorTargetKind;
     command_code: Ml8CommandCode;
 }
@@ -275,7 +275,7 @@ table CommandAck {
 // ── Command rejection (S → C, msg_type 0x12) ────────────────────────────────
 enum NakReason : byte {
     UNSPECIFIED    = 0,
-    NOT_FOUND      = 1,  // object GID not in topology
+    NOT_FOUND      = 1,  // object UID not in topology
     SAFETY_BLOCK   = 2,  // interlocking rule violated
     INVALID_STATE  = 3,  // device state rejects this command
     ROUTE_LOCKED   = 4,  // a route is locking the device

@@ -135,6 +135,13 @@ add_custom_target(validate_proto_schemas
     VERBATIM
 )
 
+add_custom_target(validate_uid_registry
+    COMMAND python3 "${CMAKE_SOURCE_DIR}/scripts/validate_uid_registry.py"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Validating UID registry (data/ and scenarios/)"
+    VERBATIM
+)
+
 add_library(symulator_proto INTERFACE)
 target_include_directories(symulator_proto INTERFACE "${SYMULATOR_PROTO_GENERATED_DIR}")
 target_link_libraries(symulator_proto INTERFACE flatbuffers::flatbuffers)

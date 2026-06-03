@@ -14,45 +14,23 @@
 namespace engine::core
 {
 
-// ── Strong identifier wrappers ───────────────────────────────────────────────
-// Thin wrappers around std::string that prevent accidental mixing of different
-// ID kinds at compile time. Comparable with <=> and hashable via std::hash
-// specialisations at the bottom of this file.
-
-struct GID
-{
-    std::string value;
-    auto operator<=>(const GID&) const = default;
-};
-
-struct SID
-{
-    std::string value;
-    auto operator<=>(const SID&) const = default;
-};
-
-struct DispatchAreaID
-{
-    std::string value;
-    auto operator<=>(const DispatchAreaID&) const = default;
-};
-
-struct PlayerID
-{
-    std::string value;
-    auto operator<=>(const PlayerID&) const = default;
-};
-
-struct ControlSystemID
-{
-    std::string value;
-    auto operator<=>(const ControlSystemID&) const = default;
-};
+// ── Universal UID ────────────────────────────────────────────────────────────
+// 48-bit structured integer; bits 63-48 reserved (must be 0).
+// Layout: DOMAIN[47:40] | KIND[39:32] | SCOPE[31:16] | INSTANCE[15:0]
+// Full specification: docs/uid_legend.md
 
 struct UID
 {
     std::uint64_t value = 0;
     auto operator<=>(const UID&) const = default;
+};
+
+// ── PlayerID — kept as string for Steam integration ──────────────────────────
+
+struct PlayerID
+{
+    std::string value;
+    auto operator<=>(const PlayerID&) const = default;
 };
 
 enum class UIDDomain : std::uint8_t
@@ -64,21 +42,40 @@ enum class UIDDomain : std::uint8_t
 
 enum class UIDKind : std::uint8_t
 {
+    // ROLLING_STOCK (0x01–0x0F)
     VEHICLE_TYPE = 0x01,
     VEHICLE = 0x02,
     TRAIN_CONSIST = 0x03,
     CARRIER = 0x04,
+
+    // INFRASTRUCTURE (0x11–0x1F)
+    STATION = 0x11,
+    DISPATCH_AREA = 0x12,
+    TRACK_SECTION = 0x13,
+    SWITCH = 0x14,
+    SIGNAL = 0x15,
+    DERAILER = 0x16,
+    BLOCK_SECTION = 0x17,
+    BOUNDARY_NODE = 0x18,
+    LEVEL_CROSSING = 0x19,
+    AXLE_COUNTER = 0x1A,
+    INTERLOCKING = 0x1B,
+    POWER_SUPPLY = 0x1C,
+
+    // OPERATIONS (0x21–0x2F)
+    ROUTE = 0x21,
+    ALARM = 0x22,
+    DISPATCH_EXCHANGE = 0x23,
 };
 
 constexpr std::uint64_t UID_MAX_SAFE_JSON_INTEGER = (1ULL << 53) - 1ULL;
 
-[[nodiscard]] constexpr UID make_uid(UIDDomain domain, UIDKind kind, std::uint16_t type_code,
-                                     std::uint16_t item_number) noexcept
+[[nodiscard]] constexpr UID make_uid(UIDDomain domain, UIDKind kind, std::uint16_t scope,
+                                     std::uint16_t instance) noexcept
 {
     return UID{(static_cast<std::uint64_t>(domain) << 40) |
                (static_cast<std::uint64_t>(kind) << 32) |
-               (static_cast<std::uint64_t>(type_code) << 16) |
-               static_cast<std::uint64_t>(item_number)};
+               (static_cast<std::uint64_t>(scope) << 16) | static_cast<std::uint64_t>(instance)};
 }
 
 [[nodiscard]] constexpr UIDDomain uid_domain(UID uid) noexcept
@@ -91,12 +88,12 @@ constexpr std::uint64_t UID_MAX_SAFE_JSON_INTEGER = (1ULL << 53) - 1ULL;
     return static_cast<UIDKind>((uid.value >> 32) & 0xFFU);
 }
 
-[[nodiscard]] constexpr std::uint16_t uid_type_code(UID uid) noexcept
+[[nodiscard]] constexpr std::uint16_t uid_scope(UID uid) noexcept
 {
     return static_cast<std::uint16_t>((uid.value >> 16) & 0xFFFFU);
 }
 
-[[nodiscard]] constexpr std::uint16_t uid_item_number(UID uid) noexcept
+[[nodiscard]] constexpr std::uint16_t uid_instance(UID uid) noexcept
 {
     return static_cast<std::uint16_t>(uid.value & 0xFFFFU);
 }
@@ -319,8 +316,8 @@ struct TrainSlot
 // this queue.
 struct PipEvent
 {
-    GID section_gid;
-    SID station_sid;  // LCS that owns this section
+    UID section_uid;
+    UID station_uid;  // INFRASTRUCTURE/STATION UID of the owning LCS
     TrackOccupancy occupancy;
     // Present when a train enters a section or a number is assigned/removed.
     // nullopt when the section becomes free without a known train number.
@@ -337,29 +334,11 @@ struct PipEvent
 // Required for use as keys in std::unordered_map / std::unordered_set.
 
 template<>
-struct std::hash<engine::core::GID>
+struct std::hash<engine::core::UID>
 {
-    std::size_t operator()(const engine::core::GID& id) const noexcept
+    std::size_t operator()(const engine::core::UID& id) const noexcept
     {
-        return std::hash<std::string>{}(id.value);
-    }
-};
-
-template<>
-struct std::hash<engine::core::SID>
-{
-    std::size_t operator()(const engine::core::SID& id) const noexcept
-    {
-        return std::hash<std::string>{}(id.value);
-    }
-};
-
-template<>
-struct std::hash<engine::core::DispatchAreaID>
-{
-    std::size_t operator()(const engine::core::DispatchAreaID& id) const noexcept
-    {
-        return std::hash<std::string>{}(id.value);
+        return std::hash<std::uint64_t>{}(id.value);
     }
 };
 
@@ -369,23 +348,5 @@ struct std::hash<engine::core::PlayerID>
     std::size_t operator()(const engine::core::PlayerID& id) const noexcept
     {
         return std::hash<std::string>{}(id.value);
-    }
-};
-
-template<>
-struct std::hash<engine::core::ControlSystemID>
-{
-    std::size_t operator()(const engine::core::ControlSystemID& id) const noexcept
-    {
-        return std::hash<std::string>{}(id.value);
-    }
-};
-
-template<>
-struct std::hash<engine::core::UID>
-{
-    std::size_t operator()(const engine::core::UID& id) const noexcept
-    {
-        return std::hash<std::uint64_t>{}(id.value);
     }
 };

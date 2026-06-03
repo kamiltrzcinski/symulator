@@ -1,0 +1,6 @@
+[
+  { "instance": 1, "code": "GOr", "name": "Gdynia Orłowo" },
+  { "instance": 2, "code": "Sp",  "name": "Sopot" },
+  { "instance": 3, "code": "GGO", "name": "Gdynia Główna Osobowa" },
+  { "instance": 4, "code": "OT",  "name": "Odcinek testowy" }
+]

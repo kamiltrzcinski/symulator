@@ -5,51 +5,51 @@ namespace engine::core
 
 // ── IStateView: find_* ────────────────────────────────────────────────────────
 
-const BoundaryNode* EngineState::find_boundary_node(const GID& gid) const noexcept
+const BoundaryNode* EngineState::find_boundary_node(UID uid) const noexcept
 {
-    auto it = boundary_nodes_.find(gid);
+    auto it = boundary_nodes_.find(uid);
     return it != boundary_nodes_.end() ? &it->second : nullptr;
 }
 
-const TrackSection* EngineState::find_track_section(const GID& gid) const noexcept
+const TrackSection* EngineState::find_track_section(UID uid) const noexcept
 {
-    auto it = track_sections_.find(gid);
+    auto it = track_sections_.find(uid);
     return it != track_sections_.end() ? &it->second : nullptr;
 }
 
-const Switch* EngineState::find_switch(const GID& gid) const noexcept
+const Switch* EngineState::find_switch(UID uid) const noexcept
 {
-    auto it = switches_.find(gid);
+    auto it = switches_.find(uid);
     return it != switches_.end() ? &it->second : nullptr;
 }
 
-const Signal* EngineState::find_signal(const GID& gid) const noexcept
+const Signal* EngineState::find_signal(UID uid) const noexcept
 {
-    auto it = signals_.find(gid);
+    auto it = signals_.find(uid);
     return it != signals_.end() ? &it->second : nullptr;
 }
 
-const Derailer* EngineState::find_derailer(const GID& gid) const noexcept
+const Derailer* EngineState::find_derailer(UID uid) const noexcept
 {
-    auto it = derailers_.find(gid);
+    auto it = derailers_.find(uid);
     return it != derailers_.end() ? &it->second : nullptr;
 }
 
-const BlockSection* EngineState::find_block_section(const GID& gid) const noexcept
+const BlockSection* EngineState::find_block_section(UID uid) const noexcept
 {
-    auto it = block_sections_.find(gid);
+    auto it = block_sections_.find(uid);
     return it != block_sections_.end() ? &it->second : nullptr;
 }
 
-const RouteState* EngineState::find_route(const GID& route_id) const noexcept
+const RouteState* EngineState::find_route(UID route_uid) const noexcept
 {
-    auto it = routes_.find(route_id);
+    auto it = routes_.find(route_uid);
     return it != routes_.end() ? &it->second : nullptr;
 }
 
-const AlarmState* EngineState::find_alarm(const GID& alarm_id) const noexcept
+const AlarmState* EngineState::find_alarm(UID alarm_uid) const noexcept
 {
-    auto it = alarms_.find(alarm_id);
+    auto it = alarms_.find(alarm_uid);
     return it != alarms_.end() ? &it->second : nullptr;
 }
 
@@ -107,103 +107,103 @@ void EngineState::for_each_boundary_node(std::function<void(const BoundaryNode&)
 
 void EngineState::insert_boundary_node(BoundaryNode n)
 {
-    boundary_nodes_.emplace(n.gid, std::move(n));
+    boundary_nodes_.emplace(n.uid, std::move(n));
 }
 void EngineState::insert_track_section(TrackSection s)
 {
-    track_sections_.emplace(s.gid, std::move(s));
+    track_sections_.emplace(s.uid, std::move(s));
 }
 void EngineState::insert_switch(Switch sw)
 {
-    switches_.emplace(sw.gid, std::move(sw));
+    switches_.emplace(sw.uid, std::move(sw));
 }
 void EngineState::insert_signal(Signal sig)
 {
-    signals_.emplace(sig.gid, std::move(sig));
+    signals_.emplace(sig.uid, std::move(sig));
 }
 void EngineState::insert_derailer(Derailer d)
 {
-    derailers_.emplace(d.gid, std::move(d));
+    derailers_.emplace(d.uid, std::move(d));
 }
 void EngineState::insert_block_section(BlockSection b)
 {
-    block_sections_.emplace(b.gid, std::move(b));
+    block_sections_.emplace(b.uid, std::move(b));
 }
 
 // ── Runtime state mutators ────────────────────────────────────────────────────
 
-void EngineState::apply_track_section_occupancy(const GID& gid, TrackOccupancy occ, int axle_count)
+void EngineState::apply_track_section_occupancy(UID uid, TrackOccupancy occ, int axle_count)
 {
-    if (auto it = track_sections_.find(gid); it != track_sections_.end())
+    if (auto it = track_sections_.find(uid); it != track_sections_.end())
     {
         it->second.occupancy = occ;
         it->second.axle_count = axle_count;
     }
 }
 
-void EngineState::apply_switch_position(const GID& gid, SwitchPosition pos, int moving_ticks)
+void EngineState::apply_switch_position(UID uid, SwitchPosition pos, int moving_ticks)
 {
-    if (auto it = switches_.find(gid); it != switches_.end())
+    if (auto it = switches_.find(uid); it != switches_.end())
     {
         it->second.position = pos;
         it->second.moving_ticks_remaining = moving_ticks;
     }
 }
 
-void EngineState::apply_switch_lock(const GID& gid, std::optional<GID> route_id)
+void EngineState::apply_switch_lock(UID uid, std::optional<UID> route_uid)
 {
-    if (auto it = switches_.find(gid); it != switches_.end())
-        it->second.locked_by_route = std::move(route_id);
+    if (auto it = switches_.find(uid); it != switches_.end())
+        it->second.locked_by_route_uid = std::move(route_uid);
 }
 
-void EngineState::apply_switch_occupancy(const GID& gid, TrackOccupancy occ, int axle_count)
+void EngineState::apply_switch_occupancy(UID uid, TrackOccupancy occ, int axle_count)
 {
-    if (auto it = switches_.find(gid); it != switches_.end())
+    if (auto it = switches_.find(uid); it != switches_.end())
     {
         it->second.occupancy = occ;
         it->second.axle_count = axle_count;
     }
 }
 
-void EngineState::apply_signal_aspect(const GID& gid, SignalAspect aspect)
+void EngineState::apply_signal_aspect(UID uid, SignalAspect aspect)
 {
-    if (auto it = signals_.find(gid); it != signals_.end())
+    if (auto it = signals_.find(uid); it != signals_.end())
         it->second.current_aspect = aspect;
 }
 
-void EngineState::apply_signal_lock(const GID& gid, std::optional<GID> route_id)
+void EngineState::apply_signal_lock(UID uid, std::optional<UID> route_uid)
 {
-    if (auto it = signals_.find(gid); it != signals_.end())
-        it->second.locked_by_route = std::move(route_id);
+    if (auto it = signals_.find(uid); it != signals_.end())
+        it->second.locked_by_route_uid = std::move(route_uid);
 }
 
-void EngineState::apply_derailer_state(const GID& gid, DerailerState state)
+void EngineState::apply_derailer_state(UID uid, DerailerState state)
 {
-    if (auto it = derailers_.find(gid); it != derailers_.end())
+    if (auto it = derailers_.find(uid); it != derailers_.end())
         it->second.state = state;
 }
 
-void EngineState::apply_derailer_lock(const GID& gid, std::optional<GID> route_id)
+void EngineState::apply_derailer_lock(UID uid, std::optional<UID> route_uid)
 {
-    if (auto it = derailers_.find(gid); it != derailers_.end())
-        it->second.locked_by_route = std::move(route_id);
+    if (auto it = derailers_.find(uid); it != derailers_.end())
+        it->second.locked_by_route_uid = std::move(route_uid);
 }
 
-void EngineState::apply_block_section_state(const GID& gid, BlockSectionState state)
+void EngineState::apply_block_section_state(UID uid, BlockSectionState state)
 {
-    if (auto it = block_sections_.find(gid); it != block_sections_.end())
+    if (auto it = block_sections_.find(uid); it != block_sections_.end())
         it->second.state = state;
 }
 
-void EngineState::apply_block_section_direction(const GID& gid, BlockDirectionState dir)
+void EngineState::apply_block_section_direction(UID uid, BlockDirectionState dir)
 {
-    if (auto it = block_sections_.find(gid); it != block_sections_.end())
+    if (auto it = block_sections_.find(uid); it != block_sections_.end())
         it->second.direction = dir;
 }
 
-void EngineState::apply_block_section_axle_count(const GID& gid, int axle_count)
+void EngineState::apply_block_section_axle_count(UID uid, int axle_count)
 {
-    if (auto it = block_sections_.find(gid); it != block_sections_.end())
+    if (auto it = block_sections_.find(uid); it != block_sections_.end())
         it->second.axle_count = axle_count;
 }
 
@@ -334,33 +334,33 @@ static void apply_operator_state(OperatorCommandRuntimeState& state, OperatorCom
     }
 }
 
-void EngineState::apply_operator_command_state(const GID& gid, OperatorTargetKind target_kind,
+void EngineState::apply_operator_command_state(UID uid, OperatorTargetKind target_kind,
                                                OperatorCommandCode code, bool active)
 {
-    auto apply_to_gid = [&](auto& map)
+    auto apply_to_uid = [&](auto& map)
     {
-        if (auto it = map.find(gid); it != map.end())
+        if (auto it = map.find(uid); it != map.end())
             apply_operator_state(it->second.operator_state, code, active);
     };
 
     switch (target_kind)
     {
         case OperatorTargetKind::SIGNAL:
-            apply_to_gid(signals_);
+            apply_to_uid(signals_);
             break;
         case OperatorTargetKind::SWITCH:
-            apply_to_gid(switches_);
-            if (switches_.find(gid) == switches_.end())
-                apply_to_gid(derailers_);
+            apply_to_uid(switches_);
+            if (switches_.find(uid) == switches_.end())
+                apply_to_uid(derailers_);
             break;
         case OperatorTargetKind::DERAILER:
-            apply_to_gid(derailers_);
+            apply_to_uid(derailers_);
             break;
         case OperatorTargetKind::TRACK_SECTION:
-            apply_to_gid(track_sections_);
+            apply_to_uid(track_sections_);
             break;
         case OperatorTargetKind::BLOCK_SECTION:
-            apply_to_gid(block_sections_);
+            apply_to_uid(block_sections_);
             break;
         case OperatorTargetKind::ROUTE:
         case OperatorTargetKind::LEVEL_CROSSING:
@@ -374,12 +374,12 @@ void EngineState::apply_operator_command_state(const GID& gid, OperatorTargetKin
     }
 }
 
-void EngineState::apply_ml8_command_state(const GID& gid, OperatorTargetKind target_kind,
+void EngineState::apply_ml8_command_state(UID uid, OperatorTargetKind target_kind,
                                           Ml8CommandCode code, bool active)
 {
-    auto apply_to_gid = [&](auto& map)
+    auto apply_to_uid = [&](auto& map)
     {
-        if (auto it = map.find(gid); it != map.end())
+        if (auto it = map.find(uid); it != map.end())
         {
             it->second.operator_state.active_ml8_command =
                 active ? std::make_optional(code) : std::nullopt;
@@ -389,39 +389,39 @@ void EngineState::apply_ml8_command_state(const GID& gid, OperatorTargetKind tar
     switch (target_kind)
     {
         case OperatorTargetKind::SIGNAL:
-            apply_to_gid(signals_);
+            apply_to_uid(signals_);
             break;
         case OperatorTargetKind::SWITCH:
-            apply_to_gid(switches_);
-            if (switches_.find(gid) == switches_.end())
-                apply_to_gid(derailers_);
+            apply_to_uid(switches_);
+            if (switches_.find(uid) == switches_.end())
+                apply_to_uid(derailers_);
             break;
         case OperatorTargetKind::DERAILER:
-            apply_to_gid(derailers_);
+            apply_to_uid(derailers_);
             break;
         case OperatorTargetKind::TRACK_SECTION:
-            apply_to_gid(track_sections_);
+            apply_to_uid(track_sections_);
             break;
         case OperatorTargetKind::BLOCK_SECTION:
-            apply_to_gid(block_sections_);
+            apply_to_uid(block_sections_);
             break;
         default:
             break;
     }
 }
 
-void EngineState::apply_axle_counter_reset(const GID& gid, OperatorTargetKind target_kind)
+void EngineState::apply_axle_counter_reset(UID uid, OperatorTargetKind target_kind)
 {
     switch (target_kind)
     {
         case OperatorTargetKind::SWITCH:
-            apply_switch_occupancy(gid, TrackOccupancy::FREE, 0);
+            apply_switch_occupancy(uid, TrackOccupancy::FREE, 0);
             break;
         case OperatorTargetKind::TRACK_SECTION:
-            apply_track_section_occupancy(gid, TrackOccupancy::FREE, 0);
+            apply_track_section_occupancy(uid, TrackOccupancy::FREE, 0);
             break;
         case OperatorTargetKind::BLOCK_SECTION:
-            apply_block_section_axle_count(gid, 0);
+            apply_block_section_axle_count(uid, 0);
             break;
         default:
             break;
@@ -430,22 +430,22 @@ void EngineState::apply_axle_counter_reset(const GID& gid, OperatorTargetKind ta
 
 void EngineState::add_route(RouteState route)
 {
-    routes_.emplace(route.route_id, std::move(route));
+    routes_.emplace(route.uid, std::move(route));
 }
 
-void EngineState::remove_route(const GID& route_id)
+void EngineState::remove_route(UID route_uid)
 {
-    routes_.erase(route_id);
+    routes_.erase(route_uid);
 }
 
 void EngineState::add_alarm(AlarmState alarm)
 {
-    alarms_.emplace(alarm.alarm_id, std::move(alarm));
+    alarms_.emplace(alarm.uid, std::move(alarm));
 }
 
-void EngineState::remove_alarm(const GID& alarm_id)
+void EngineState::remove_alarm(UID alarm_uid)
 {
-    alarms_.erase(alarm_id);
+    alarms_.erase(alarm_uid);
 }
 
 }  // namespace engine::core

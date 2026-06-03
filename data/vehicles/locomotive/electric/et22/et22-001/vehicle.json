@@ -1,7 +1,7 @@
 {
-  "gID": "VEH-TRJ-ET22-001-0000001",
+  "uid": 1108101562373,
+  "type_uid": 1103806595268,
   "pID": "ET22-001",
-  "typeID": "VT-GLB-201E-0000001",
   "displayName": "ET22-001",
   "tractionStatus": "OPERATIONAL"
 }

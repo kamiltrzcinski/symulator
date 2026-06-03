@@ -34,15 +34,15 @@ namespace engine::core
 
 struct SignalAspectChange
 {
-    GID gid;
+    UID uid;
     SignalAspect new_aspect;
     ChangeCause cause;
-    std::optional<GID> route_id;
+    std::optional<UID> route_uid;
 };
 
 struct SwitchPositionChange
 {
-    GID gid;
+    UID uid;
     SwitchPosition new_position;
     ChangeCause cause;
     int moving_ticks_remaining = 0;  // >0 only when new_position == MOVING
@@ -50,46 +50,46 @@ struct SwitchPositionChange
 
 struct SwitchLocked
 {
-    GID switch_gid;
-    GID route_id;
+    UID switch_uid;
+    UID route_uid;
 };
 
 struct SwitchUnlocked
 {
-    GID switch_gid;
-    GID route_id;
+    UID switch_uid;
+    UID route_uid;
 };
 
 struct DerailerStateChange
 {
-    GID gid;
+    UID uid;
     DerailerState new_state;
     ChangeCause cause;
-    std::optional<GID> route_id;
+    std::optional<UID> route_uid;
 };
 
 struct BlockSectionStateChange
 {
-    GID gid;
+    UID uid;
     BlockSectionState new_state;
 };
 
 struct BlockDirectionChange
 {
-    GID gid;
+    UID uid;
     BlockDirectionState new_direction;
     bool requires_neighbor_confirmation = false;  // true after BLW (waiting for BLP)
 };
 
 struct AxleCounterResetChange
 {
-    GID gid;
+    UID uid;
     OperatorTargetKind target_kind;
 };
 
 struct OperatorCommandStateChange
 {
-    GID gid;
+    UID uid;
     OperatorTargetKind target_kind;
     OperatorCommandCode code;
     bool active = true;
@@ -97,7 +97,7 @@ struct OperatorCommandStateChange
 
 struct Ml8CommandStateChange
 {
-    GID gid;
+    UID uid;
     OperatorTargetKind target_kind;
     Ml8CommandCode code;
     bool active = true;
@@ -110,7 +110,7 @@ struct RouteAdded
 
 struct RouteRemoved
 {
-    GID route_id;
+    UID route_uid;
     std::string reason;  // "OPERATOR_CANCEL" | "TRAIN_CLEARED" | "TIMEOUT" | "FORCE"
 };
 
@@ -121,7 +121,7 @@ struct AlarmRaised
 
 struct AlarmCleared
 {
-    GID alarm_id;
+    UID alarm_uid;
 };
 
 using DeviceStateChange =
@@ -137,7 +137,7 @@ struct InterlockingViolation
 {
     std::uint8_t reason_code;  // matches COMMAND_NAK reason codes from doc 09
     std::string reason_text;   // human-readable for logging / dispatcher display
-    GID offending_gid;         // the device that caused the violation (may be empty)
+    UID offending_uid;         // the device that caused the violation (may be zero)
 };
 
 // ── IControlSystem ───────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ public:
     virtual ~IControlSystem() = default;
 
     // Unique identifier for this SRK type (matches meta.json "control_system" value).
-    virtual ControlSystemID system_id() const = 0;
+    virtual std::string system_id() const = 0;
 
     // Returns nullopt if the command is safe to execute.
     // Returns InterlockingViolation if any interlocking rule is violated.
