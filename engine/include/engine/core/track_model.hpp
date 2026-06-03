@@ -8,8 +8,8 @@
 #include <vector>
 
 // ── Track topology and runtime device state model ────────────────────────────
-// Mirrors the JSON schema defined in scenarios/reference/*/topology.json and
-// scenarios/reference/*/objects.json.
+// Mirrors the JSON schema defined in scenarios/*/topology.json and
+// scenarios/*/objects.json.
 //
 // Structs are intentionally value-types (copyable) so that EngineSnapshot can
 // hold a deep copy of the whole topology at a given tick without pointer chasing.

@@ -63,8 +63,8 @@ std::optional<DispatchCoordinator::DispatchOutcome> DispatchCoordinator::handle_
     row.form_type = form_type_str(form);
     row.exchange_id = outcome.exchange_id;
     row.train_number = train_number;
-    row.from_sid = src_area;
-    row.to_sid = dst_area;
+    row.from_uid = std::stoull(src_area);
+    row.to_uid = std::stoull(dst_area);
     row.direction = (direction == engine::core::TelegramDirection::SENT) ? "SENT" : "RECEIVED";
     row.status = "ACCEPTED";
     row.track_number = track_number;
@@ -77,7 +77,8 @@ std::optional<DispatchCoordinator::DispatchOutcome> DispatchCoordinator::handle_
     // 3. S24/S56 — update EDR track_clear_time.
     if (form == engine::core::DispatchFormType::S24 || form == engine::core::DispatchFormType::S56)
     {
-        db_writer_.update_edr_track_clear_time(session_id_, train_number, dst_area, timestamp_us);
+        db_writer_.update_edr_track_clear_time(session_id_, train_number, std::stoull(dst_area),
+                                               timestamp_us);
     }
 
     // 4. S25 (departure) / S26 (arrival) — update EDR via EdrCoordinator.
@@ -93,8 +94,8 @@ void DispatchCoordinator::handle_free_text(const std::string& src_area, const st
     row.form_type = "FREE_TEXT";
     row.exchange_id = "";  // free text has no exchange state
     row.train_number = "";
-    row.from_sid = src_area;
-    row.to_sid = dst_area;
+    row.from_uid = std::stoull(src_area);
+    row.to_uid = std::stoull(dst_area);
     row.direction = "SENT";
     row.status = "ACCEPTED";
     row.body = body;

@@ -289,7 +289,7 @@ void DispatchBus::on_state_changes(const std::vector<engine::core::DeviceStateCh
                            (static_cast<uint32_t>((*frame)[20]) << 24);
             for (int i = 0; i < 8; ++i)
                 rec.timestamp_us |= static_cast<uint64_t>((*frame)[21 + i]) << (8 * i);
-            rec.object_gid = object_gid_from_change(change);
+            rec.object_uid = object_uid_from_change(change);
             rec.payload.assign(frame->begin() + 29, frame->end());
             db_writer_.write_domain_event(session_id_, std::move(rec));
         }
@@ -297,26 +297,26 @@ void DispatchBus::on_state_changes(const std::vector<engine::core::DeviceStateCh
 }
 
 // static
-std::optional<std::string> DispatchBus::object_gid_from_change(
+std::optional<std::uint64_t> DispatchBus::object_uid_from_change(
     const engine::core::DeviceStateChange& change)
 {
     using namespace engine::core;
     return std::visit(
-        [](const auto& ev) -> std::optional<std::string>
+        [](const auto& ev) -> std::optional<std::uint64_t>
         {
             using T = std::decay_t<decltype(ev)>;
             if constexpr (requires { ev.uid; })
-                return std::to_string(ev.uid.value);
+                return ev.uid.value;
             else if constexpr (requires { ev.switch_uid; })
-                return std::to_string(ev.switch_uid.value);
+                return ev.switch_uid.value;
             else if constexpr (std::is_same_v<T, RouteAdded>)
-                return std::to_string(ev.route.uid.value);
+                return ev.route.uid.value;
             else if constexpr (std::is_same_v<T, RouteRemoved>)
-                return std::to_string(ev.route_uid.value);
+                return ev.route_uid.value;
             else if constexpr (std::is_same_v<T, AlarmRaised>)
-                return std::to_string(ev.alarm.object_uid.value);
+                return ev.alarm.object_uid.value;
             else if constexpr (std::is_same_v<T, AlarmCleared>)
-                return std::to_string(ev.alarm_uid.value);
+                return ev.alarm_uid.value;
             else
                 return std::nullopt;
         },

@@ -41,7 +41,7 @@ void PipWriter::on_pip_events(const std::vector<PipEvent>& events)
             trains_json = "[]";
         }
 
-        db_.upsert_pip_track_state(session_id_, std::to_string(ev.section_uid.value), trains_json);
+        db_.upsert_pip_track_state(session_id_, ev.section_uid.value, trains_json);
     }
 }
 

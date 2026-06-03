@@ -57,7 +57,7 @@ TEST(PipWriter, FreeSection_UpsertWithEmptyTrains)
     writer.on_pip_events({make_free_event(sec)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
+    EXPECT_EQ(db.pip_upserts[0].section_uid, sec.value);
     EXPECT_EQ(db.pip_upserts[0].trains_json, "[]");
 }
 
@@ -73,7 +73,7 @@ TEST(PipWriter, OccupiedSection_UpsertWithTrainSlot)
     writer.on_pip_events({make_occupied_event(sec, slot)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
+    EXPECT_EQ(db.pip_upserts[0].section_uid, sec.value);
 
     auto j = nlohmann::json::parse(db.pip_upserts[0].trains_json);
     ASSERT_EQ(j.size(), 1u);
@@ -95,7 +95,7 @@ TEST(PipWriter, LcsBoundaryCrossing_UpsertTargetSection)
     writer.on_pip_events({make_occupied_event(sec, slot, /*boundary=*/true)});
 
     ASSERT_EQ(db.pip_upserts.size(), 1u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(sec.value));
+    EXPECT_EQ(db.pip_upserts[0].section_uid, sec.value);
 
     auto j = nlohmann::json::parse(db.pip_upserts[0].trains_json);
     ASSERT_EQ(j.size(), 1u);
@@ -121,10 +121,10 @@ TEST(PipWriter, MultipleBatch_UpsertAllSections)
     });
 
     ASSERT_EQ(db.pip_upserts.size(), 3u);
-    EXPECT_EQ(db.pip_upserts[0].section_gid, std::to_string(secA.value));
+    EXPECT_EQ(db.pip_upserts[0].section_uid, secA.value);
     EXPECT_EQ(db.pip_upserts[0].trains_json, "[]");
-    EXPECT_EQ(db.pip_upserts[1].section_gid, std::to_string(secB.value));
+    EXPECT_EQ(db.pip_upserts[1].section_uid, secB.value);
     EXPECT_NE(db.pip_upserts[1].trains_json, "[]");
-    EXPECT_EQ(db.pip_upserts[2].section_gid, std::to_string(secC.value));
+    EXPECT_EQ(db.pip_upserts[2].section_uid, secC.value);
     EXPECT_EQ(db.pip_upserts[2].trains_json, "[]");
 }

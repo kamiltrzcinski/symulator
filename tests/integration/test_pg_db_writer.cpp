@@ -22,6 +22,13 @@
 namespace
 {
 
+static constexpr uint64_t kGorUid = 1001ULL;
+static constexpr uint64_t kSopUid = 1002ULL;
+static constexpr uint64_t kZwrUid = 1003ULL;
+static constexpr uint64_t kGdyUid = 1004ULL;
+static constexpr uint64_t kGdnUid = 1005ULL;
+static constexpr uint64_t kObjectUid = 123456ULL;
+
 static const char* db_conn_str()
 {
     return std::getenv("SYMULATOR_TEST_DB");
@@ -89,8 +96,8 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_InsertsRow)
     row.form_type = "S2";
     row.exchange_id = "exch-0000001";
     row.train_number = "IC 12345";
-    row.from_sid = "GOR";
-    row.to_sid = "SOP";
+    row.from_uid = kGorUid;
+    row.to_uid = kSopUid;
     row.direction = "SENT";
     row.status = "ACCEPTED";
     row.km_markers = {"210.394", "212.705"};
@@ -102,7 +109,7 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_InsertsRow)
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
-        "SELECT form_type, exchange_id, train_number, from_sid, to_sid, direction, status "
+        "SELECT form_type, exchange_uid, train_number, from_uid, to_uid, direction, status "
         "FROM session.dispatch_telegrams "
         "WHERE session_id = $1::uuid",
         pqxx::params{session_uuid_});
@@ -112,8 +119,8 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_InsertsRow)
     EXPECT_EQ(r[0][0].as<std::string>(), "S2");
     EXPECT_EQ(r[0][1].as<std::string>(), "exch-0000001");
     EXPECT_EQ(r[0][2].as<std::string>(), "IC 12345");
-    EXPECT_EQ(r[0][3].as<std::string>(), "GOR");
-    EXPECT_EQ(r[0][4].as<std::string>(), "SOP");
+    EXPECT_EQ(r[0][3].as<int64_t>(), static_cast<int64_t>(kGorUid));
+    EXPECT_EQ(r[0][4].as<int64_t>(), static_cast<int64_t>(kSopUid));
     EXPECT_EQ(r[0][5].as<std::string>(), "SENT");
     EXPECT_EQ(r[0][6].as<std::string>(), "ACCEPTED");
 }
@@ -124,8 +131,8 @@ TEST_F(PgDbWriterFixture, WriteDispatchTelegram_NullableTrackNumber)
     row.form_type = "FREE_TEXT";
     row.exchange_id = "";
     row.train_number = "";
-    row.from_sid = "GOR";
-    row.to_sid = "SOP";
+    row.from_uid = kGorUid;
+    row.to_uid = kSopUid;
     row.direction = "SENT";
     row.status = "ACCEPTED";
     // track_number not set → std::nullopt → NULL in DB
@@ -154,23 +161,23 @@ TEST_F(PgDbWriterFixture, UpdateEdrTrackClearTime_UpdatesRow)
         pqxx::work tx{c};
         tx.exec(
             "INSERT INTO session.edr_entries "
-            "  (session_id, train_number, station_sid, scheduled_departure, stop_type, status) "
-            "VALUES ($1::uuid, $2, $3, '01:00:00'::interval, 'COMMERCIAL', 'PENDING')",
-            pqxx::params{session_uuid_, "IC 12345", "SOP"});
+            "  (session_id, train_number, station_uid, scheduled_departure, stop_type, status) "
+            "VALUES ($1::uuid, $2, $3::bigint, '01:00:00'::interval, 'COMMERCIAL', 'PENDING')",
+            pqxx::params{session_uuid_, "IC 12345", static_cast<int64_t>(kSopUid)});
         tx.commit();
     }
 
     // 13:45:00 expressed as microseconds since Unix epoch (on 2024-05-24 = 1716559500 s)
     constexpr std::uint64_t ts_us = 1'716'559'500'000'000ULL;
 
-    writer_->update_edr_track_clear_time(session_uuid_, "IC 12345", "SOP", ts_us);
+    writer_->update_edr_track_clear_time(session_uuid_, "IC 12345", kSopUid, ts_us);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT track_clear_time IS NOT NULL FROM session.edr_entries "
-        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        pqxx::params{session_uuid_, "IC 12345", "SOP"});
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_uid = $3::bigint",
+        pqxx::params{session_uuid_, "IC 12345", static_cast<int64_t>(kSopUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -186,7 +193,7 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_InsertsRow)
     row.event_type = 0x01;  // SwitchPositionChanged
     row.event_id = 42;
     row.timestamp_us = 1'716'559'500'000'000ULL;
-    row.object_gid = "ZWR-TRJ-GOr-zwr1";
+    row.object_uid = kObjectUid;
     row.payload = fake_payload;
 
     writer_->write_domain_event(session_uuid_, row);
@@ -194,7 +201,7 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_InsertsRow)
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
-        "SELECT event_type, event_id, object_gid, octet_length(payload) "
+        "SELECT event_type, event_id, object_uid, octet_length(payload) "
         "FROM session.events "
         "WHERE session_id = $1::uuid",
         pqxx::params{session_uuid_});
@@ -203,17 +210,17 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_InsertsRow)
     ASSERT_EQ(r.size(), 1u);
     EXPECT_EQ(r[0][0].as<int>(), 0x01);
     EXPECT_EQ(r[0][1].as<int64_t>(), 42);
-    EXPECT_EQ(r[0][2].as<std::string>(), "ZWR-TRJ-GOr-zwr1");
+    EXPECT_EQ(r[0][2].as<int64_t>(), static_cast<int64_t>(kObjectUid));
     EXPECT_EQ(r[0][3].as<int>(), static_cast<int>(fake_payload.size()));
 }
 
 TEST_F(PgDbWriterFixture, WriteDomainEvent_NullObjectGid)
 {
     server::DomainEventRow row;
-    row.event_type = 0x07;  // RouteSet (session-level, no single object GID)
+    row.event_type = 0x07;  // RouteSet (session-level, no single object UID)
     row.event_id = 99;
     row.timestamp_us = 1'716'559'501'000'000ULL;
-    // object_gid left as std::nullopt
+    // object_uid left as std::nullopt
     row.payload = {0x04, 0x00, 0x00, 0x00};
 
     writer_->write_domain_event(session_uuid_, row);
@@ -221,13 +228,13 @@ TEST_F(PgDbWriterFixture, WriteDomainEvent_NullObjectGid)
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
-        "SELECT object_gid IS NULL FROM session.events "
+        "SELECT object_uid IS NULL FROM session.events "
         "WHERE session_id = $1::uuid AND event_id = $2",
         pqxx::params{session_uuid_, static_cast<int64_t>(99)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
-    EXPECT_TRUE(r[0][0].as<bool>()) << "object_gid should be NULL when not set";
+    EXPECT_TRUE(r[0][0].as<bool>()) << "object_uid should be NULL when not set";
 }
 
 // ── EDR departure / arrival ───────────────────────────────────────────────────
@@ -240,15 +247,15 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_SetsActualDepartureAndStatus)
         pqxx::work tx{c};
         tx.exec(
             "INSERT INTO session.edr_entries "
-            "  (session_id, train_number, station_sid, scheduled_departure, status) "
-            "VALUES ($1::uuid, $2, $3, make_interval(secs => 3600), 'PENDING')",
-            pqxx::params{session_uuid_, "IC 1001", "ZWR"});
+            "  (session_id, train_number, station_uid, scheduled_departure, status) "
+            "VALUES ($1::uuid, $2, $3::bigint, make_interval(secs => 3600), 'PENDING')",
+            pqxx::params{session_uuid_, "IC 1001", static_cast<int64_t>(kZwrUid)});
         tx.commit();
     }
 
     // ~01:00:30 — 3630 seconds into the day.
     constexpr uint64_t ts = 3630ULL * 1'000'000ULL;
-    writer_->update_edr_departure(session_uuid_, "IC 1001", "ZWR", ts);
+    writer_->update_edr_departure(session_uuid_, "IC 1001", kZwrUid, ts);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
@@ -256,8 +263,8 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_SetsActualDepartureAndStatus)
         "SELECT status, "
         "       EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
         "FROM session.edr_entries "
-        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        pqxx::params{session_uuid_, "IC 1001", "ZWR"});
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_uid = $3::bigint",
+        pqxx::params{session_uuid_, "IC 1001", static_cast<int64_t>(kZwrUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -272,15 +279,15 @@ TEST_F(PgDbWriterFixture, UpdateEdrArrival_SetsActualArrivalAndStatus)
         pqxx::work tx{c};
         tx.exec(
             "INSERT INTO session.edr_entries "
-            "  (session_id, train_number, station_sid, scheduled_departure, status) "
-            "VALUES ($1::uuid, $2, $3, make_interval(secs => 7200), 'PENDING')",
-            pqxx::params{session_uuid_, "TLK 2002", "SOP"});
+            "  (session_id, train_number, station_uid, scheduled_departure, status) "
+            "VALUES ($1::uuid, $2, $3::bigint, make_interval(secs => 7200), 'PENDING')",
+            pqxx::params{session_uuid_, "TLK 2002", static_cast<int64_t>(kSopUid)});
         tx.commit();
     }
 
     // ~02:00:15 — 7215 seconds into the day.
     constexpr uint64_t ts = 7215ULL * 1'000'000ULL;
-    writer_->update_edr_arrival(session_uuid_, "TLK 2002", "SOP", ts);
+    writer_->update_edr_arrival(session_uuid_, "TLK 2002", kSopUid, ts);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
@@ -288,8 +295,8 @@ TEST_F(PgDbWriterFixture, UpdateEdrArrival_SetsActualArrivalAndStatus)
         "SELECT status, "
         "       EXTRACT(EPOCH FROM actual_arrival)::bigint AS secs "
         "FROM session.edr_entries "
-        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        pqxx::params{session_uuid_, "TLK 2002", "SOP"});
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_uid = $3::bigint",
+        pqxx::params{session_uuid_, "TLK 2002", static_cast<int64_t>(kSopUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -305,24 +312,24 @@ TEST_F(PgDbWriterFixture, UpdateEdrDeparture_IdempotentOnAlreadyDeparted)
         pqxx::work tx{c};
         tx.exec(
             "INSERT INTO session.edr_entries "
-            "  (session_id, train_number, station_sid, scheduled_departure, "
+            "  (session_id, train_number, station_uid, scheduled_departure, "
             "   actual_departure, status) "
-            "VALUES ($1::uuid, $2, $3, make_interval(secs => 1000), "
+            "VALUES ($1::uuid, $2, $3::bigint, make_interval(secs => 1000), "
             "        make_interval(secs => 1010), 'DEPARTED')",
-            pqxx::params{session_uuid_, "EX 3003", "GDY"});
+            pqxx::params{session_uuid_, "EX 3003", static_cast<int64_t>(kGdyUid)});
         tx.commit();
     }
 
     constexpr uint64_t ts2 = 9999ULL * 1'000'000ULL;
-    writer_->update_edr_departure(session_uuid_, "EX 3003", "GDY", ts2);
+    writer_->update_edr_departure(session_uuid_, "EX 3003", kGdyUid, ts2);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT EXTRACT(EPOCH FROM actual_departure)::bigint AS secs "
         "FROM session.edr_entries "
-        "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-        pqxx::params{session_uuid_, "EX 3003", "GDY"});
+        "WHERE session_id = $1::uuid AND train_number = $2 AND station_uid = $3::bigint",
+        pqxx::params{session_uuid_, "EX 3003", static_cast<int64_t>(kGdyUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -336,7 +343,7 @@ TEST_F(PgDbWriterFixture, AppendEdrJournalEntry_InsertsOperatorVisibleRow)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-GDN-1";
-    row.station_sid = "GDN";
+    row.station_uid = kGdnUid;
     row.journal_page = "9:GDN-SOP";
     row.entry_type = "TRAIN";
     row.train_number = "IC 5600";
@@ -376,7 +383,7 @@ TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "TELEGRAM";
     row.direction = "RECEIVED";
@@ -513,23 +520,23 @@ TEST_F(PgDbWriterFixture, ReleaseOperatingPoint_Idempotent)
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
 {
-    writer_->upsert_timetable_template("IC-1234", "SOP", std::nullopt, "3600", "3660",
+    writer_->upsert_timetable_template("IC-1234", kSopUid, std::nullopt, "3600", "3660",
                                        std::string{"T1"}, "COMMERCIAL", {1, 2, 3, 4, 5});
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
-        "SELECT train_number, station_sid, stop_type, "
+        "SELECT train_number, station_uid, stop_type, "
         "       EXTRACT(EPOCH FROM scheduled_departure)::bigint AS scheduled_departure_secs, "
         "       track_number, operating_days "
         "FROM fleet.timetable_templates "
-        "WHERE train_number = $1 AND station_sid = $2",
-        pqxx::params{"IC-1234", "SOP"});
+        "WHERE train_number = $1 AND station_uid = $2::bigint",
+        pqxx::params{"IC-1234", static_cast<int64_t>(kSopUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
     EXPECT_EQ(r[0][0].as<std::string>(), "IC-1234");
-    EXPECT_EQ(r[0][1].as<std::string>(), "SOP");
+    EXPECT_EQ(r[0][1].as<int64_t>(), static_cast<int64_t>(kSopUid));
     EXPECT_EQ(r[0][2].as<std::string>(), "COMMERCIAL");
     EXPECT_EQ(r[0][3].as<int64_t>(), 3660LL);
     EXPECT_EQ(r[0][4].as<std::string>(), "T1");
@@ -538,9 +545,9 @@ TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_InsertsRow)
 
 TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows)
 {
-    writer_->upsert_timetable_template("WKD-100", "SOP", std::nullopt, std::nullopt, "3600",
+    writer_->upsert_timetable_template("WKD-100", kSopUid, std::nullopt, std::nullopt, "3600",
                                        std::string{"T1"}, "COMMERCIAL", {1, 2, 3, 4, 5});
-    writer_->upsert_timetable_template("WEE-200", "SOP", std::nullopt, std::nullopt, "7200",
+    writer_->upsert_timetable_template("WEE-200", kSopUid, std::nullopt, std::nullopt, "7200",
                                        std::string{"T2"}, "COMMERCIAL", {6, 7});
 
     const int64_t seeded = writer_->seed_edr_entries_for_operating_day(session_uuid_, 6);
@@ -551,9 +558,9 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows)
     const auto r = tx.exec(
         "SELECT train_number "
         "FROM session.edr_entries "
-        "WHERE session_id = $1::uuid AND station_sid = $2 "
+        "WHERE session_id = $1::uuid AND station_uid = $2::bigint "
         "ORDER BY train_number",
-        pqxx::params{session_uuid_, "SOP"});
+        pqxx::params{session_uuid_, static_cast<int64_t>(kSopUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -562,35 +569,35 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows)
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsEmptyOperatingDays)
 {
-    EXPECT_THROW(writer_->upsert_timetable_template("IC-EMPTY", "SOP", std::nullopt, std::nullopt,
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-EMPTY", kSopUid, std::nullopt, std::nullopt,
                                                     "3600", std::nullopt, "COMMERCIAL", {}),
                  std::runtime_error);
 }
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayZero)
 {
-    EXPECT_THROW(writer_->upsert_timetable_template("IC-ZERO", "SOP", std::nullopt, std::nullopt,
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-ZERO", kSopUid, std::nullopt, std::nullopt,
                                                     "3600", std::nullopt, "COMMERCIAL", {0}),
                  std::runtime_error);
 }
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayEight)
 {
-    EXPECT_THROW(writer_->upsert_timetable_template("IC-EIGHT", "SOP", std::nullopt, std::nullopt,
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-EIGHT", kSopUid, std::nullopt, std::nullopt,
                                                     "3600", std::nullopt, "COMMERCIAL", {8}),
                  std::runtime_error);
 }
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsOperatingDayNegative)
 {
-    EXPECT_THROW(writer_->upsert_timetable_template("IC-NEG", "SOP", std::nullopt, std::nullopt,
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-NEG", kSopUid, std::nullopt, std::nullopt,
                                                     "3600", std::nullopt, "COMMERCIAL", {-1}),
                  std::runtime_error);
 }
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays)
 {
-    EXPECT_THROW(writer_->upsert_timetable_template("IC-MIX", "SOP", std::nullopt, std::nullopt,
+    EXPECT_THROW(writer_->upsert_timetable_template("IC-MIX", kSopUid, std::nullopt, std::nullopt,
                                                     "3600", std::nullopt, "COMMERCIAL", {1, 3, 8}),
                  std::runtime_error);
 }
@@ -615,7 +622,7 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_NoTemplatesForDay)
 {
     const std::string train_number = "WKD-300-" + session_uuid_.substr(0, 8);
 
-    writer_->upsert_timetable_template(train_number, "SOP", std::nullopt, std::nullopt, "3600",
+    writer_->upsert_timetable_template(train_number, kSopUid, std::nullopt, std::nullopt, "3600",
                                        std::string{"T1"}, "COMMERCIAL", {1, 2, 3});
 
     writer_->seed_edr_entries_for_operating_day(session_uuid_, 7);
@@ -635,9 +642,9 @@ TEST_F(PgDbWriterFixture, SeedEdrEntriesForOperatingDay_NoTemplatesForDay)
 
 TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_OnConflictUpdatesAllFields)
 {
-    writer_->upsert_timetable_template("UPS-100", "SOP", std::nullopt, "1000", "1100",
+    writer_->upsert_timetable_template("UPS-100", kSopUid, std::nullopt, "1000", "1100",
                                        std::string{"T1"}, "COMMERCIAL", {1, 2});
-    writer_->upsert_timetable_template("UPS-100", "SOP", std::string{"OP-SOP-1"}, std::nullopt,
+    writer_->upsert_timetable_template("UPS-100", kSopUid, std::string{"OP-SOP-1"}, std::nullopt,
                                        "2200", std::string{"T2"}, "TECHNICAL", {6, 7});
 
     pqxx::connection c{conn_str_};
@@ -648,8 +655,8 @@ TEST_F(PgDbWriterFixture, UpsertTimetableTemplate_OnConflictUpdatesAllFields)
         "       EXTRACT(EPOCH FROM scheduled_departure)::bigint AS dep_secs, "
         "       track_number, stop_type, operating_days "
         "FROM fleet.timetable_templates "
-        "WHERE train_number = $1 AND station_sid = $2",
-        pqxx::params{"UPS-100", "SOP"});
+        "WHERE train_number = $1 AND station_uid = $2::bigint",
+        pqxx::params{"UPS-100", static_cast<int64_t>(kSopUid)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -665,7 +672,7 @@ TEST_F(PgDbWriterFixture, AppendEdrJournalEntry_RejectsInvalidEntryType)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "INVALID";
     row.body = "Invalid entry type should be rejected";
@@ -678,7 +685,7 @@ TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_RejectsInvalidStatus)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "NOTE";
     row.body = "Status rejection test";
@@ -695,7 +702,7 @@ TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "NOTE";
     row.body = "Cross out test";
@@ -720,7 +727,7 @@ TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_CanTransitionToCancelled)
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "NOTE";
     row.body = "Cancel test";
@@ -745,7 +752,7 @@ TEST_F(PgDbWriterFixture, UpdateEdrJournalEntryStatus_NullNotesPreservesExisting
 {
     server::EdrJournalEntryRow row;
     row.operating_point_id = "OP-SOP-1";
-    row.station_sid = "SOP";
+    row.station_uid = kSopUid;
     row.journal_page = "9:SOP-GDN";
     row.entry_type = "NOTE";
     row.body = "Preserve notes test";

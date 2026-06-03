@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS session.dispatch_telegrams (
     id              BIGSERIAL   PRIMARY KEY,
     session_id      UUID        NOT NULL REFERENCES session.sessions(id) ON DELETE CASCADE,
     form_type       TEXT        NOT NULL,   -- S2 | S24 | S25 | S26 | S55 | S56 | FREE_TEXT …
-    exchange_uid    BIGINT      NOT NULL,   -- OPERATIONS/DISPATCH_EXCHANGE UID
+    exchange_uid    TEXT        NOT NULL,   -- server-generated exchange correlation ID
     train_number    TEXT        NOT NULL,
     from_uid        BIGINT      NOT NULL,   -- source dispatch area UID
     to_uid          BIGINT      NOT NULL,   -- destination dispatch area UID

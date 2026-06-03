@@ -18,19 +18,18 @@ void EdrCoordinator::on_telegram_accepted(engine::core::DispatchFormType form,
 {
     // SENT: the operator at src_area sent the form → src_area is the affected station.
     // RECEIVED: the operator at src_area recorded a received form → dst_area is the origin.
-    const std::string& station =
+    const std::string& station_str =
         (direction == engine::core::TelegramDirection::SENT) ? src_area : dst_area;
+    const std::uint64_t station_uid = std::stoull(station_str);
 
     switch (form)
     {
         case engine::core::DispatchFormType::S25:
-            // Train departed from the affected station.
-            db_.update_edr_departure(session_id_, train_number, station, timestamp_us);
+            db_.update_edr_departure(session_id_, train_number, station_uid, timestamp_us);
             break;
 
         case engine::core::DispatchFormType::S26:
-            // Train arrived at the affected station.
-            db_.update_edr_arrival(session_id_, train_number, station, timestamp_us);
+            db_.update_edr_arrival(session_id_, train_number, station_uid, timestamp_us);
             break;
 
         default:

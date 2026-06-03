@@ -27,7 +27,7 @@
             "uid": 2280627765249,
             "pID": "l202_tor1a",
             "sideA": {
-                "neighborUID": 2302102601729,
+                "neighborUID": 2280627765273,
                 "itUID": 2310692536321,
                 "signalUIDs": [
                     2289217699841
@@ -49,7 +49,7 @@
             "uid": 2280627765250,
             "pID": "l202_tor2a_in",
             "sideA": {
-                "neighborUID": 2302102601729,
+                "neighborUID": 2280627765273,
                 "itUID": 2310692536323,
                 "signalUIDs": [
                     2289217699842
@@ -150,7 +150,7 @@
                 ]
             },
             "sideB": {
-                "neighborUID": 2302102601730,
+                "neighborUID": 2280627765265,
                 "itUID": 2310692536334,
                 "signalUIDs": [
                     2289217699847
@@ -172,7 +172,7 @@
                 ]
             },
             "sideB": {
-                "neighborUID": 2302102601730,
+                "neighborUID": 2280627765265,
                 "itUID": 2310692536336,
                 "signalUIDs": [
                     2289217699848
@@ -310,7 +310,7 @@
                 ]
             },
             "sideB": {
-                "neighborUID": 2302102601732,
+                "neighborUID": 2280627765268,
                 "itUID": 2310692536350,
                 "signalUIDs": [
                     2289217699855
@@ -332,7 +332,7 @@
                 ]
             },
             "sideB": {
-                "neighborUID": 2302102601732,
+                "neighborUID": 2280627765268,
                 "itUID": 2310692536352,
                 "signalUIDs": [
                     2289217699856
@@ -341,6 +341,177 @@
             "lengthM": 200.0,
             "electrified": true,
             "maxSpeedKmh": 70,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765265,
+            "pID": "szlak_sp_gor_l202_001",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2302102601730,
+                "itUID": 2310692536353,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765266,
+                "itUID": 2310692536354,
+                "signalUIDs": []
+            },
+            "lengthM": 707.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765266,
+            "pID": "szlak_sp_gor_l202_002",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765265,
+                "itUID": 2310692536355,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765267,
+                "itUID": 2310692536356,
+                "signalUIDs": []
+            },
+            "lengthM": 707.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765267,
+            "pID": "szlak_sp_gor_l202_003",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765266,
+                "itUID": 2310692536357,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627699729,
+                "itUID": 2310692536358,
+                "signalUIDs": []
+            },
+            "lengthM": 704.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765268,
+            "pID": "szlak_sp_gor_l250_001",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2302102601732,
+                "itUID": 2310692536359,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765269,
+                "itUID": 2310692536360,
+                "signalUIDs": []
+            },
+            "lengthM": 679.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765269,
+            "pID": "szlak_sp_gor_l250_002",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765268,
+                "itUID": 2310692536361,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765270,
+                "itUID": 2310692536362,
+                "signalUIDs": []
+            },
+            "lengthM": 679.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765270,
+            "pID": "szlak_sp_gor_l250_003",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765269,
+                "itUID": 2310692536363,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627699732,
+                "itUID": 2310692536364,
+                "signalUIDs": []
+            },
+            "lengthM": 677.0,
+            "electrified": true,
+            "maxSpeedKmh": 70,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765271,
+            "pID": "szlak_oliwa_sp_l202_001",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2302102601729,
+                "itUID": 2310692536365,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765272,
+                "itUID": 2310692536366,
+                "signalUIDs": []
+            },
+            "lengthM": 1194.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765272,
+            "pID": "szlak_oliwa_sp_l202_002",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765271,
+                "itUID": 2310692536367,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765273,
+                "itUID": 2310692536368,
+                "signalUIDs": []
+            },
+            "lengthM": 1194.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
+            "occupied": false
+        },
+        {
+            "uid": 2280627765273,
+            "pID": "szlak_oliwa_sp_l202_003",
+            "station_section": false,
+            "sideA": {
+                "neighborUID": 2280627765272,
+                "itUID": 2310692536369,
+                "signalUIDs": []
+            },
+            "sideB": {
+                "neighborUID": 2280627765249,
+                "itUID": 2310692536370,
+                "signalUIDs": []
+            },
+            "lengthM": 1193.0,
+            "electrified": true,
+            "maxSpeedKmh": 110,
             "occupied": false
         }
     ],

@@ -23,37 +23,37 @@ using engine::core::TelegramDirection;
 struct TelegramRow
 {
     std::string form_type;    // "S2" | "S24" | ... | "FREE_TEXT"
-    std::string exchange_id;  // e.g. "exch-0000001"
+    std::string exchange_id;  // server-generated exchange correlation ID (e.g. "exch-0000001")
     std::string train_number;
-    std::string from_sid;   // source dispatch area id
-    std::string to_sid;     // destination dispatch area id
-    std::string direction;  // "SENT" | "RECEIVED"
-    std::string status;     // "PENDING" | "ACCEPTED" | "REJECTED" | "CLOSED"
+    std::uint64_t from_uid{0};  // source dispatch area UID
+    std::uint64_t to_uid{0};    // destination dispatch area UID
+    std::string direction;      // "SENT" | "RECEIVED"
+    std::string status;         // "PENDING" | "ACCEPTED" | "REJECTED" | "CLOSED"
     std::optional<std::string> track_number;
     std::vector<std::string> km_markers;
-    std::string body;  // JSON snapshot of the payload
+    std::string body;
     std::uint64_t timestamp_us{0};
 };
 
 /// One row in session.events (append-only domain event log).
 struct DomainEventRow
 {
-    uint8_t event_type{0};                  ///< DOMAIN_EVENT event_type byte (docs/09)
-    uint32_t event_id{0};                   ///< server monotonic counter (same value as wire frame)
-    uint64_t timestamp_us{0};               ///< microseconds since session epoch
-    std::optional<std::string> object_gid;  ///< NULL for session-level events
-    std::vector<uint8_t> payload;           ///< raw FlatBuffers body (without the 13-byte prefix)
+    uint8_t event_type{0};
+    uint32_t event_id{0};
+    uint64_t timestamp_us{0};
+    std::optional<std::uint64_t> object_uid;  ///< NULL for session-level events
+    std::vector<uint8_t> payload;
 };
 
 /// One operator-visible EDR journal row.
 struct EdrJournalEntryRow
 {
     std::string operating_point_id;
-    std::string station_sid;
-    std::string journal_page;  // route/line page visible in EDR, e.g. "201:GDN-SOP"
-    std::string entry_type;    // TRAIN | TELEGRAM | NOTE | TRACK_OCCUPANCY | CROSSING_NOTICE
+    std::uint64_t station_uid{0};  // INFRASTRUCTURE/STATION UID
+    std::string journal_page;
+    std::string entry_type;
     std::optional<std::string> train_number;
-    std::optional<std::string> direction;     // ARRIVAL | DEPARTURE | PASS_THROUGH | SENT | RECEIVED
+    std::optional<std::string> direction;
     std::optional<std::string> track_number;
     std::optional<std::string> scheduled_arrival_secs;
     std::optional<std::string> scheduled_departure_secs;
@@ -69,89 +69,56 @@ class IDbWriter
 public:
     virtual ~IDbWriter() = default;
 
-    /// Create a session row in session.sessions and return its UUID string.
-    /// Called once at server startup after the scenario is loaded.
-    /// The returned UUID is used as the session_id for all subsequent DB writes.
     virtual std::string init_session(const std::string& display_name, int schema_version) = 0;
 
-    /// Seed session.edr_entries from fleet.timetable_templates for the selected ISO weekday.
-    /// iso_weekday uses 1=Monday ... 7=Sunday.
     virtual int64_t seed_edr_entries_for_operating_day(const std::string& session_id,
                                                        int iso_weekday) = 0;
 
-    /// Append one domain event to session.events.
-    /// Called from the ENGINE thread for every DeviceStateChange that produces a
-    /// DOMAIN_EVENT frame; the event_id and payload must match the wire frame.
     virtual void write_domain_event(const std::string& session_id, DomainEventRow row) = 0;
 
-    /// Persist a dispatch telegram row.
     virtual void write_dispatch_telegram(const std::string& session_id, TelegramRow row) = 0;
 
-    /// Update track_clear_time in session.edr_entries for the given train / station.
-    /// Called when an S24 or S56 telegram is accepted.
     virtual void update_edr_track_clear_time(const std::string& session_id,
                                              const std::string& train_number,
-                                             const std::string& station_sid,
+                                             std::uint64_t station_uid,
                                              std::uint64_t timestamp_us) = 0;
 
-    /// Set actual_departure and status=DEPARTED in session.edr_entries.
-    /// Called when an S25 (departure notification) telegram is accepted.
     virtual void update_edr_departure(const std::string& session_id,
-                                      const std::string& train_number,
-                                      const std::string& station_sid,
+                                      const std::string& train_number, std::uint64_t station_uid,
                                       std::uint64_t timestamp_us) = 0;
 
-    /// Set actual_arrival and status=ARRIVED in session.edr_entries.
-    /// Called when an S26 (arrival confirmation) telegram is accepted.
     virtual void update_edr_arrival(const std::string& session_id, const std::string& train_number,
-                                    const std::string& station_sid, std::uint64_t timestamp_us) = 0;
+                                    std::uint64_t station_uid, std::uint64_t timestamp_us) = 0;
 
-    /// Append an operator-visible EDR journal row and return its database id.
     virtual int64_t append_edr_journal_entry(const std::string& session_id,
                                              EdrJournalEntryRow row) = 0;
 
-    /// Mark a journal row as CROSSED_OUT, CORRECTED, CANCELLED, or ACTIVE.
     virtual void update_edr_journal_entry_status(const std::string& session_id, int64_t entry_id,
                                                  const std::string& status,
                                                  const std::optional<std::string>& notes) = 0;
 
-    /// UPSERT pip.track_state for one track section.
-    /// trains_json is a JSON array string, e.g. "[]" or
-    /// "[{\"number\":\"IC123\",\"has_extra_info\":false,\"manually_placed\":false,\"entry_side\":\"LEFT\"}]".
-    /// path_confirmed is NOT touched — it is managed by route-confirmation commands.
-    virtual void upsert_pip_track_state(const std::string& session_id,
-                                        const std::string& section_gid,
+    virtual void upsert_pip_track_state(const std::string& session_id, std::uint64_t section_uid,
                                         const std::string& trains_json) = 0;
 
-    /// Persist a full session snapshot to session.snapshots.
-    /// payload is the raw FlatBuffers bytes of the snapshot.
     virtual void save_snapshot(const std::string& session_id, int64_t seq_cursor,
                                int64_t timestamp_us, const std::vector<std::uint8_t>& payload) = 0;
 
-    /// Append one message to session.chat_log.
-    /// target_type is "BROADCAST" | "AREA" | "PLAYER"; target_id may be nullopt for broadcasts.
     virtual void append_chat_message(const std::string& session_id, const std::string& sender_id,
                                      const std::string& target_type,
                                      const std::optional<std::string>& target_id,
                                      const std::string& body, int64_t timestamp_us) = 0;
 
-    /// Insert an operating-point assignment and return its auto-generated id.
-    /// Records that client_id has taken operating_point_id at station_sid in this session.
     virtual int64_t assign_operating_point(const std::string& session_id,
                                            const std::string& operating_point_id,
                                            const std::string& station_sid,
                                            const std::string& client_id) = 0;
 
-    /// Mark an operating-point assignment as released (set released_at = now()).
-    /// Idempotent — no-op if the assignment is already released.
     virtual void release_operating_point(const std::string& session_id,
                                          const std::string& operating_point_id,
                                          const std::string& client_id) = 0;
 
-    /// UPSERT a timetable template row in fleet.timetable_templates.
-    /// scheduled_arrival_secs and track_number may be null for origin/terminus stations.
     virtual void upsert_timetable_template(const std::string& train_number,
-                                           const std::string& station_sid,
+                                           std::uint64_t station_uid,
                                            const std::optional<std::string>& operating_point_id,
                                            const std::optional<std::string>& scheduled_arrival_secs,
                                            const std::string& scheduled_departure_secs,
@@ -161,7 +128,6 @@ public:
 };
 
 /// No-op implementation for unit tests.
-/// Captures all calls into public vectors for assertion.
 class NullDbWriter : public IDbWriter
 {
 public:
@@ -188,23 +154,22 @@ public:
     }
 
     void update_edr_track_clear_time(const std::string& /*session_id*/,
-                                     const std::string& train_number,
-                                     const std::string& station_sid,
+                                     const std::string& train_number, std::uint64_t station_uid,
                                      std::uint64_t timestamp_us) override
     {
-        edr_updates.push_back({train_number, station_sid, timestamp_us});
+        edr_updates.push_back({train_number, station_uid, timestamp_us});
     }
 
     void update_edr_departure(const std::string& /*session_id*/, const std::string& train_number,
-                              const std::string& station_sid, std::uint64_t timestamp_us) override
+                              std::uint64_t station_uid, std::uint64_t timestamp_us) override
     {
-        edr_departures.push_back({train_number, station_sid, timestamp_us});
+        edr_departures.push_back({train_number, station_uid, timestamp_us});
     }
 
     void update_edr_arrival(const std::string& /*session_id*/, const std::string& train_number,
-                            const std::string& station_sid, std::uint64_t timestamp_us) override
+                            std::uint64_t station_uid, std::uint64_t timestamp_us) override
     {
-        edr_arrivals.push_back({train_number, station_sid, timestamp_us});
+        edr_arrivals.push_back({train_number, station_uid, timestamp_us});
     }
 
     int64_t append_edr_journal_entry(const std::string& /*session_id*/,
@@ -221,10 +186,10 @@ public:
         edr_journal_status_updates.push_back({entry_id, status, notes});
     }
 
-    void upsert_pip_track_state(const std::string& /*session_id*/, const std::string& section_gid,
+    void upsert_pip_track_state(const std::string& /*session_id*/, std::uint64_t section_uid,
                                 const std::string& trains_json) override
     {
-        pip_upserts.push_back({section_gid, trains_json});
+        pip_upserts.push_back({section_uid, trains_json});
     }
 
     void save_snapshot(const std::string& /*session_id*/, int64_t seq_cursor, int64_t timestamp_us,
@@ -257,7 +222,7 @@ public:
         op_releases.push_back({operating_point_id, client_id});
     }
 
-    void upsert_timetable_template(const std::string& train_number, const std::string& station_sid,
+    void upsert_timetable_template(const std::string& train_number, std::uint64_t station_uid,
                                    const std::optional<std::string>& operating_point_id,
                                    const std::optional<std::string>& scheduled_arrival_secs,
                                    const std::string& scheduled_departure_secs,
@@ -265,21 +230,21 @@ public:
                                    const std::string& stop_type,
                                    const std::vector<int>& operating_days) override
     {
-        timetable_upserts.push_back({train_number, station_sid, operating_point_id,
+        timetable_upserts.push_back({train_number, station_uid, operating_point_id,
                                      scheduled_arrival_secs, scheduled_departure_secs, track_number,
                                      stop_type, operating_days});
     }
 
     struct PipUpsert
     {
-        std::string section_gid;
+        std::uint64_t section_uid;
         std::string trains_json;
     };
 
     struct EdrUpdate
     {
         std::string train_number;
-        std::string station_sid;
+        std::uint64_t station_uid;
         std::uint64_t timestamp_us;
     };
 
@@ -315,7 +280,7 @@ public:
     struct TimetableUpsert
     {
         std::string train_number;
-        std::string station_sid;
+        std::uint64_t station_uid;
         std::optional<std::string> operating_point_id;
         std::optional<std::string> scheduled_arrival_secs;
         std::string scheduled_departure_secs;

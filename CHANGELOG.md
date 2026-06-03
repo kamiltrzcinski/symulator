@@ -33,6 +33,10 @@ All notable changes are documented here.
   the real scenario files and verifies UID validity, uniqueness, and station-SCOPE
   consistency.
 
+### Fixed
+- **Integration tests**: fixed db schema and integration tests with db interface 
+  rework.
+
 ## [0.5.6] - 2026-06-01
 
 ### Changed

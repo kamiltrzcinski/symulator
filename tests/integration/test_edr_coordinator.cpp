@@ -23,6 +23,9 @@ using namespace engine::core;
 namespace
 {
 
+static constexpr uint64_t kGorUid = 3001ULL;
+static constexpr uint64_t kSopUid = 3002ULL;
+
 static const char* db_conn_str()
 {
     return std::getenv("SYMULATOR_TEST_DB");
@@ -63,26 +66,27 @@ protected:
     }
 
     // Insert a PENDING edr_entries row so the UPDATE in EdrCoordinator has a target.
-    void insert_pending_edr(const std::string& train, const std::string& station)
+    void insert_pending_edr(const std::string& train, uint64_t station_uid)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
         tx.exec(
             "INSERT INTO session.edr_entries "
-            "  (session_id, train_number, station_sid, scheduled_departure, stop_type, status) "
-            "VALUES ($1::uuid, $2, $3, make_interval(secs => 3600), 'COMMERCIAL', 'PENDING')",
-            pqxx::params{session_uuid_, train, station});
+            "  (session_id, train_number, station_uid, scheduled_departure, stop_type, status) "
+            "VALUES ($1::uuid, $2, $3::bigint, make_interval(secs => 3600), 'COMMERCIAL', "
+            "'PENDING')",
+            pqxx::params{session_uuid_, train, static_cast<int64_t>(station_uid)});
         tx.commit();
     }
 
-    std::string fetch_edr_status(const std::string& train, const std::string& station)
+    std::string fetch_edr_status(const std::string& train, uint64_t station_uid)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
         const auto r = tx.exec(
             "SELECT status FROM session.edr_entries "
-            "WHERE session_id = $1::uuid AND train_number = $2 AND station_sid = $3",
-            pqxx::params{session_uuid_, train, station});
+            "WHERE session_id = $1::uuid AND train_number = $2 AND station_uid = $3::bigint",
+            pqxx::params{session_uuid_, train, static_cast<int64_t>(station_uid)});
         tx.commit();
         if (r.empty())
             return "";
@@ -101,58 +105,59 @@ protected:
 
 TEST_F(EdrCoordinatorFixture, S25_Sent_UsesSrcAreaAsStation)
 {
-    // SENT: operator at "GOR" sent S25 → departure recorded at GOR.
-    insert_pending_edr("IC 101", "GOR");
+    insert_pending_edr("IC 101", kGorUid);
 
     coordinator_->on_telegram_accepted(DispatchFormType::S25, TelegramDirection::SENT,
-                                       /*src_area=*/"GOR", /*dst_area=*/"SOP",
+                                       /*src_area=*/std::to_string(kGorUid),
+                                       /*dst_area=*/std::to_string(kSopUid),
                                        /*train_number=*/"IC 101",
                                        /*timestamp_us=*/3600ULL * 1'000'000ULL);
 
-    EXPECT_EQ(fetch_edr_status("IC 101", "GOR"), "DEPARTED");
-    // dst_area station row should be untouched.
-    EXPECT_EQ(fetch_edr_status("IC 101", "SOP"), "");
+    EXPECT_EQ(fetch_edr_status("IC 101", kGorUid), "DEPARTED");
+    EXPECT_EQ(fetch_edr_status("IC 101", kSopUid), "");
 }
 
 TEST_F(EdrCoordinatorFixture, S25_Received_UsesDstAreaAsStation)
 {
-    // RECEIVED: operator at "SOP" recorded an incoming S25 → departure was at GOR (dst_area).
-    insert_pending_edr("IC 202", "GOR");
+    // RECEIVED: operator at kSopUid recorded an incoming S25 → departure was at kGorUid (dst_area).
+    insert_pending_edr("IC 202", kGorUid);
 
     coordinator_->on_telegram_accepted(DispatchFormType::S25, TelegramDirection::RECEIVED,
-                                       /*src_area=*/"SOP", /*dst_area=*/"GOR",
+                                       /*src_area=*/std::to_string(kSopUid),
+                                       /*dst_area=*/std::to_string(kGorUid),
                                        /*train_number=*/"IC 202",
                                        /*timestamp_us=*/7200ULL * 1'000'000ULL);
 
-    EXPECT_EQ(fetch_edr_status("IC 202", "GOR"), "DEPARTED");
+    EXPECT_EQ(fetch_edr_status("IC 202", kGorUid), "DEPARTED");
 }
 
 // ── S26: arrival ──────────────────────────────────────────────────────────────
 
 TEST_F(EdrCoordinatorFixture, S26_Sent_UsesSrcAreaAsStation)
 {
-    // SENT: operator at "SOP" sent S26 → arrival recorded at SOP.
-    insert_pending_edr("IC 303", "SOP");
+    insert_pending_edr("IC 303", kSopUid);
 
     coordinator_->on_telegram_accepted(DispatchFormType::S26, TelegramDirection::SENT,
-                                       /*src_area=*/"SOP", /*dst_area=*/"GOR",
+                                       /*src_area=*/std::to_string(kSopUid),
+                                       /*dst_area=*/std::to_string(kGorUid),
                                        /*train_number=*/"IC 303",
                                        /*timestamp_us=*/10800ULL * 1'000'000ULL);
 
-    EXPECT_EQ(fetch_edr_status("IC 303", "SOP"), "ARRIVED");
+    EXPECT_EQ(fetch_edr_status("IC 303", kSopUid), "ARRIVED");
 }
 
 TEST_F(EdrCoordinatorFixture, S26_Received_UsesDstAreaAsStation)
 {
-    // RECEIVED: operator at "GOR" recorded an incoming S26 → arrival was at SOP (dst_area).
-    insert_pending_edr("IC 404", "SOP");
+    // RECEIVED: operator at kGorUid recorded an incoming S26 → arrival was at kSopUid (dst_area).
+    insert_pending_edr("IC 404", kSopUid);
 
     coordinator_->on_telegram_accepted(DispatchFormType::S26, TelegramDirection::RECEIVED,
-                                       /*src_area=*/"GOR", /*dst_area=*/"SOP",
+                                       /*src_area=*/std::to_string(kGorUid),
+                                       /*dst_area=*/std::to_string(kSopUid),
                                        /*train_number=*/"IC 404",
                                        /*timestamp_us=*/14400ULL * 1'000'000ULL);
 
-    EXPECT_EQ(fetch_edr_status("IC 404", "SOP"), "ARRIVED");
+    EXPECT_EQ(fetch_edr_status("IC 404", kSopUid), "ARRIVED");
 }
 
 // ── Unhandled form types ──────────────────────────────────────────────────────
@@ -160,11 +165,12 @@ TEST_F(EdrCoordinatorFixture, S26_Received_UsesDstAreaAsStation)
 TEST_F(EdrCoordinatorFixture, OtherFormTypes_DoNotWriteToDb)
 {
     // S2, S24, S55, S56 are not handled by EdrCoordinator.
-    insert_pending_edr("IC 505", "GOR");
+    insert_pending_edr("IC 505", kGorUid);
 
-    coordinator_->on_telegram_accepted(DispatchFormType::S2, TelegramDirection::SENT, "GOR", "SOP",
-                                       "IC 505", 3600ULL * 1'000'000ULL);
+    coordinator_->on_telegram_accepted(DispatchFormType::S2, TelegramDirection::SENT,
+                                       std::to_string(kGorUid), std::to_string(kSopUid), "IC 505",
+                                       3600ULL * 1'000'000ULL);
 
     // Status must remain PENDING — coordinator must not update it.
-    EXPECT_EQ(fetch_edr_status("IC 505", "GOR"), "PENDING");
+    EXPECT_EQ(fetch_edr_status("IC 505", kGorUid), "PENDING");
 }

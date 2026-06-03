@@ -18,6 +18,12 @@
 namespace
 {
 
+static constexpr uint64_t kSecA = 200001ULL;
+static constexpr uint64_t kSecB = 200002ULL;
+static constexpr uint64_t kSecC = 200003ULL;
+static constexpr uint64_t kSecD = 200004ULL;
+static constexpr uint64_t kSecE = 200005ULL;
+
 static const char* db_conn_str()
 {
     return std::getenv("SYMULATOR_TEST_DB");
@@ -58,14 +64,14 @@ protected:
 
     // Fetch the raw trains JSON text for a given section.
     // Returns an empty string when no row exists.
-    std::string fetch_trains_json(const std::string& section_gid)
+    std::string fetch_trains_json(uint64_t section_uid)
     {
         pqxx::connection c{conn_str_};
         pqxx::work tx{c};
         const auto r = tx.exec(
             "SELECT trains::text FROM pip.track_state "
-            "WHERE session_id = $1::uuid AND section_gid = $2",
-            pqxx::params{session_uuid_, section_gid});
+            "WHERE session_id = $1::uuid AND section_uid = $2::bigint",
+            pqxx::params{session_uuid_, static_cast<int64_t>(section_uid)});
         tx.commit();
         if (r.empty())
             return "";
@@ -83,28 +89,25 @@ protected:
 
 TEST_F(PipTrackStateFixture, Upsert_InsertsNewRow)
 {
-    const std::string section = "OT-tor_a";
     const std::string trains =
         R"([{"number":"IC 101","has_extra_info":false,"manually_placed":false,"entry_side":"LEFT"}])";
 
-    writer_->upsert_pip_track_state(session_uuid_, section, trains);
+    writer_->upsert_pip_track_state(session_uuid_, kSecA, trains);
 
-    const std::string stored = fetch_trains_json(section);
+    const std::string stored = fetch_trains_json(kSecA);
     EXPECT_FALSE(stored.empty()) << "Row should have been inserted";
 }
 
 TEST_F(PipTrackStateFixture, Upsert_FreeSection_StoresEmptyArray)
 {
-    const std::string section = "OT-tor_b";
-
-    writer_->upsert_pip_track_state(session_uuid_, section, "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecB, "[]");
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT jsonb_array_length(trains) FROM pip.track_state "
-        "WHERE session_id = $1::uuid AND section_gid = $2",
-        pqxx::params{session_uuid_, section});
+        "WHERE session_id = $1::uuid AND section_uid = $2::bigint",
+        pqxx::params{session_uuid_, static_cast<int64_t>(kSecB)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -113,23 +116,22 @@ TEST_F(PipTrackStateFixture, Upsert_FreeSection_StoresEmptyArray)
 
 TEST_F(PipTrackStateFixture, Upsert_ConflictUpdatesTrains)
 {
-    const std::string section = "OT-zwr1";
     const std::string trains_v1 =
         R"([{"number":"IC 101","has_extra_info":false,"manually_placed":false,"entry_side":"LEFT"}])";
     const std::string trains_v2 = "[]";
 
     // First upsert: occupied
-    writer_->upsert_pip_track_state(session_uuid_, section, trains_v1);
+    writer_->upsert_pip_track_state(session_uuid_, kSecC, trains_v1);
 
     // Second upsert: now free — ON CONFLICT DO UPDATE must overwrite.
-    writer_->upsert_pip_track_state(session_uuid_, section, trains_v2);
+    writer_->upsert_pip_track_state(session_uuid_, kSecC, trains_v2);
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT jsonb_array_length(trains) FROM pip.track_state "
-        "WHERE session_id = $1::uuid AND section_gid = $2",
-        pqxx::params{session_uuid_, section});
+        "WHERE session_id = $1::uuid AND section_uid = $2::bigint",
+        pqxx::params{session_uuid_, static_cast<int64_t>(kSecC)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);
@@ -138,9 +140,9 @@ TEST_F(PipTrackStateFixture, Upsert_ConflictUpdatesTrains)
 
 TEST_F(PipTrackStateFixture, Upsert_MultipleSections_AllInserted)
 {
-    writer_->upsert_pip_track_state(session_uuid_, "OT-sec-1", "[]");
-    writer_->upsert_pip_track_state(session_uuid_, "OT-sec-2", "[]");
-    writer_->upsert_pip_track_state(session_uuid_, "OT-sec-3", "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecA, "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecB, "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecC, "[]");
 
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
@@ -154,9 +156,7 @@ TEST_F(PipTrackStateFixture, Upsert_MultipleSections_AllInserted)
 
 TEST_F(PipTrackStateFixture, Upsert_UpdatedAtChangesOnConflict)
 {
-    const std::string section = "OT-tor_c";
-
-    writer_->upsert_pip_track_state(session_uuid_, section, "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecD, "[]");
 
     // Fetch original updated_at
     std::string first_ts;
@@ -165,22 +165,22 @@ TEST_F(PipTrackStateFixture, Upsert_UpdatedAtChangesOnConflict)
         pqxx::work tx{c};
         const auto r = tx.exec(
             "SELECT updated_at FROM pip.track_state "
-            "WHERE session_id = $1::uuid AND section_gid = $2",
-            pqxx::params{session_uuid_, section});
+            "WHERE session_id = $1::uuid AND section_uid = $2::bigint",
+            pqxx::params{session_uuid_, static_cast<int64_t>(kSecD)});
         tx.commit();
         ASSERT_EQ(r.size(), 1u);
         first_ts = r[0][0].as<std::string>();
     }
 
-    writer_->upsert_pip_track_state(session_uuid_, section, "[]");
+    writer_->upsert_pip_track_state(session_uuid_, kSecD, "[]");
 
     // updated_at must not be null after the second upsert.
     pqxx::connection c{conn_str_};
     pqxx::work tx{c};
     const auto r = tx.exec(
         "SELECT updated_at IS NOT NULL FROM pip.track_state "
-        "WHERE session_id = $1::uuid AND section_gid = $2",
-        pqxx::params{session_uuid_, section});
+        "WHERE session_id = $1::uuid AND section_uid = $2::bigint",
+        pqxx::params{session_uuid_, static_cast<int64_t>(kSecD)});
     tx.commit();
 
     ASSERT_EQ(r.size(), 1u);

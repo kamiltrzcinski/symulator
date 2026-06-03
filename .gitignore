@@ -44,6 +44,11 @@ __pycache__/
 # Private devlog
 docs/devlog.md
 
+# Internal implementation plans — not for publication
+docs/plan_UID.md
+docs/plan_engine.md
+docs/plan_migracji.md
+
 # PKP proprietary documents — must not be published
 docs/instructions/
 

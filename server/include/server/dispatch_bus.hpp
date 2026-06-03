@@ -55,8 +55,8 @@ public:
 private:
     void on_state_changes(const std::vector<engine::core::DeviceStateChange>& changes);
 
-    /// Extract the primary object GID from a DeviceStateChange for DB logging.
-    static std::optional<std::string> object_gid_from_change(
+    /// Extract the primary object UID from a DeviceStateChange for DB logging.
+    static std::optional<std::uint64_t> object_uid_from_change(
         const engine::core::DeviceStateChange& change);
 
     TransportGateway& gateway_;

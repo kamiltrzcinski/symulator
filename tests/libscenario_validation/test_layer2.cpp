@@ -35,7 +35,7 @@ static bool has_code(const ValidationResult& r, const std::string& code)
 }
 
 // Construct INFRA UID: domain=0x02, given kind, scope=station, instance=n
-static constexpr uint64_t infra_uid(uint8_t kind, int station, uint16_t n)
+static constexpr uint64_t infra_uid(uint8_t kind, uint16_t station, uint16_t n)
 {
     return (uint64_t{0x02} << 40) | (uint64_t{kind} << 32) | (uint64_t{station} << 16) |
            uint64_t{n};

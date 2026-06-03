@@ -98,8 +98,8 @@ TEST_F(DispatchChannelFixture, S2_Accepted_WritesOneRow)
     ASSERT_EQ(db.written_telegrams.size(), 1u);
     EXPECT_EQ(db.written_telegrams[0].form_type, "S2");
     EXPECT_EQ(db.written_telegrams[0].train_number, kTrain);
-    EXPECT_EQ(db.written_telegrams[0].from_sid, kSrcArea);
-    EXPECT_EQ(db.written_telegrams[0].to_sid, kDstArea);
+    EXPECT_EQ(db.written_telegrams[0].from_uid, kSrcAreaUid);
+    EXPECT_EQ(db.written_telegrams[0].to_uid, kDstAreaUid);
     EXPECT_EQ(db.written_telegrams[0].status, "ACCEPTED");
     EXPECT_FALSE(db.written_telegrams[0].exchange_id.empty());
     EXPECT_TRUE(db.edr_updates.empty());
@@ -116,7 +116,7 @@ TEST_F(DispatchChannelFixture, S24_Accepted_WritesRowAndEdrUpdate)
     EXPECT_EQ(db.written_telegrams[1].form_type, "S24");
     ASSERT_EQ(db.edr_updates.size(), 1u);
     EXPECT_EQ(db.edr_updates[0].train_number, kTrain);
-    EXPECT_EQ(db.edr_updates[0].station_sid, kDstArea);
+    EXPECT_EQ(db.edr_updates[0].station_uid, kDstAreaUid);
 }
 
 TEST_F(DispatchChannelFixture, HappyPath_S2_S24_S25_S26_WritesAll)
@@ -210,5 +210,5 @@ TEST_F(DispatchChannelFixture, S25_Sent_SetsEdrDepartureForSrcArea)
                             proto::TelegramDirection_SENT, kTrain));
 
     ASSERT_EQ(db.edr_departures.size(), 1u);
-    EXPECT_EQ(db.edr_departures[0].station_sid, kSrcArea);
+    EXPECT_EQ(db.edr_departures[0].station_uid, kSrcAreaUid);
 }
