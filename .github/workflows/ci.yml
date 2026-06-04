@@ -98,12 +98,13 @@ jobs:
       - name: Build
         run: cmake --build build/ninja-debug-headless --parallel $(nproc)
 
-      # ── Unit tests (no DB required) ────────────────────────────────────────
-      - name: Unit tests
+      # ── Grouped tests (no DB required) ────────────────────────────────────
+      - name: Grouped tests (pre-DB)
         run: |
-          ctest --test-dir build/ninja-debug-headless \
-            --output-on-failure \
-            -LE integration
+          python3 scripts/run_grouped_ctest.py \
+            --test-dir build/ninja-debug-headless \
+            --reports-dir build/ninja-debug-headless/test-reports \
+            --profile pre-db
 
       # ── Apply DB schema ───────────────────────────────────────────────────
       # The postgres service starts with an empty database; we apply init.sql
@@ -114,8 +115,8 @@ jobs:
         run: |
           psql -h localhost -U symulator -d symulator -f docker/init.sql
 
-      # ── Integration tests ─────────────────────────────────────────────────
-      - name: Integration tests
+      # ── Grouped tests (DB required) ───────────────────────────────────────
+      - name: Grouped tests (DB)
         env:
           SYMULATOR_TEST_DB: >-
             host=localhost port=5432
@@ -123,6 +124,16 @@ jobs:
             user=symulator
             password=symulator_test_pass
         run: |
-          ctest --test-dir build/ninja-debug-headless \
-            -L integration \
-            --output-on-failure
+          python3 scripts/run_grouped_ctest.py \
+            --test-dir build/ninja-debug-headless \
+            --reports-dir build/ninja-debug-headless/test-reports \
+            --profile db
+
+      # ── Test artifacts ────────────────────────────────────────────────────
+      - name: Upload grouped JUnit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grouped-ctest-junit
+          path: build/ninja-debug-headless/test-reports/*.xml
+          if-no-files-found: warn

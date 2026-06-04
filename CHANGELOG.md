@@ -2,6 +2,25 @@
 
 All notable changes are documented here.
 
+## [0.5.8] - 2026-06-04
+
+### Changed
+- **Grouped CTest execution**: unit/integration suites are now organized into logical groups with dedicated labels:
+  - `group:unit-engine-core`, `group:unit-engine-sim`
+  - `group:unit-server-protocol`, `group:unit-server-dispatch`
+  - `group:unit-srk`, `group:unit-proto`, `group:unit-validation`
+  - `group:integration-non-db`, `group:integration-db`
+- **Test targets split**:
+  - `tests_engine` split into `tests_engine_core` and `tests_engine_sim`.
+  - `tests_server` split into `tests_server_protocol` and `tests_server_dispatch`.
+  - `tests_integration` split into `tests_integration_non_db` and `tests_integration_db`.
+- **CI test flow**: GitHub Actions now runs tests by logical groups using `scripts/run_grouped_ctest.py` and publishes per-group JUnit artifacts.
+- **Integration helper script**: `scripts/run_integration_tests.sh` now selects integration groups via `group:integration-` labels.
+
+### Added
+- **Grouped test runner**: new `scripts/run_grouped_ctest.py` runs CTest in explicit groups, prints `PASS`/`FAILED` summary per group, and lists failing test names.
+- **Test docs**: tests/README.md new test guide with know-how 
+
 ## [0.5.7] - 2026-06-03
 
 ### Changed

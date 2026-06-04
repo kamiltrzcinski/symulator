@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <tests/common/param_test_helpers.hpp>
+
 #include <atomic>
 #include <chrono>
 #include <memory>
@@ -139,6 +141,7 @@ TEST(EventQueue, MoveOnlyType)
 
 struct MpscParams
 {
+    const char* name;
     int producers;
     int items_per_producer;
 };
@@ -149,7 +152,9 @@ class EventQueueMpscTest : public ::testing::TestWithParam<MpscParams>
 
 TEST_P(EventQueueMpscTest, AllItemsDelivered)
 {
-    const auto [producers, items_per_producer] = GetParam();
+    const auto& param = GetParam();
+    const int producers = param.producers;
+    const int items_per_producer = param.items_per_producer;
     const int total = producers * items_per_producer;
 
     EventQueue<int> q;
@@ -181,10 +186,8 @@ TEST_P(EventQueueMpscTest, AllItemsDelivered)
 }
 
 INSTANTIATE_TEST_SUITE_P(EventQueue, EventQueueMpscTest,
-                         ::testing::Values(MpscParams{1, 2000}, MpscParams{2, 1000},
-                                           MpscParams{4, 500}, MpscParams{8, 250}),
-                         [](const ::testing::TestParamInfo<MpscParams>& info)
-                         {
-                             return std::to_string(info.param.producers) + "p_" +
-                                    std::to_string(info.param.items_per_producer) + "i";
-                         });
+                         ::testing::Values(MpscParams{"P1I2000", 1, 2000},
+                                           MpscParams{"P2I1000", 2, 1000},
+                                           MpscParams{"P4I500", 4, 500},
+                                           MpscParams{"P8I250", 8, 250}),
+                         tests::common::param_name<MpscParams>);

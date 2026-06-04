@@ -1,16 +1,26 @@
-add_executable(tests_server
+add_executable(tests_server_protocol
     test_placeholder.cpp
     test_frame.cpp
     test_command_ingress.cpp
     test_ownership_guard.cpp
+)
+target_link_libraries(tests_server_protocol PRIVATE server_lib tests_common GTest::gtest_main)
+target_compile_features(tests_server_protocol PRIVATE cxx_std_20)
+
+symulator_discover_gtest(tests_server_protocol
+    GROUP_LABEL group:unit-server-protocol
+)
+
+add_executable(tests_server_dispatch
     test_dispatch_bus.cpp
     test_dispatch_exchange_manager.cpp
     test_dispatch_coordinator.cpp
     test_dispatch_channel.cpp
     test_pip_writer.cpp
 )
-target_link_libraries(tests_server PRIVATE server_lib GTest::gtest_main)
-target_compile_features(tests_server PRIVATE cxx_std_20)
+target_link_libraries(tests_server_dispatch PRIVATE server_lib tests_common GTest::gtest_main)
+target_compile_features(tests_server_dispatch PRIVATE cxx_std_20)
 
-include(GoogleTest)
-gtest_discover_tests(tests_server)
+symulator_discover_gtest(tests_server_dispatch
+    GROUP_LABEL group:unit-server-dispatch
+)

@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <tests/common/param_test_helpers.hpp>
+
 #include <atomic>
 #include <chrono>
 #include <string>
@@ -69,14 +71,20 @@ TYPED_TEST(PriorityCommandQueueTypedTest, IsClosedFlag)
 // ── Parameterised over CommandPriority — per-bucket correctness ───────────────
 // Each test runs once per priority level to ensure no bucket is special-cased.
 
-class PriorityCommandQueuePerPriorityTest : public ::testing::TestWithParam<CommandPriority>
+struct PriorityCase
+{
+    const char* name;
+    CommandPriority priority;
+};
+
+class PriorityCommandQueuePerPriorityTest : public ::testing::TestWithParam<PriorityCase>
 {
 };
 
 TEST_P(PriorityCommandQueuePerPriorityTest, PushAndPopAtPriority)
 {
     PriorityCommandQueue<int> q;
-    q.push(42, GetParam());
+    q.push(42, GetParam().priority);
     auto result = q.try_pop();
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(*result, 42);
@@ -85,7 +93,7 @@ TEST_P(PriorityCommandQueuePerPriorityTest, PushAndPopAtPriority)
 TEST_P(PriorityCommandQueuePerPriorityTest, FifoWithinSamePriority)
 {
     PriorityCommandQueue<int> q;
-    const auto p = GetParam();
+    const auto p = GetParam().priority;
     q.push(10, p);
     q.push(20, p);
     q.push(30, p);
@@ -96,23 +104,11 @@ TEST_P(PriorityCommandQueuePerPriorityTest, FifoWithinSamePriority)
 }
 
 INSTANTIATE_TEST_SUITE_P(AllPriorities, PriorityCommandQueuePerPriorityTest,
-                         ::testing::Values(CommandPriority::EMERGENCY, CommandPriority::SAFETY,
-                                           CommandPriority::NORMAL, CommandPriority::BACKGROUND),
-                         [](const ::testing::TestParamInfo<CommandPriority>& info)
-                         {
-                             switch (info.param)
-                             {
-                                 case CommandPriority::EMERGENCY:
-                                     return "EMERGENCY";
-                                 case CommandPriority::SAFETY:
-                                     return "SAFETY";
-                                 case CommandPriority::NORMAL:
-                                     return "NORMAL";
-                                 case CommandPriority::BACKGROUND:
-                                     return "BACKGROUND";
-                             }
-                             return "UNKNOWN";
-                         });
+                         ::testing::Values(PriorityCase{"EMERGENCY", CommandPriority::EMERGENCY},
+                                           PriorityCase{"SAFETY", CommandPriority::SAFETY},
+                                           PriorityCase{"NORMAL", CommandPriority::NORMAL},
+                                           PriorityCase{"BACKGROUND", CommandPriority::BACKGROUND}),
+                         tests::common::param_name<PriorityCase>);
 
 // ── Non-parameterised tests — require specific multi-priority interaction ──────
 
@@ -192,6 +188,7 @@ TEST(PriorityCommandQueue, BucketCountMatchesCommandPriorityRange)
 
 struct CmdMpscParams
 {
+    const char* name;
     int producers;
     int items_per_producer;
 };
@@ -202,7 +199,9 @@ class PriorityCommandQueueMpscTest : public ::testing::TestWithParam<CmdMpscPara
 
 TEST_P(PriorityCommandQueueMpscTest, AllItemsDelivered)
 {
-    const auto [producers, items_per_producer] = GetParam();
+    const auto& param = GetParam();
+    const int producers = param.producers;
+    const int items_per_producer = param.items_per_producer;
     const int total = producers * items_per_producer;
 
     PriorityCommandQueue<int> q;
@@ -235,10 +234,7 @@ TEST_P(PriorityCommandQueueMpscTest, AllItemsDelivered)
 }
 
 INSTANTIATE_TEST_SUITE_P(PriorityCommandQueue, PriorityCommandQueueMpscTest,
-                         ::testing::Values(CmdMpscParams{1, 800}, CmdMpscParams{4, 200},
-                                           CmdMpscParams{8, 100}),
-                         [](const ::testing::TestParamInfo<CmdMpscParams>& info)
-                         {
-                             return std::to_string(info.param.producers) + "p_" +
-                                    std::to_string(info.param.items_per_producer) + "i";
-                         });
+                         ::testing::Values(CmdMpscParams{"P1I800", 1, 800},
+                                           CmdMpscParams{"P4I200", 4, 200},
+                                           CmdMpscParams{"P8I100", 8, 100}),
+                         tests::common::param_name<CmdMpscParams>);

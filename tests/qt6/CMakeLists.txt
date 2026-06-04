@@ -9,5 +9,6 @@ target_link_libraries(tests_qt6 PRIVATE
 
 target_compile_features(tests_qt6 PRIVATE cxx_std_20)
 
-include(GoogleTest)
-gtest_discover_tests(tests_qt6)
+symulator_discover_gtest(tests_qt6
+    GROUP_LABEL group:unit-qt6
+)

@@ -11,11 +11,12 @@
 #include "server/edr_coordinator.hpp"
 #include "server/pg_db_writer.hpp"
 
+#include <tests/common/db_integration_fixture.hpp>
+
 #include <pqxx/pqxx>
 
 #include <gtest/gtest.h>
 
-#include <cstdlib>
 #include <string>
 
 using namespace engine::core;
@@ -26,43 +27,23 @@ namespace
 static constexpr uint64_t kGorUid = 3001ULL;
 static constexpr uint64_t kSopUid = 3002ULL;
 
-static const char* db_conn_str()
-{
-    return std::getenv("SYMULATOR_TEST_DB");
-}
-
 // ── Fixture ───────────────────────────────────────────────────────────────────
 
-class EdrCoordinatorFixture : public ::testing::Test
+class EdrCoordinatorFixture : public tests::common::DbIntegrationFixture
 {
+public:
+    EdrCoordinatorFixture() : DbIntegrationFixture("test-edr-coordinator") {}
+
 protected:
     void SetUp() override
     {
-        const char* cs = db_conn_str();
-        if (!cs)
-            GTEST_SKIP() << "SYMULATOR_TEST_DB not set — skipping PostgreSQL integration tests";
-
-        conn_str_ = cs;
-        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
-        session_uuid_ = writer_->init_session("test-edr-coordinator", 1);
-        coordinator_ = std::make_unique<server::EdrCoordinator>(*writer_, session_uuid_);
-    }
-
-    void TearDown() override
-    {
-        if (conn_str_.empty() || session_uuid_.empty())
+        DbIntegrationFixture::SetUp();
+        if (conn_str_.empty())
             return;
-        try
-        {
-            pqxx::connection c{conn_str_};
-            pqxx::work tx{c};
-            tx.exec("DELETE FROM session.sessions WHERE id = $1::uuid",
-                    pqxx::params{session_uuid_});
-            tx.commit();
-        }
-        catch (...)
-        {
-        }
+
+        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
+        session_uuid_ = writer_->init_session(session_display_name(), 1);
+        coordinator_ = std::make_unique<server::EdrCoordinator>(*writer_, session_uuid_);
     }
 
     // Insert a PENDING edr_entries row so the UPDATE in EdrCoordinator has a target.
@@ -93,10 +74,8 @@ protected:
         return r[0][0].as<std::string>();
     }
 
-    std::string conn_str_;
     std::unique_ptr<server::PgDbWriter> writer_;
     std::unique_ptr<server::EdrCoordinator> coordinator_;
-    std::string session_uuid_;
 };
 
 }  // namespace

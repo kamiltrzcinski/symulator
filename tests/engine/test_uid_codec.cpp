@@ -1,200 +1,95 @@
 #include <gtest/gtest.h>
 #include <engine/core/types.hpp>
 
+#include <tests/common/param_test_helpers.hpp>
+
+#include <array>
+#include <cstdint>
 using namespace engine::core;
 
-// ── Roundtrip encode/decode ──────────────────────────────────────────────────
-
-TEST(UidCodec, RollingStockCarrierRoundtrip)
+namespace
 {
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::CARRIER, 0, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::ROLLING_STOCK);
-    EXPECT_EQ(uid_kind(uid), UIDKind::CARRIER);
-    EXPECT_EQ(uid_scope(uid), 0);
-    EXPECT_EQ(uid_instance(uid), 1);
+
+struct UidRoundtripCase
+{
+    const char* name;
+    UIDDomain domain;
+    UIDKind kind;
+    std::uint16_t scope;
+    std::uint16_t instance;
+};
+
+class UidRoundtripTest : public ::testing::TestWithParam<UidRoundtripCase>
+{
+};
+
+TEST_P(UidRoundtripTest, EncodeDecodeRoundtrip)
+{
+    const auto param = GetParam();
+    const auto uid = make_uid(param.domain, param.kind, param.scope, param.instance);
+
+    EXPECT_EQ(uid_domain(uid), param.domain);
+    EXPECT_EQ(uid_kind(uid), param.kind);
+    EXPECT_EQ(uid_scope(uid), param.scope);
+    EXPECT_EQ(uid_instance(uid), param.instance);
 }
 
-TEST(UidCodec, RollingStockVehicleTypeRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE_TYPE, 0x01B3, 42);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::ROLLING_STOCK);
-    EXPECT_EQ(uid_kind(uid), UIDKind::VEHICLE_TYPE);
-    EXPECT_EQ(uid_scope(uid), 0x01B3);
-    EXPECT_EQ(uid_instance(uid), 42);
-}
+const std::array<UidRoundtripCase, 19> kUidRoundtripCases{{
+    {"RollingStockCarrier", UIDDomain::ROLLING_STOCK, UIDKind::CARRIER, 0, 1},
+    {"RollingStockVehicleType", UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE_TYPE, 0x01B3, 42},
+    {"RollingStockVehicle", UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0x0001, 1000},
+    {"RollingStockTrainConsist", UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 7},
+    {"InfraStation", UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1},
+    {"InfraTrackSection", UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 202},
+    {"InfraSwitch", UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 2, 5},
+    {"InfraSignal", UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1},
+    {"InfraDerailer", UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 3, 2},
+    {"InfraBlockSection", UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 3},
+    {"InfraBoundaryNode", UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 1},
+    {"InfraLevelCrossing", UIDDomain::INFRASTRUCTURE, UIDKind::LEVEL_CROSSING, 2, 1},
+    {"InfraAxleCounter", UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 4},
+    {"InfraInterlocking", UIDDomain::INFRASTRUCTURE, UIDKind::INTERLOCKING, 3, 1},
+    {"InfraPowerSupply", UIDDomain::INFRASTRUCTURE, UIDKind::POWER_SUPPLY, 1, 1},
+    {"InfraDispatchArea", UIDDomain::INFRASTRUCTURE, UIDKind::DISPATCH_AREA, 3, 1},
+    {"OpsRoute", UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 5},
+    {"OpsAlarm", UIDDomain::OPERATIONS, UIDKind::ALARM, 0, 1},
+    {"OpsDispatchExchange", UIDDomain::OPERATIONS, UIDKind::DISPATCH_EXCHANGE, 2, 3},
+}};
 
-TEST(UidCodec, RollingStockVehicleRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0x0001, 1000);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::ROLLING_STOCK);
-    EXPECT_EQ(uid_kind(uid), UIDKind::VEHICLE);
-    EXPECT_EQ(uid_scope(uid), 0x0001);
-    EXPECT_EQ(uid_instance(uid), 1000);
-}
+INSTANTIATE_TEST_SUITE_P(UidRoundtripCases, UidRoundtripTest,
+                         ::testing::ValuesIn(kUidRoundtripCases),
+                         tests::common::param_name<UidRoundtripCase>);
 
-TEST(UidCodec, RollingStockTrainConsistRoundtrip)
+struct UidBoundaryCase
 {
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 7);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::ROLLING_STOCK);
-    EXPECT_EQ(uid_kind(uid), UIDKind::TRAIN_CONSIST);
-    EXPECT_EQ(uid_scope(uid), 0);
-    EXPECT_EQ(uid_instance(uid), 7);
-}
+    const char* name;
+    UIDDomain domain;
+    UIDKind kind;
+    std::uint16_t scope;
+    std::uint16_t instance;
+};
 
-TEST(UidCodec, InfraStationRoundtrip)
+class UidBoundaryTest : public ::testing::TestWithParam<UidBoundaryCase>
 {
-    // Station GOr: instance 1, scope=1 (station is its own scope)
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::STATION);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
+};
 
-TEST(UidCodec, InfraTrackSectionRoundtrip)
+TEST_P(UidBoundaryTest, PreservesScopeInstanceAndJsonSafety)
 {
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 202);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::TRACK_SECTION);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 202);
-}
+    const auto param = GetParam();
+    const auto uid = make_uid(param.domain, param.kind, param.scope, param.instance);
 
-TEST(UidCodec, InfraSwitchRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 2, 5);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::SWITCH);
-    EXPECT_EQ(uid_scope(uid), 2);
-    EXPECT_EQ(uid_instance(uid), 5);
-}
-
-TEST(UidCodec, InfraSignalRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::SIGNAL);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, InfraDerailerRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 3, 2);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::DERAILER);
-    EXPECT_EQ(uid_scope(uid), 3);
-    EXPECT_EQ(uid_instance(uid), 2);
-}
-
-TEST(UidCodec, InfraBlockSectionRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 3);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::BLOCK_SECTION);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 3);
-}
-
-TEST(UidCodec, InfraBoundaryNodeRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::BOUNDARY_NODE);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, InfraLevelCrossingRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::LEVEL_CROSSING, 2, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::LEVEL_CROSSING);
-    EXPECT_EQ(uid_scope(uid), 2);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, InfraAxleCounterRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 4);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::AXLE_COUNTER);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 4);
-}
-
-TEST(UidCodec, InfraInterlockingRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::INTERLOCKING, 3, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::INTERLOCKING);
-    EXPECT_EQ(uid_scope(uid), 3);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, InfraPowerSupplyRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::POWER_SUPPLY, 1, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::POWER_SUPPLY);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, InfraDispatchAreaRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DISPATCH_AREA, 3, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::INFRASTRUCTURE);
-    EXPECT_EQ(uid_kind(uid), UIDKind::DISPATCH_AREA);
-    EXPECT_EQ(uid_scope(uid), 3);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, OpsRouteRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 5);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::OPERATIONS);
-    EXPECT_EQ(uid_kind(uid), UIDKind::ROUTE);
-    EXPECT_EQ(uid_scope(uid), 1);
-    EXPECT_EQ(uid_instance(uid), 5);
-}
-
-TEST(UidCodec, OpsAlarmRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 0, 1);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::OPERATIONS);
-    EXPECT_EQ(uid_kind(uid), UIDKind::ALARM);
-    EXPECT_EQ(uid_scope(uid), 0);
-    EXPECT_EQ(uid_instance(uid), 1);
-}
-
-TEST(UidCodec, OpsDispatchExchangeRoundtrip)
-{
-    auto uid = make_uid(UIDDomain::OPERATIONS, UIDKind::DISPATCH_EXCHANGE, 2, 3);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::OPERATIONS);
-    EXPECT_EQ(uid_kind(uid), UIDKind::DISPATCH_EXCHANGE);
-    EXPECT_EQ(uid_scope(uid), 2);
-    EXPECT_EQ(uid_instance(uid), 3);
-}
-
-// ── Boundary values ──────────────────────────────────────────────────────────
-
-TEST(UidCodec, MaxScopeAndInstance)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 0xFFFF, 0xFFFF);
-    EXPECT_EQ(uid_scope(uid), 0xFFFF);
-    EXPECT_EQ(uid_instance(uid), 0xFFFF);
+    EXPECT_EQ(uid_scope(uid), param.scope);
+    EXPECT_EQ(uid_instance(uid), param.instance);
     EXPECT_TRUE(uid_is_safe_json_integer(uid));
 }
 
-TEST(UidCodec, MaxDomainAndKind)
-{
-    // Largest valid combination without exceeding 48 bits
-    auto uid = make_uid(UIDDomain::OPERATIONS, UIDKind::DISPATCH_EXCHANGE, 0xFFFF, 0xFFFF);
-    EXPECT_EQ(uid_domain(uid), UIDDomain::OPERATIONS);
-    EXPECT_EQ(uid_kind(uid), UIDKind::DISPATCH_EXCHANGE);
-    EXPECT_TRUE(uid_is_safe_json_integer(uid));
-}
+const std::array<UidBoundaryCase, 2> kUidBoundaryCases{{
+    {"MaxScopeAndInstance", UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 0xFFFF, 0xFFFF},
+    {"MaxDomainAndKind", UIDDomain::OPERATIONS, UIDKind::DISPATCH_EXCHANGE, 0xFFFF, 0xFFFF},
+}};
+
+INSTANTIATE_TEST_SUITE_P(UidBoundaryCases, UidBoundaryTest, ::testing::ValuesIn(kUidBoundaryCases),
+                         tests::common::param_name<UidBoundaryCase>);
 
 // ── JSON safety ───────────────────────────────────────────────────────────────
 
@@ -205,106 +100,120 @@ TEST(UidCodec, AllKindsAreSafeJsonIntegers)
     constexpr std::uint64_t max48 = 0x0000'FFFF'FFFF'FFFFull;
     EXPECT_LT(max48, UID_MAX_SAFE_JSON_INTEGER + 1);
 
-    for (auto [dom, kind] : std::initializer_list<std::pair<UIDDomain, UIDKind>>{
-             {UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE_TYPE},
-             {UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE},
-             {UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST},
-             {UIDDomain::ROLLING_STOCK, UIDKind::CARRIER},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::STATION},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::DISPATCH_AREA},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::LEVEL_CROSSING},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::INTERLOCKING},
-             {UIDDomain::INFRASTRUCTURE, UIDKind::POWER_SUPPLY},
-             {UIDDomain::OPERATIONS, UIDKind::ROUTE},
-             {UIDDomain::OPERATIONS, UIDKind::ALARM},
-             {UIDDomain::OPERATIONS, UIDKind::DISPATCH_EXCHANGE},
-         })
+    for (const auto& param : kUidRoundtripCases)
     {
-        auto uid = make_uid(dom, kind, 0xFFFF, 0xFFFF);
+        auto uid = make_uid(param.domain, param.kind, 0xFFFF, 0xFFFF);
         EXPECT_TRUE(uid_is_safe_json_integer(uid))
-            << "Not safe JSON integer for domain=" << static_cast<int>(dom)
-            << " kind=" << static_cast<int>(kind);
+            << "Not safe JSON integer for domain=" << static_cast<int>(param.domain)
+            << " kind=" << static_cast<int>(param.kind);
     }
 }
 
-// ── No-collision assertions ──────────────────────────────────────────────────
-
-TEST(UidCodec, DifferentKindsDontCollide)
+struct UidCollisionCase
 {
-    auto a = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
-    auto b = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    auto c = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
-    EXPECT_NE(a.value, b.value);
-    EXPECT_NE(a.value, c.value);
-    EXPECT_NE(b.value, c.value);
-}
+    const char* name;
+    UIDDomain domain_a;
+    UIDKind kind_a;
+    std::uint16_t scope_a;
+    std::uint16_t instance_a;
+    UIDDomain domain_b;
+    UIDKind kind_b;
+    std::uint16_t scope_b;
+    std::uint16_t instance_b;
+};
 
-TEST(UidCodec, DifferentScopesDontCollide)
+class UidCollisionTest : public ::testing::TestWithParam<UidCollisionCase>
 {
-    auto a = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    auto b = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 2, 1);
-    EXPECT_NE(a.value, b.value);
-}
+};
 
-TEST(UidCodec, DifferentInstancesDontCollide)
+TEST_P(UidCollisionTest, DistinctInputsDoNotCollide)
 {
-    auto a = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    auto b = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
-    EXPECT_NE(a.value, b.value);
-}
-
-TEST(UidCodec, DifferentDomainsDontCollide)
-{
-    // ROLLING_STOCK/VEHICLE_TYPE kind=0x01, INFRASTRUCTURE/STATION kind=0x11 — already different
-    auto a = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE_TYPE, 1, 1);
-    auto b = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    const auto param = GetParam();
+    const auto a = make_uid(param.domain_a, param.kind_a, param.scope_a, param.instance_a);
+    const auto b = make_uid(param.domain_b, param.kind_b, param.scope_b, param.instance_b);
     EXPECT_NE(a.value, b.value);
 }
 
-// ── uid_has_kind helper ──────────────────────────────────────────────────────
+const std::array<UidCollisionCase, 5> kUidCollisionCases{{
+    {"DifferentKindsTrackVsSignal", UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1,
+     UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1},
+    {"DifferentKindsTrackVsSwitch", UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1,
+     UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1},
+    {"DifferentScopes", UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1, UIDDomain::INFRASTRUCTURE,
+     UIDKind::SIGNAL, 2, 1},
+    {"DifferentInstances", UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1,
+     UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2},
+    {"DifferentDomains", UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE_TYPE, 1, 1,
+     UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1},
+}};
 
-TEST(UidCodec, UidHasKindTrue)
+INSTANTIATE_TEST_SUITE_P(UidCollisionCases, UidCollisionTest,
+                         ::testing::ValuesIn(kUidCollisionCases),
+                         tests::common::param_name<UidCollisionCase>);
+
+struct UidHasKindCase
 {
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    EXPECT_TRUE(uid_has_kind(uid, UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL));
+    const char* name;
+    UID uid;
+    UIDDomain expected_domain;
+    UIDKind expected_kind;
+    bool expected_match;
+};
+
+class UidHasKindTest : public ::testing::TestWithParam<UidHasKindCase>
+{
+};
+
+TEST_P(UidHasKindTest, MatchesExpectedDomainAndKind)
+{
+    const auto param = GetParam();
+    EXPECT_EQ(uid_has_kind(param.uid, param.expected_domain, param.expected_kind),
+              param.expected_match);
 }
 
-TEST(UidCodec, UidHasKindFalseWrongDomain)
+const std::array<UidHasKindCase, 3> kUidHasKindCases{{
+    {"TrueMatch", make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1),
+     UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, true},
+    {"FalseWrongDomain", make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 1),
+     UIDDomain::INFRASTRUCTURE, UIDKind::VEHICLE, false},
+    {"FalseWrongKind", make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1),
+     UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, false},
+}};
+
+INSTANTIATE_TEST_SUITE_P(UidHasKindCases, UidHasKindTest, ::testing::ValuesIn(kUidHasKindCases),
+                         tests::common::param_name<UidHasKindCase>);
+
+struct UidKnownValueCase
 {
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 1);
-    EXPECT_FALSE(uid_has_kind(uid, UIDDomain::INFRASTRUCTURE, UIDKind::VEHICLE));
+    const char* name;
+    UIDDomain domain;
+    UIDKind kind;
+    std::uint16_t scope;
+    std::uint16_t instance;
+    std::uint64_t expected_value;
+};
+
+class UidKnownValueTest : public ::testing::TestWithParam<UidKnownValueCase>
+{
+};
+
+TEST_P(UidKnownValueTest, ProducesStableRegressionValue)
+{
+    const auto param = GetParam();
+    const auto uid = make_uid(param.domain, param.kind, param.scope, param.instance);
+    EXPECT_EQ(uid.value, param.expected_value);
 }
 
-TEST(UidCodec, UidHasKindFalseWrongKind)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
-    EXPECT_FALSE(uid_has_kind(uid, UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL));
-}
+const std::array<UidKnownValueCase, 3> kUidKnownValueCases{{
+    {"CarrierInstance1", UIDDomain::ROLLING_STOCK, UIDKind::CARRIER, 0, 1,
+     0x0000'0104'0000'0001ULL},
+    {"StationGOr", UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1, 0x0000'0211'0001'0001ULL},
+    {"SignalGOrInstance1", UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1,
+     0x0000'0215'0001'0001ULL},
+}};
 
-// ── Known numeric values (regression) ────────────────────────────────────────
+INSTANTIATE_TEST_SUITE_P(UidKnownValueCases, UidKnownValueTest,
+                         ::testing::ValuesIn(kUidKnownValueCases),
+                         tests::common::param_name<UidKnownValueCase>);
 
-TEST(UidCodec, CarrierInstance1KnownValue)
-{
-    // Numerically compatible with the old carrier scheme (domain+kind bits unchanged)
-    auto uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::CARRIER, 0, 1);
-    EXPECT_EQ(uid.value, 0x0000'0104'0000'0001ULL);
-}
-
-TEST(UidCodec, StationGOrKnownValue)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    EXPECT_EQ(uid.value, 0x0000'0211'0001'0001ULL);
-}
-
-TEST(UidCodec, SignalGOrInstance1KnownValue)
-{
-    auto uid = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-    EXPECT_EQ(uid.value, 0x0000'0215'0001'0001ULL);
-}
+}  // namespace

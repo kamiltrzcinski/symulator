@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # scripts/run_integration_tests.sh
 #
-# Spin up an ephemeral PostgreSQL container, run all CTest tests labelled
-# "integration", then tear it down.
+# Spin up an ephemeral PostgreSQL container, run all CTest tests in
+# integration groups (`group:integration-*`), then tear it down.
 #
 # Prerequisites:
 #   - Docker with Compose v2 (docker compose)
@@ -60,7 +60,7 @@ done
 # ── Run integration tests ──────────────────────────────────────────────────────
 export SYMULATOR_TEST_DB="host=localhost port=$DB_PORT dbname=$DB_NAME user=$DB_USER password=$DB_PASS"
 
-echo "[integration] Running integration tests (BUILD_DIR=$BUILD_DIR)..."
-ctest --test-dir "$BUILD_DIR" -L integration --output-on-failure
+echo "[integration] Running integration test groups (BUILD_DIR=$BUILD_DIR)..."
+ctest --test-dir "$BUILD_DIR" -L "group:integration-" --output-on-failure
 
 echo "[integration] All integration tests passed."

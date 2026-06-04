@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <tests/common/srk_state_builders.hpp>
+
 #include <engine/core/command.hpp>
 #include <engine/core/control_system.hpp>
 #include <engine/core/control_system_registry.hpp>
@@ -14,48 +16,21 @@ namespace
 {
 
 using namespace engine::core;
+namespace srk_test = tests::common::srk;
 
-constexpr UID BL1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
-constexpr UID SIG1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-constexpr UID STA1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-constexpr UID STA_NGR = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 2, 1);
+using srk_test::BL1;
+using srk_test::SIG1;
 
 EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState::NEUTRAL,
                                   BlockSectionState state = BlockSectionState::CLOSED,
                                   int axle_count = 0)
 {
-    EngineState st;
-    st.set_session_id("TEST");
-    st.set_current_tick(1);
-
-    BlockSection bs;
-    bs.uid = BL1;
-    bs.pid = "bl1";
-    bs.station_uid = STA1;
-    bs.neighbor_station_uid = STA_NGR;
-    bs.direction = dir;
-    bs.state = state;
-    bs.axle_count = axle_count;
-    st.insert_block_section(bs);
-
-    return st;
+    return srk_test::make_block_only_state(dir, state, axle_count);
 }
 
 EngineState make_state_with_signal()
 {
-    EngineState st;
-    st.set_session_id("TEST");
-    st.set_current_tick(1);
-
-    Signal sig;
-    sig.uid = SIG1;
-    sig.pid = "A";
-    sig.station_uid = STA1;
-    sig.type = Signal::Type::ENTRY;
-    sig.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sig);
-
-    return st;
+    return srk_test::make_signal_only_state();
 }
 
 }  // namespace

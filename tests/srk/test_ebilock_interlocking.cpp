@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <tests/common/srk_state_builders.hpp>
+
 #include <engine/core/command.hpp>
 #include <engine/core/control_system.hpp>
 #include <engine/core/control_system_registry.hpp>
@@ -22,28 +24,24 @@ namespace
 {
 
 using namespace engine::core;
+namespace srk_test = tests::common::srk;
 
-// IDs used throughout the tests
-constexpr UID BND_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 1);
-constexpr UID BND_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BOUNDARY_NODE, 1, 2);
-constexpr UID TOR_A = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
-constexpr UID TOR_B = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 2);
-constexpr UID ZWR1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SWITCH, 1, 1);
-constexpr UID SEM_W = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 1);
-constexpr UID SEM_E = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
-constexpr UID WK1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::DERAILER, 1, 1);
-constexpr UID BL1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
-
-// Counter UIDs (axle counters)
-constexpr UID IT_A_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 1);
-constexpr UID IZ_A_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 2);
-constexpr UID IZ_B_N = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 3);
-constexpr UID IT_B_S = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 4);
-constexpr UID IZ_DIV = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 5);
-
-// Station UIDs
-constexpr UID STA1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-constexpr UID STA_NGR = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 2, 1);
+using srk_test::BL1;
+using srk_test::BND_N;
+using srk_test::BND_S;
+using srk_test::IT_A_N;
+using srk_test::IT_B_S;
+using srk_test::IZ_A_S;
+using srk_test::IZ_B_N;
+using srk_test::IZ_DIV;
+using srk_test::SEM_E;
+using srk_test::SEM_W;
+using srk_test::STA1;
+using srk_test::STA_NGR;
+using srk_test::TOR_A;
+using srk_test::TOR_B;
+using srk_test::WK1;
+using srk_test::ZWR1;
 
 // Route/lock UIDs for test state setup
 constexpr UID RTE_001 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
@@ -58,115 +56,14 @@ constexpr UID MMZ_2148 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::LEVEL_CROS
 
 EngineState make_state()
 {
-    EngineState st;
-    st.set_session_id("TEST");
-    st.set_current_tick(1);
-
-    // Boundary nodes
-    BoundaryNode bn_n;
-    bn_n.uid = BND_N;
-    bn_n.pid = "BND-N";
-    BoundaryNode bn_s;
-    bn_s.uid = BND_S;
-    bn_s.pid = "BND-S";
-    st.insert_boundary_node(bn_n);
-    st.insert_boundary_node(bn_s);
-
-    // Signals
-    Signal sw;
-    sw.uid = SEM_W;
-    sw.pid = "Wp1";
-    sw.type = Signal::Type::ENTRY;
-    sw.governs_section_uid = TOR_A;
-    sw.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(sw);
-
-    Signal se;
-    se.uid = SEM_E;
-    se.pid = "Wy1";
-    se.type = Signal::Type::DEPARTURE;
-    se.governs_section_uid = TOR_B;
-    se.current_aspect = SignalAspect::S1_STOP;
-    st.insert_signal(se);
-
-    // tor_a:  BND-N ── (IT-a-N) ──[tor_a]── (IZ-a-S, connects to zwr1) ── ZWR1
-    TrackSection ta;
-    ta.uid = TOR_A;
-    ta.pid = "tor_a";
-    ta.station_uid = STA1;
-    ta.side_a.neighbor_uid = BND_N;
-    ta.side_a.counter_uid = IT_A_N;
-    ta.side_a.counter_kind = TrackPort::CounterKind::IT;
-    ta.side_a.signal_uids = {SEM_W};
-    ta.side_b.neighbor_uid = ZWR1;
-    ta.side_b.counter_uid = IZ_A_S;
-    ta.side_b.counter_kind = TrackPort::CounterKind::IZ;
-    ta.occupancy = TrackOccupancy::FREE;
-    st.insert_track_section(ta);
-
-    // tor_b:  ZWR1 ── (IZ-b-N) ──[tor_b]── (IT-b-S) ── BND-S
-    TrackSection tb;
-    tb.uid = TOR_B;
-    tb.pid = "tor_b";
-    tb.station_uid = STA1;
-    tb.side_a.neighbor_uid = ZWR1;
-    tb.side_a.counter_uid = IZ_B_N;
-    tb.side_a.counter_kind = TrackPort::CounterKind::IZ;
-    tb.side_b.neighbor_uid = BND_S;
-    tb.side_b.counter_uid = IT_B_S;
-    tb.side_b.counter_kind = TrackPort::CounterKind::IT;
-    tb.side_b.signal_uids = {SEM_E};
-    tb.occupancy = TrackOccupancy::FREE;
-    st.insert_track_section(tb);
-
-    // zwr1 (switch): trunk→tor_a, straight→tor_b, divergent→BND-S (simplified)
-    Switch sw1;
-    sw1.uid = ZWR1;
-    sw1.pid = "zwr1";
-    sw1.station_uid = STA1;
-    sw1.type_id = "DVT-GLB-ZWR-EEA4-0000002";
-    sw1.trunk.neighbor_uid = TOR_A;
-    sw1.trunk.iz_uid = IZ_A_S;
-    sw1.straight.neighbor_uid = TOR_B;
-    sw1.straight.iz_uid = IZ_B_N;
-    sw1.divergent.neighbor_uid = BND_S;
-    sw1.divergent.iz_uid = IZ_DIV;
-    sw1.position = SwitchPosition::STRAIGHT;
-    sw1.occupancy = TrackOccupancy::FREE;
-    st.insert_switch(sw1);
-
-    // Derailer on tor_a
-    Derailer wk;
-    wk.uid = WK1;
-    wk.pid = "wk1";
-    wk.station_uid = STA1;
-    wk.type_id = "DVT-GLB-WK-0000004";
-    wk.guards_section_uid = TOR_A;
-    wk.state = DerailerState::LOCKED;
-    st.insert_derailer(wk);
-
-    return st;
+    return srk_test::make_linear_infra_state();
 }
 
 EngineState make_state_with_block(BlockDirectionState dir = BlockDirectionState::NEUTRAL,
                                   BlockSectionState state = BlockSectionState::CLOSED,
                                   int axle_count = 0)
 {
-    EngineState st;
-    st.set_session_id("TEST");
-    st.set_current_tick(1);
-
-    BlockSection bs;
-    bs.uid = BL1;
-    bs.pid = "bl1";
-    bs.station_uid = STA1;
-    bs.neighbor_station_uid = STA_NGR;
-    bs.direction = dir;
-    bs.state = state;
-    bs.axle_count = axle_count;
-    st.insert_block_section(bs);
-
-    return st;
+    return srk_test::make_block_only_state(dir, state, axle_count);
 }
 
 }  // namespace

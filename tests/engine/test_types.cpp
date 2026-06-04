@@ -2,14 +2,41 @@
 
 #include <engine/core/types.hpp>
 
+#include <tests/common/param_test_helpers.hpp>
+
+#include <array>
+#include <optional>
+#include <string>
+#include <vector>
+
+namespace
+{
+
 using namespace engine::core;
 
 // ── EntrySide ────────────────────────────────────────────────────────────────
 
-TEST(EntrySide, DistinctValues)
+struct EntrySideDistinctCase
 {
-    EXPECT_NE(EntrySide::LEFT, EntrySide::RIGHT);
+    const char* name;
+    EntrySide lhs;
+    EntrySide rhs;
+};
+
+class EntrySideDistinctTest : public ::testing::TestWithParam<EntrySideDistinctCase>
+{
+};
+
+TEST_P(EntrySideDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
 }
+
+INSTANTIATE_TEST_SUITE_P(EntrySideCases, EntrySideDistinctTest,
+                         ::testing::Values(EntrySideDistinctCase{"LeftVsRight", EntrySide::LEFT,
+                                                                 EntrySide::RIGHT}),
+                         tests::common::param_name<EntrySideDistinctCase>);
 
 // ── TrainSlot ────────────────────────────────────────────────────────────────
 
@@ -22,36 +49,49 @@ TEST(TrainSlot, DefaultInit)
     EXPECT_EQ(slot.entry_side, EntrySide::LEFT);
 }
 
-TEST(TrainSlot, FieldRoundtrip)
+struct TrainSlotProjectionCase
 {
-    TrainSlot slot{"IC1234", true, false, EntrySide::RIGHT};
-    EXPECT_EQ(slot.number, "IC1234");
-    EXPECT_TRUE(slot.has_extra_info);
-    EXPECT_FALSE(slot.manually_placed);
-    EXPECT_EQ(slot.entry_side, EntrySide::RIGHT);
-}
-
-TEST(TrainSlot, NumberSixChars)
-{
+    const char* name;
     TrainSlot slot;
-    slot.number = "ABC123";
-    EXPECT_EQ(slot.number.size(), 6u);
+    std::size_t expected_number_size;
+    bool expected_has_extra;
+    bool expected_manually_placed;
+    EntrySide expected_side;
+};
+
+class TrainSlotProjectionTest : public ::testing::TestWithParam<TrainSlotProjectionCase>
+{
+};
+
+TEST_P(TrainSlotProjectionTest, FieldProjection)
+{
+    const auto& p = GetParam();
+    EXPECT_EQ(p.slot.number.size(), p.expected_number_size);
+    EXPECT_EQ(p.slot.has_extra_info, p.expected_has_extra);
+    EXPECT_EQ(p.slot.manually_placed, p.expected_manually_placed);
+    EXPECT_EQ(p.slot.entry_side, p.expected_side);
 }
 
-TEST(TrainSlot, ManuallyPlaced)
-{
-    TrainSlot slot{"TLK567", false, true, EntrySide::LEFT};
-    EXPECT_TRUE(slot.manually_placed);
-    EXPECT_FALSE(slot.has_extra_info);
-}
+INSTANTIATE_TEST_SUITE_P(
+    TrainSlotCases, TrainSlotProjectionTest,
+    ::testing::Values(TrainSlotProjectionCase{"Roundtrip",
+                                              TrainSlot{"IC1234", true, false, EntrySide::RIGHT},
+                                              6u, true, false, EntrySide::RIGHT},
+                      TrainSlotProjectionCase{"NumberSixChars",
+                                              TrainSlot{"ABC123", false, false, EntrySide::LEFT},
+                                              6u, false, false, EntrySide::LEFT},
+                      TrainSlotProjectionCase{"ManuallyPlaced",
+                                              TrainSlot{"TLK567", false, true, EntrySide::LEFT}, 6u,
+                                              false, true, EntrySide::LEFT}),
+    tests::common::param_name<TrainSlotProjectionCase>);
 
 TEST(TrainSlot, EqualityOperator)
 {
-    TrainSlot a{"IC1234", false, false, EntrySide::LEFT};
-    TrainSlot b{"IC1234", false, false, EntrySide::LEFT};
-    TrainSlot c{"IC9999", false, false, EntrySide::LEFT};
-    TrainSlot d{"IC1234", true, false, EntrySide::LEFT};
-    TrainSlot e{"IC1234", false, false, EntrySide::RIGHT};
+    const TrainSlot a{"IC1234", false, false, EntrySide::LEFT};
+    const TrainSlot b{"IC1234", false, false, EntrySide::LEFT};
+    const TrainSlot c{"IC9999", false, false, EntrySide::LEFT};
+    const TrainSlot d{"IC1234", true, false, EntrySide::LEFT};
+    const TrainSlot e{"IC1234", false, false, EntrySide::RIGHT};
 
     EXPECT_EQ(a, b);
     EXPECT_NE(a, c);
@@ -61,46 +101,59 @@ TEST(TrainSlot, EqualityOperator)
 
 // ── PipEvent ─────────────────────────────────────────────────────────────────
 
-TEST(PipEvent, SlotAbsent)
+struct PipSlotCase
 {
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    PipEvent ev{section, station, TrackOccupancy::FREE, std::nullopt, false};
-    EXPECT_EQ(ev.occupancy, TrackOccupancy::FREE);
-    EXPECT_FALSE(ev.slot.has_value());
-    EXPECT_FALSE(ev.lcs_boundary_crossing);
+    const char* name;
+    TrackOccupancy occupancy;
+    std::optional<TrainSlot> slot;
+    bool lcs_boundary_crossing;
+    bool expect_slot;
+    bool expect_extra_info;
+    EntrySide expected_side;
+};
+
+class PipSlotProjectionTest : public ::testing::TestWithParam<PipSlotCase>
+{
+};
+
+TEST_P(PipSlotProjectionTest, SlotProjection)
+{
+    const auto& p = GetParam();
+    const auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+    const auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+
+    const PipEvent ev{section, station, p.occupancy, p.slot, p.lcs_boundary_crossing};
+
+    EXPECT_EQ(ev.occupancy, p.occupancy);
+    EXPECT_EQ(ev.lcs_boundary_crossing, p.lcs_boundary_crossing);
+    EXPECT_EQ(ev.slot.has_value(), p.expect_slot);
+
+    if (p.expect_slot)
+    {
+        ASSERT_TRUE(ev.slot.has_value());
+        EXPECT_EQ(ev.slot->has_extra_info, p.expect_extra_info);
+        EXPECT_EQ(ev.slot->entry_side, p.expected_side);
+    }
 }
 
-TEST(PipEvent, SlotPresent)
-{
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    TrainSlot slot{"IC1234", false, false, EntrySide::LEFT};
-    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, false};
-    ASSERT_TRUE(ev.slot.has_value());
-    EXPECT_EQ(ev.slot->number, "IC1234");
-    EXPECT_EQ(ev.slot->entry_side, EntrySide::LEFT);
-    EXPECT_EQ(ev.occupancy, TrackOccupancy::OCCUPIED);
-}
-
-TEST(PipEvent, LcsBoundaryCrossing)
-{
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 10);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    TrainSlot slot{"TLK567", false, false, EntrySide::RIGHT};
-    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, true};
-    EXPECT_TRUE(ev.lcs_boundary_crossing);
-    ASSERT_TRUE(ev.slot.has_value());
-    EXPECT_EQ(ev.slot->number, "TLK567");
-    EXPECT_EQ(ev.slot->entry_side, EntrySide::RIGHT);
-}
+INSTANTIATE_TEST_SUITE_P(
+    PipSlotCases, PipSlotProjectionTest,
+    ::testing::Values(PipSlotCase{"SlotAbsent", TrackOccupancy::FREE, std::nullopt, false, false,
+                                  false, EntrySide::LEFT},
+                      PipSlotCase{"SlotPresent", TrackOccupancy::OCCUPIED,
+                                  TrainSlot{"IC1234", false, false, EntrySide::LEFT}, false, true,
+                                  false, EntrySide::LEFT},
+                      PipSlotCase{"BoundaryCrossingWithExtraInfo", TrackOccupancy::OCCUPIED,
+                                  TrainSlot{"TLK567", true, false, EntrySide::RIGHT}, true, true,
+                                  true, EntrySide::RIGHT}),
+    tests::common::param_name<PipSlotCase>);
 
 TEST(PipEvent, SectionAndStationUids)
 {
-    // Station GOr = instance 1, scope 1; Track section instance 42 on GOr
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 42);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
-    PipEvent ev{section, station, TrackOccupancy::FREE, std::nullopt, false};
+    const auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 42);
+    const auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    const PipEvent ev{section, station, TrackOccupancy::FREE, std::nullopt, false};
+
     EXPECT_EQ(uid_kind(ev.section_uid), UIDKind::TRACK_SECTION);
     EXPECT_EQ(uid_scope(ev.section_uid), 1);
     EXPECT_EQ(uid_instance(ev.section_uid), 42);
@@ -108,55 +161,172 @@ TEST(PipEvent, SectionAndStationUids)
     EXPECT_EQ(uid_scope(ev.station_uid), 1);
 }
 
-TEST(PipEvent, ExtraInfoFlag)
-{
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 3, 1);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 3, 1);
-    TrainSlot slot{"EIC001", true, false, EntrySide::LEFT};
-    PipEvent ev{section, station, TrackOccupancy::OCCUPIED, slot, false};
-    ASSERT_TRUE(ev.slot.has_value());
-    EXPECT_TRUE(ev.slot->has_extra_info);
-}
-
 TEST(PipEvent, SectionAndStationAreDifferentKinds)
 {
-    auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
-    auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+    const auto section = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 1, 1);
+    const auto station = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+
     EXPECT_NE(section.value, station.value);
     EXPECT_TRUE(uid_has_kind(section, UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION));
     EXPECT_TRUE(uid_has_kind(station, UIDDomain::INFRASTRUCTURE, UIDKind::STATION));
 }
 
-// ── TrainCategory ────────────────────────────────────────────────────────────
+// ── TrainCategory / Dispatch / Exchange enums ───────────────────────────────
 
-TEST(TrainCategory, DistinctValues)
+template<typename EnumT>
+struct EnumDistinctCase
 {
-    EXPECT_NE(TrainCategory::PASSENGER, TrainCategory::FREIGHT);
-    EXPECT_NE(TrainCategory::FREIGHT, TrainCategory::MAINTENANCE);
-    EXPECT_NE(TrainCategory::PASSENGER, TrainCategory::MAINTENANCE);
+    const char* name;
+    EnumT lhs;
+    EnumT rhs;
+};
+
+class TrainCategoryDistinctTest : public ::testing::TestWithParam<EnumDistinctCase<TrainCategory>>
+{
+};
+
+TEST_P(TrainCategoryDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
 }
 
-TEST(TrainCategory, AllValues)
+INSTANTIATE_TEST_SUITE_P(TrainCategoryDistinct, TrainCategoryDistinctTest,
+                         ::testing::Values(EnumDistinctCase<TrainCategory>{"PassengerVsFreight",
+                                                                           TrainCategory::PASSENGER,
+                                                                           TrainCategory::FREIGHT},
+                                           EnumDistinctCase<TrainCategory>{
+                                               "FreightVsMaintenance", TrainCategory::FREIGHT,
+                                               TrainCategory::MAINTENANCE},
+                                           EnumDistinctCase<TrainCategory>{
+                                               "PassengerVsMaintenance", TrainCategory::PASSENGER,
+                                               TrainCategory::MAINTENANCE}),
+                         tests::common::param_name<EnumDistinctCase<TrainCategory>>);
+
+class DispatchFormDistinctTest : public ::testing::TestWithParam<EnumDistinctCase<DispatchFormType>>
 {
-    auto cat = TrainCategory::PASSENGER;
-    cat = TrainCategory::FREIGHT;
-    cat = TrainCategory::MAINTENANCE;
-    EXPECT_EQ(cat, TrainCategory::MAINTENANCE);
+};
+
+TEST_P(DispatchFormDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
 }
 
-// ── DispatchFormType ─────────────────────────────────────────────────────────
+INSTANTIATE_TEST_SUITE_P(
+    DispatchFormDistinct, DispatchFormDistinctTest,
+    ::testing::Values(EnumDistinctCase<DispatchFormType>{"S2VsS24", DispatchFormType::S2,
+                                                         DispatchFormType::S24},
+                      EnumDistinctCase<DispatchFormType>{"S24VsS25", DispatchFormType::S24,
+                                                         DispatchFormType::S25},
+                      EnumDistinctCase<DispatchFormType>{"S25VsS26", DispatchFormType::S25,
+                                                         DispatchFormType::S26},
+                      EnumDistinctCase<DispatchFormType>{"S55VsS56", DispatchFormType::S55,
+                                                         DispatchFormType::S56}),
+    tests::common::param_name<EnumDistinctCase<DispatchFormType>>);
 
-TEST(DispatchFormType, DistinctValues)
+class TelegramDirectionDistinctTest
+    : public ::testing::TestWithParam<EnumDistinctCase<TelegramDirection>>
 {
-    EXPECT_NE(DispatchFormType::S2, DispatchFormType::S24);
-    EXPECT_NE(DispatchFormType::S24, DispatchFormType::S25);
-    EXPECT_NE(DispatchFormType::S25, DispatchFormType::S26);
-    EXPECT_NE(DispatchFormType::S55, DispatchFormType::S56);
+};
+
+TEST_P(TelegramDirectionDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
 }
+
+INSTANTIATE_TEST_SUITE_P(TelegramDirectionDistinct, TelegramDirectionDistinctTest,
+                         ::testing::Values(EnumDistinctCase<TelegramDirection>{
+                             "SentVsReceived", TelegramDirection::SENT,
+                             TelegramDirection::RECEIVED}),
+                         tests::common::param_name<EnumDistinctCase<TelegramDirection>>);
+
+class TelegramStatusDistinctTest : public ::testing::TestWithParam<EnumDistinctCase<TelegramStatus>>
+{
+};
+
+TEST_P(TelegramStatusDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    TelegramStatusDistinct, TelegramStatusDistinctTest,
+    ::testing::Values(
+        EnumDistinctCase<TelegramStatus>{"PendingVsConfirmed", TelegramStatus::PENDING,
+                                         TelegramStatus::CONFIRMED},
+        EnumDistinctCase<TelegramStatus>{"ConfirmedVsRejected", TelegramStatus::CONFIRMED,
+                                         TelegramStatus::REJECTED},
+        EnumDistinctCase<TelegramStatus>{"RejectedVsSuperseded", TelegramStatus::REJECTED,
+                                         TelegramStatus::SUPERSEDED}),
+    tests::common::param_name<EnumDistinctCase<TelegramStatus>>);
+
+class ExchangeStatusDistinctTest : public ::testing::TestWithParam<EnumDistinctCase<ExchangeStatus>>
+{
+};
+
+TEST_P(ExchangeStatusDistinctTest, DistinctValues)
+{
+    const auto& p = GetParam();
+    EXPECT_NE(p.lhs, p.rhs);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ExchangeStatusDistinct, ExchangeStatusDistinctTest,
+    ::testing::Values(EnumDistinctCase<ExchangeStatus>{"IdleVsS2", ExchangeStatus::IDLE,
+                                                       ExchangeStatus::S2_SENT},
+                      EnumDistinctCase<ExchangeStatus>{"S2VsS24", ExchangeStatus::S2_SENT,
+                                                       ExchangeStatus::S24_RECEIVED},
+                      EnumDistinctCase<ExchangeStatus>{"S24VsS25", ExchangeStatus::S24_RECEIVED,
+                                                       ExchangeStatus::S25_SENT},
+                      EnumDistinctCase<ExchangeStatus>{"S25VsS26", ExchangeStatus::S25_SENT,
+                                                       ExchangeStatus::S26_RECEIVED},
+                      EnumDistinctCase<ExchangeStatus>{"S26VsClosed", ExchangeStatus::S26_RECEIVED,
+                                                       ExchangeStatus::CLOSED},
+                      EnumDistinctCase<ExchangeStatus>{"ClosedVsCancelled", ExchangeStatus::CLOSED,
+                                                       ExchangeStatus::CANCELLED}),
+    tests::common::param_name<EnumDistinctCase<ExchangeStatus>>);
+
+struct EnumSequenceCase
+{
+    const char* name;
+    std::vector<ExchangeStatus> sequence;
+    ExchangeStatus expected_final;
+};
+
+class ExchangeStatusSequenceTest : public ::testing::TestWithParam<EnumSequenceCase>
+{
+};
+
+TEST_P(ExchangeStatusSequenceTest, PathEndsAtExpectedState)
+{
+    const auto& p = GetParam();
+    ASSERT_FALSE(p.sequence.empty());
+    ExchangeStatus s = p.sequence.front();
+    for (std::size_t i = 1; i < p.sequence.size(); ++i)
+    {
+        s = p.sequence[i];
+    }
+    EXPECT_EQ(s, p.expected_final);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ExchangeStatusPaths, ExchangeStatusSequenceTest,
+    ::testing::Values(EnumSequenceCase{"StandardPath",
+                                       {ExchangeStatus::IDLE, ExchangeStatus::S2_SENT,
+                                        ExchangeStatus::S24_RECEIVED, ExchangeStatus::S25_SENT,
+                                        ExchangeStatus::S26_RECEIVED, ExchangeStatus::CLOSED},
+                                       ExchangeStatus::CLOSED},
+                      EnumSequenceCase{"CancellationPath",
+                                       {ExchangeStatus::S2_SENT, ExchangeStatus::CANCELLED},
+                                       ExchangeStatus::CANCELLED}),
+    tests::common::param_name<EnumSequenceCase>);
 
 TEST(DispatchFormType, AllFormsReachable)
 {
-    auto f = DispatchFormType::S2;
+    DispatchFormType f = DispatchFormType::S2;
     f = DispatchFormType::S24;
     f = DispatchFormType::S25;
     f = DispatchFormType::S26;
@@ -169,53 +339,12 @@ TEST(DispatchFormType, AllFormsReachable)
     EXPECT_EQ(f, DispatchFormType::S76);
 }
 
-// ── TelegramDirection ────────────────────────────────────────────────────────
-
-TEST(TelegramDirection, DistinctValues)
+TEST(TrainCategory, AllValues)
 {
-    EXPECT_NE(TelegramDirection::SENT, TelegramDirection::RECEIVED);
+    TrainCategory cat = TrainCategory::PASSENGER;
+    cat = TrainCategory::FREIGHT;
+    cat = TrainCategory::MAINTENANCE;
+    EXPECT_EQ(cat, TrainCategory::MAINTENANCE);
 }
 
-// ── TelegramStatus ───────────────────────────────────────────────────────────
-
-TEST(TelegramStatus, DistinctValues)
-{
-    EXPECT_NE(TelegramStatus::PENDING, TelegramStatus::CONFIRMED);
-    EXPECT_NE(TelegramStatus::CONFIRMED, TelegramStatus::REJECTED);
-    EXPECT_NE(TelegramStatus::REJECTED, TelegramStatus::SUPERSEDED);
-}
-
-// ── ExchangeStatus ───────────────────────────────────────────────────────────
-
-TEST(ExchangeStatus, DistinctValues)
-{
-    EXPECT_NE(ExchangeStatus::IDLE, ExchangeStatus::S2_SENT);
-    EXPECT_NE(ExchangeStatus::S2_SENT, ExchangeStatus::S24_RECEIVED);
-    EXPECT_NE(ExchangeStatus::S24_RECEIVED, ExchangeStatus::S25_SENT);
-    EXPECT_NE(ExchangeStatus::S25_SENT, ExchangeStatus::S26_RECEIVED);
-    EXPECT_NE(ExchangeStatus::S26_RECEIVED, ExchangeStatus::CLOSED);
-    EXPECT_NE(ExchangeStatus::CLOSED, ExchangeStatus::CANCELLED);
-}
-
-TEST(ExchangeStatus, StandardPath)
-{
-    ExchangeStatus s = ExchangeStatus::IDLE;
-    EXPECT_EQ(s, ExchangeStatus::IDLE);
-    s = ExchangeStatus::S2_SENT;
-    EXPECT_EQ(s, ExchangeStatus::S2_SENT);
-    s = ExchangeStatus::S24_RECEIVED;
-    EXPECT_EQ(s, ExchangeStatus::S24_RECEIVED);
-    s = ExchangeStatus::S25_SENT;
-    EXPECT_EQ(s, ExchangeStatus::S25_SENT);
-    s = ExchangeStatus::S26_RECEIVED;
-    EXPECT_EQ(s, ExchangeStatus::S26_RECEIVED);
-    s = ExchangeStatus::CLOSED;
-    EXPECT_EQ(s, ExchangeStatus::CLOSED);
-}
-
-TEST(ExchangeStatus, CancellationPath)
-{
-    ExchangeStatus s = ExchangeStatus::S2_SENT;
-    s = ExchangeStatus::CANCELLED;
-    EXPECT_EQ(s, ExchangeStatus::CANCELLED);
-}
+}  // namespace

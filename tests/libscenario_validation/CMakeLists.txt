@@ -18,5 +18,6 @@ target_compile_definitions(tests_scenario_validation PRIVATE
     SCENARIO_DIR="${CMAKE_SOURCE_DIR}/scenarios/gdynia_orlowo"
 )
 
-include(GoogleTest)
-gtest_discover_tests(tests_scenario_validation)
+symulator_discover_gtest(tests_scenario_validation
+    GROUP_LABEL group:unit-validation
+)

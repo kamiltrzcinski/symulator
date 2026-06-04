@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <tests/common/param_test_helpers.hpp>
+
 #include <atomic>
 #include <string>
 #include <thread>
@@ -89,13 +91,19 @@ TYPED_TEST(EventDispatcherTypedTest, SubscriberCountTracking)
 
 // ── Parameterised over subscriber count — all N subscribers receive event ─────
 
-class EventDispatcherSubscriberCountTest : public ::testing::TestWithParam<int>
+struct SubscriberCountCase
+{
+    const char* name;
+    int subscribers;
+};
+
+class EventDispatcherSubscriberCountTest : public ::testing::TestWithParam<SubscriberCountCase>
 {
 };
 
 TEST_P(EventDispatcherSubscriberCountTest, AllSubscribersReceive)
 {
-    const int n = GetParam();
+    const int n = GetParam().subscribers;
     EventDispatcher<IntEvent> dispatcher;
     std::atomic<int> calls{0};
     for (int i = 0; i < n; ++i)
@@ -105,9 +113,12 @@ TEST_P(EventDispatcherSubscriberCountTest, AllSubscribersReceive)
 }
 
 INSTANTIATE_TEST_SUITE_P(EventDispatcher, EventDispatcherSubscriberCountTest,
-                         ::testing::Values(1, 2, 5, 10, 50),
-                         [](const ::testing::TestParamInfo<int>& info)
-                         { return "n" + std::to_string(info.param); });
+                         ::testing::Values(SubscriberCountCase{"N1", 1},
+                                           SubscriberCountCase{"N2", 2},
+                                           SubscriberCountCase{"N5", 5},
+                                           SubscriberCountCase{"N10", 10},
+                                           SubscriberCountCase{"N50", 50}),
+                         tests::common::param_name<SubscriberCountCase>);
 
 // ── Non-parameterised tests — require specific single-type logic ──────────────
 
@@ -171,6 +182,7 @@ TEST(EventDispatcher, HandlerRemovedDuringPublishStillCalledThisRound)
 
 struct ConcurrentParams
 {
+    const char* name;
     int publishers;
     int rounds;
     int subscribers;
@@ -182,7 +194,10 @@ class EventDispatcherConcurrentTest : public ::testing::TestWithParam<Concurrent
 
 TEST_P(EventDispatcherConcurrentTest, ConcurrentSubscribeAndPublishNoCrash)
 {
-    const auto [publishers, rounds, subscribers] = GetParam();
+    const auto& param = GetParam();
+    const int publishers = param.publishers;
+    const int rounds = param.rounds;
+    const int subscribers = param.subscribers;
     EventDispatcher<IntEvent> dispatcher;
     std::atomic<int> total_calls{0};
 
@@ -217,7 +232,10 @@ TEST_P(EventDispatcherConcurrentTest, ConcurrentSubscribeAndPublishNoCrash)
 
 TEST_P(EventDispatcherConcurrentTest, ConcurrentUnsubscribeAndPublishNoCrash)
 {
-    const auto [publishers, rounds, subscribers] = GetParam();
+    const auto& param = GetParam();
+    const int publishers = param.publishers;
+    const int rounds = param.rounds;
+    const int subscribers = param.subscribers;
     EventDispatcher<IntEvent> dispatcher;
     std::atomic<int> calls{0};
 
@@ -251,12 +269,7 @@ TEST_P(EventDispatcherConcurrentTest, ConcurrentUnsubscribeAndPublishNoCrash)
 }
 
 INSTANTIATE_TEST_SUITE_P(EventDispatcher, EventDispatcherConcurrentTest,
-                         ::testing::Values(ConcurrentParams{1, 100, 10},
-                                           ConcurrentParams{2, 200, 20},
-                                           ConcurrentParams{4, 50, 10}),
-                         [](const ::testing::TestParamInfo<ConcurrentParams>& info)
-                         {
-                             return std::to_string(info.param.publishers) + "pub_" +
-                                    std::to_string(info.param.rounds) + "rounds_" +
-                                    std::to_string(info.param.subscribers) + "sub";
-                         });
+                         ::testing::Values(ConcurrentParams{"Pub1Rounds100Sub10", 1, 100, 10},
+                                           ConcurrentParams{"Pub2Rounds200Sub20", 2, 200, 20},
+                                           ConcurrentParams{"Pub4Rounds50Sub10", 4, 50, 10}),
+                         tests::common::param_name<ConcurrentParams>);

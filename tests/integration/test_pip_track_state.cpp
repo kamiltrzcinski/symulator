@@ -8,11 +8,12 @@
 
 #include "server/pg_db_writer.hpp"
 
+#include <tests/common/db_integration_fixture.hpp>
+
 #include <pqxx/pqxx>
 
 #include <gtest/gtest.h>
 
-#include <cstdlib>
 #include <string>
 
 namespace
@@ -24,42 +25,22 @@ static constexpr uint64_t kSecC = 200003ULL;
 static constexpr uint64_t kSecD = 200004ULL;
 static constexpr uint64_t kSecE = 200005ULL;
 
-static const char* db_conn_str()
-{
-    return std::getenv("SYMULATOR_TEST_DB");
-}
-
 // ── Fixture ───────────────────────────────────────────────────────────────────
 
-class PipTrackStateFixture : public ::testing::Test
+class PipTrackStateFixture : public tests::common::DbIntegrationFixture
 {
+public:
+    PipTrackStateFixture() : DbIntegrationFixture("test-pip-track-state") {}
+
 protected:
     void SetUp() override
     {
-        const char* cs = db_conn_str();
-        if (!cs)
-            GTEST_SKIP() << "SYMULATOR_TEST_DB not set — skipping PostgreSQL integration tests";
-
-        conn_str_ = cs;
-        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
-        session_uuid_ = writer_->init_session("test-pip-track-state", 1);
-    }
-
-    void TearDown() override
-    {
-        if (conn_str_.empty() || session_uuid_.empty())
+        DbIntegrationFixture::SetUp();
+        if (conn_str_.empty())
             return;
-        try
-        {
-            pqxx::connection c{conn_str_};
-            pqxx::work tx{c};
-            tx.exec("DELETE FROM session.sessions WHERE id = $1::uuid",
-                    pqxx::params{session_uuid_});
-            tx.commit();
-        }
-        catch (...)
-        {
-        }
+
+        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
+        session_uuid_ = writer_->init_session(session_display_name(), 1);
     }
 
     // Fetch the raw trains JSON text for a given section.
@@ -78,9 +59,7 @@ protected:
         return r[0][0].as<std::string>();
     }
 
-    std::string conn_str_;
     std::unique_ptr<server::PgDbWriter> writer_;
-    std::string session_uuid_;
 };
 
 }  // namespace

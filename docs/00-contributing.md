@@ -313,10 +313,25 @@ To validate real compilation, run native builds on each OS using the build comma
 The project has automated tests. Run them after every change before submitting:
 
 ```bash
-# Full build:
-ctest --test-dir build/ninja-debug --output-on-failure
+# Headless grouped run (unit + non-DB integration):
+python3 scripts/run_grouped_ctest.py \
+  --test-dir build/ninja-debug-headless \
+  --reports-dir build/ninja-debug-headless/test-reports \
+  --profile pre-db
 
-# Headless build:
+# DB integration group (requires SYMULATOR_TEST_DB):
+python3 scripts/run_grouped_ctest.py \
+  --test-dir build/ninja-debug-headless \
+  --reports-dir build/ninja-debug-headless/test-reports \
+  --profile db
+
+# Run a single logical group:
+python3 scripts/run_grouped_ctest.py \
+  --test-dir build/ninja-debug-headless \
+  --reports-dir build/ninja-debug-headless/test-reports \
+  --group unit-engine
+
+# Legacy all-tests run (still supported):
 ctest --test-dir build/ninja-debug-headless --output-on-failure
 ```
 
@@ -327,6 +342,9 @@ ctest --test-dir build/ninja-debug -R Qt6Sanity --output-on-failure
 ```
 
 If any test fails, fix it before opening a pull request. Do not submit code with failing tests.
+
+The grouped runner prints `PASS`/`FAILED` per group and lists failing test names.
+In CI, each grouped run also publishes per-group JUnit reports as artifacts.
 
 ---
 

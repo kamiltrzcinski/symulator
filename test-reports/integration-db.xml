@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="43"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="2"
+	timestamp="2026-06-04T14:40:46"
+	>
+	<testcase name="PgDbWriterFixture.InitSession_CreatesSessionsRow" classname="PgDbWriterFixture.InitSession_CreatesSessionsRow" time="0.0452452" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.InitSession_CreatesSessionsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.InitSession_CreatesSessionsRow
+[       OK ] PgDbWriterFixture.InitSession_CreatesSessionsRow (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.WriteDispatchTelegram_InsertsRow" classname="PgDbWriterFixture.WriteDispatchTelegram_InsertsRow" time="0.0465753" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.WriteDispatchTelegram_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.WriteDispatchTelegram_InsertsRow
+[       OK ] PgDbWriterFixture.WriteDispatchTelegram_InsertsRow (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.WriteDispatchTelegram_NullableTrackNumber" classname="PgDbWriterFixture.WriteDispatchTelegram_NullableTrackNumber" time="0.0467573" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.WriteDispatchTelegram_NullableTrackNumber
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.WriteDispatchTelegram_NullableTrackNumber
+[       OK ] PgDbWriterFixture.WriteDispatchTelegram_NullableTrackNumber (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrTrackClearTime_UpdatesRow" classname="PgDbWriterFixture.UpdateEdrTrackClearTime_UpdatesRow" time="0.0594824" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrTrackClearTime_UpdatesRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrTrackClearTime_UpdatesRow
+[       OK ] PgDbWriterFixture.UpdateEdrTrackClearTime_UpdatesRow (55 ms)
+[----------] 1 test from PgDbWriterFixture (55 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (55 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.WriteDomainEvent_InsertsRow" classname="PgDbWriterFixture.WriteDomainEvent_InsertsRow" time="0.0467144" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.WriteDomainEvent_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.WriteDomainEvent_InsertsRow
+[       OK ] PgDbWriterFixture.WriteDomainEvent_InsertsRow (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.WriteDomainEvent_NullObjectGid" classname="PgDbWriterFixture.WriteDomainEvent_NullObjectGid" time="0.0454067" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.WriteDomainEvent_NullObjectGid
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.WriteDomainEvent_NullObjectGid
+[       OK ] PgDbWriterFixture.WriteDomainEvent_NullObjectGid (41 ms)
+[----------] 1 test from PgDbWriterFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrDeparture_SetsActualDepartureAndStatus" classname="PgDbWriterFixture.UpdateEdrDeparture_SetsActualDepartureAndStatus" time="0.0598291" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrDeparture_SetsActualDepartureAndStatus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrDeparture_SetsActualDepartureAndStatus
+[       OK ] PgDbWriterFixture.UpdateEdrDeparture_SetsActualDepartureAndStatus (55 ms)
+[----------] 1 test from PgDbWriterFixture (55 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (56 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrArrival_SetsActualArrivalAndStatus" classname="PgDbWriterFixture.UpdateEdrArrival_SetsActualArrivalAndStatus" time="0.0601663" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrArrival_SetsActualArrivalAndStatus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrArrival_SetsActualArrivalAndStatus
+[       OK ] PgDbWriterFixture.UpdateEdrArrival_SetsActualArrivalAndStatus (56 ms)
+[----------] 1 test from PgDbWriterFixture (56 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (56 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrDeparture_IdempotentOnAlreadyDeparted" classname="PgDbWriterFixture.UpdateEdrDeparture_IdempotentOnAlreadyDeparted" time="0.0590139" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrDeparture_IdempotentOnAlreadyDeparted
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrDeparture_IdempotentOnAlreadyDeparted
+[       OK ] PgDbWriterFixture.UpdateEdrDeparture_IdempotentOnAlreadyDeparted (55 ms)
+[----------] 1 test from PgDbWriterFixture (55 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (55 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.AppendEdrJournalEntry_InsertsOperatorVisibleRow" classname="PgDbWriterFixture.AppendEdrJournalEntry_InsertsOperatorVisibleRow" time="0.0475134" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.AppendEdrJournalEntry_InsertsOperatorVisibleRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.AppendEdrJournalEntry_InsertsOperatorVisibleRow
+[       OK ] PgDbWriterFixture.AppendEdrJournalEntry_InsertsOperatorVisibleRow (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting" classname="PgDbWriterFixture.UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting" time="0.0470143" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting
+[       OK ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_MarksRowWithoutDeleting (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SaveSnapshot_InsertsRow" classname="PgDbWriterFixture.SaveSnapshot_InsertsRow" time="0.0455097" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SaveSnapshot_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SaveSnapshot_InsertsRow
+[       OK ] PgDbWriterFixture.SaveSnapshot_InsertsRow (41 ms)
+[----------] 1 test from PgDbWriterFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.AppendChatMessage_InsertsRow" classname="PgDbWriterFixture.AppendChatMessage_InsertsRow" time="0.0449106" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.AppendChatMessage_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.AppendChatMessage_InsertsRow
+[       OK ] PgDbWriterFixture.AppendChatMessage_InsertsRow (41 ms)
+[----------] 1 test from PgDbWriterFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.AssignOperatingPoint_InsertsRow" classname="PgDbWriterFixture.AssignOperatingPoint_InsertsRow" time="0.0458571" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.AssignOperatingPoint_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.AssignOperatingPoint_InsertsRow
+[       OK ] PgDbWriterFixture.AssignOperatingPoint_InsertsRow (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.ReleaseOperatingPoint_SetsReleasedAt" classname="PgDbWriterFixture.ReleaseOperatingPoint_SetsReleasedAt" time="0.0452879" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.ReleaseOperatingPoint_SetsReleasedAt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.ReleaseOperatingPoint_SetsReleasedAt
+[       OK ] PgDbWriterFixture.ReleaseOperatingPoint_SetsReleasedAt (41 ms)
+[----------] 1 test from PgDbWriterFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.ReleaseOperatingPoint_Idempotent" classname="PgDbWriterFixture.ReleaseOperatingPoint_Idempotent" time="0.0456639" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.ReleaseOperatingPoint_Idempotent
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.ReleaseOperatingPoint_Idempotent
+[       OK ] PgDbWriterFixture.ReleaseOperatingPoint_Idempotent (41 ms)
+[----------] 1 test from PgDbWriterFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow" classname="PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow" time="0.0479092" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_InsertsRow (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows" classname="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows" time="0.0490411" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows
+[       OK ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_OnlyCopiesActiveRows (45 ms)
+[----------] 1 test from PgDbWriterFixture (45 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (45 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_RejectsEmptyOperatingDays" classname="PgDbWriterFixture.UpsertTimetableTemplate_RejectsEmptyOperatingDays" time="0.0318972" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_RejectsEmptyOperatingDays
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsEmptyOperatingDays
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsEmptyOperatingDays (28 ms)
+[----------] 1 test from PgDbWriterFixture (28 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (28 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayZero" classname="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayZero" time="0.0320433" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayZero
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayZero
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayZero (28 ms)
+[----------] 1 test from PgDbWriterFixture (28 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayEight" classname="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayEight" time="0.0322802" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayEight
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayEight
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayEight (29 ms)
+[----------] 1 test from PgDbWriterFixture (29 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayNegative" classname="PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayNegative" time="0.0325575" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayNegative
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayNegative
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsOperatingDayNegative (29 ms)
+[----------] 1 test from PgDbWriterFixture (29 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays" classname="PgDbWriterFixture.UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays" time="0.0330487" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_RejectsMixedInvalidOperatingDays (29 ms)
+[----------] 1 test from PgDbWriterFixture (29 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsZero" classname="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsZero" time="0.0321951" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsZero
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsZero
+[       OK ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsZero (28 ms)
+[----------] 1 test from PgDbWriterFixture (28 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (28 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsEight" classname="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsEight" time="0.0319198" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsEight
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsEight
+[       OK ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsEight (28 ms)
+[----------] 1 test from PgDbWriterFixture (28 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (28 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsNegative" classname="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsNegative" time="0.03259" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsNegative
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsNegative
+[       OK ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_RejectsNegative (28 ms)
+[----------] 1 test from PgDbWriterFixture (28 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (28 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay" classname="PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay" time="0.0484645" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay
+[       OK ] PgDbWriterFixture.SeedEdrEntriesForOperatingDay_NoTemplatesForDay (44 ms)
+[----------] 1 test from PgDbWriterFixture (44 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (44 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpsertTimetableTemplate_OnConflictUpdatesAllFields" classname="PgDbWriterFixture.UpsertTimetableTemplate_OnConflictUpdatesAllFields" time="0.0475815" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpsertTimetableTemplate_OnConflictUpdatesAllFields
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpsertTimetableTemplate_OnConflictUpdatesAllFields
+[       OK ] PgDbWriterFixture.UpsertTimetableTemplate_OnConflictUpdatesAllFields (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.AppendEdrJournalEntry_RejectsInvalidEntryType" classname="PgDbWriterFixture.AppendEdrJournalEntry_RejectsInvalidEntryType" time="0.0334043" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.AppendEdrJournalEntry_RejectsInvalidEntryType
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.AppendEdrJournalEntry_RejectsInvalidEntryType
+[       OK ] PgDbWriterFixture.AppendEdrJournalEntry_RejectsInvalidEntryType (29 ms)
+[----------] 1 test from PgDbWriterFixture (29 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrJournalEntryStatus_RejectsInvalidStatus" classname="PgDbWriterFixture.UpdateEdrJournalEntryStatus_RejectsInvalidStatus" time="0.035588" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrJournalEntryStatus_RejectsInvalidStatus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_RejectsInvalidStatus
+[       OK ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_RejectsInvalidStatus (31 ms)
+[----------] 1 test from PgDbWriterFixture (31 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (32 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut" classname="PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut" time="0.047805" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut
+[       OK ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCrossedOut (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCancelled" classname="PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCancelled" time="0.0468274" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCancelled
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCancelled
+[       OK ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_CanTransitionToCancelled (43 ms)
+[----------] 1 test from PgDbWriterFixture (43 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (43 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PgDbWriterFixture.UpdateEdrJournalEntryStatus_NullNotesPreservesExisting" classname="PgDbWriterFixture.UpdateEdrJournalEntryStatus_NullNotesPreservesExisting" time="0.0461195" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PgDbWriterFixture.UpdateEdrJournalEntryStatus_NullNotesPreservesExisting
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PgDbWriterFixture
+[ RUN      ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_NullNotesPreservesExisting
+[       OK ] PgDbWriterFixture.UpdateEdrJournalEntryStatus_NullNotesPreservesExisting (42 ms)
+[----------] 1 test from PgDbWriterFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="EdrCoordinatorFixture.S25_Sent_UsesSrcAreaAsStation" classname="EdrCoordinatorFixture.S25_Sent_UsesSrcAreaAsStation" time="0.0683806" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = EdrCoordinatorFixture.S25_Sent_UsesSrcAreaAsStation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EdrCoordinatorFixture
+[ RUN      ] EdrCoordinatorFixture.S25_Sent_UsesSrcAreaAsStation
+[       OK ] EdrCoordinatorFixture.S25_Sent_UsesSrcAreaAsStation (64 ms)
+[----------] 1 test from EdrCoordinatorFixture (64 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (64 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="EdrCoordinatorFixture.S25_Received_UsesDstAreaAsStation" classname="EdrCoordinatorFixture.S25_Received_UsesDstAreaAsStation" time="0.058385" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = EdrCoordinatorFixture.S25_Received_UsesDstAreaAsStation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EdrCoordinatorFixture
+[ RUN      ] EdrCoordinatorFixture.S25_Received_UsesDstAreaAsStation
+[       OK ] EdrCoordinatorFixture.S25_Received_UsesDstAreaAsStation (54 ms)
+[----------] 1 test from EdrCoordinatorFixture (54 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (54 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="EdrCoordinatorFixture.S26_Sent_UsesSrcAreaAsStation" classname="EdrCoordinatorFixture.S26_Sent_UsesSrcAreaAsStation" time="0.058552" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = EdrCoordinatorFixture.S26_Sent_UsesSrcAreaAsStation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EdrCoordinatorFixture
+[ RUN      ] EdrCoordinatorFixture.S26_Sent_UsesSrcAreaAsStation
+[       OK ] EdrCoordinatorFixture.S26_Sent_UsesSrcAreaAsStation (54 ms)
+[----------] 1 test from EdrCoordinatorFixture (54 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (54 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="EdrCoordinatorFixture.S26_Received_UsesDstAreaAsStation" classname="EdrCoordinatorFixture.S26_Received_UsesDstAreaAsStation" time="0.0595395" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = EdrCoordinatorFixture.S26_Received_UsesDstAreaAsStation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EdrCoordinatorFixture
+[ RUN      ] EdrCoordinatorFixture.S26_Received_UsesDstAreaAsStation
+[       OK ] EdrCoordinatorFixture.S26_Received_UsesDstAreaAsStation (55 ms)
+[----------] 1 test from EdrCoordinatorFixture (55 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (55 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="EdrCoordinatorFixture.OtherFormTypes_DoNotWriteToDb" classname="EdrCoordinatorFixture.OtherFormTypes_DoNotWriteToDb" time="0.0560171" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = EdrCoordinatorFixture.OtherFormTypes_DoNotWriteToDb
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EdrCoordinatorFixture
+[ RUN      ] EdrCoordinatorFixture.OtherFormTypes_DoNotWriteToDb
+[       OK ] EdrCoordinatorFixture.OtherFormTypes_DoNotWriteToDb (52 ms)
+[----------] 1 test from EdrCoordinatorFixture (52 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (52 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipTrackStateFixture.Upsert_InsertsNewRow" classname="PipTrackStateFixture.Upsert_InsertsNewRow" time="0.0442906" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipTrackStateFixture.Upsert_InsertsNewRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipTrackStateFixture
+[ RUN      ] PipTrackStateFixture.Upsert_InsertsNewRow
+[       OK ] PipTrackStateFixture.Upsert_InsertsNewRow (41 ms)
+[----------] 1 test from PipTrackStateFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipTrackStateFixture.Upsert_FreeSection_StoresEmptyArray" classname="PipTrackStateFixture.Upsert_FreeSection_StoresEmptyArray" time="0.045229" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipTrackStateFixture.Upsert_FreeSection_StoresEmptyArray
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipTrackStateFixture
+[ RUN      ] PipTrackStateFixture.Upsert_FreeSection_StoresEmptyArray
+[       OK ] PipTrackStateFixture.Upsert_FreeSection_StoresEmptyArray (41 ms)
+[----------] 1 test from PipTrackStateFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipTrackStateFixture.Upsert_ConflictUpdatesTrains" classname="PipTrackStateFixture.Upsert_ConflictUpdatesTrains" time="0.0452937" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipTrackStateFixture.Upsert_ConflictUpdatesTrains
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipTrackStateFixture
+[ RUN      ] PipTrackStateFixture.Upsert_ConflictUpdatesTrains
+[       OK ] PipTrackStateFixture.Upsert_ConflictUpdatesTrains (41 ms)
+[----------] 1 test from PipTrackStateFixture (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (41 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipTrackStateFixture.Upsert_MultipleSections_AllInserted" classname="PipTrackStateFixture.Upsert_MultipleSections_AllInserted" time="0.0463264" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipTrackStateFixture.Upsert_MultipleSections_AllInserted
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipTrackStateFixture
+[ RUN      ] PipTrackStateFixture.Upsert_MultipleSections_AllInserted
+[       OK ] PipTrackStateFixture.Upsert_MultipleSections_AllInserted (42 ms)
+[----------] 1 test from PipTrackStateFixture (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipTrackStateFixture.Upsert_UpdatedAtChangesOnConflict" classname="PipTrackStateFixture.Upsert_UpdatedAtChangesOnConflict" time="0.0554459" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:integration-db"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipTrackStateFixture.Upsert_UpdatedAtChangesOnConflict
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipTrackStateFixture
+[ RUN      ] PipTrackStateFixture.Upsert_UpdatedAtChangesOnConflict
+[       OK ] PipTrackStateFixture.Upsert_UpdatedAtChangesOnConflict (51 ms)
+[----------] 1 test from PipTrackStateFixture (51 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (52 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+</testsuite>

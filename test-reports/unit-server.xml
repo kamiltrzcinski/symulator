@@ -1,0 +1,1901 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="105"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-06-04T14:17:50"
+	>
+	<testcase name="Frame.RoundTripWithPayload" classname="Frame.RoundTripWithPayload" time="0.00234109" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = Frame.RoundTripWithPayload
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Frame
+[ RUN      ] Frame.RoundTripWithPayload
+[       OK ] Frame.RoundTripWithPayload (0 ms)
+[----------] 1 test from Frame (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Frame.RoundTripEmptyPayload" classname="Frame.RoundTripEmptyPayload" time="0.0022042" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = Frame.RoundTripEmptyPayload
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Frame
+[ RUN      ] Frame.RoundTripEmptyPayload
+[       OK ] Frame.RoundTripEmptyPayload (0 ms)
+[----------] 1 test from Frame (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Frame.CorruptCrcRejected" classname="Frame.CorruptCrcRejected" time="0.00217346" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = Frame.CorruptCrcRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Frame
+[ RUN      ] Frame.CorruptCrcRejected
+[       OK ] Frame.CorruptCrcRejected (0 ms)
+[----------] 1 test from Frame (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Frame.TruncatedBufferNeedsMoreData" classname="Frame.TruncatedBufferNeedsMoreData" time="0.00216578" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = Frame.TruncatedBufferNeedsMoreData
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Frame
+[ RUN      ] Frame.TruncatedBufferNeedsMoreData
+[       OK ] Frame.TruncatedBufferNeedsMoreData (0 ms)
+[----------] 1 test from Frame (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Frame.Crc32IsDeterministic" classname="Frame.Crc32IsDeterministic" time="0.00222367" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = Frame.Crc32IsDeterministic
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Frame
+[ RUN      ] Frame.Crc32IsDeterministic
+[       OK ] Frame.Crc32IsDeterministic (0 ms)
+[----------] 1 test from Frame (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameCrc.KnownVector" classname="FrameCrc.KnownVector" time="0.00221247" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameCrc.KnownVector
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameCrc
+[ RUN      ] FrameCrc.KnownVector
+[       OK ] FrameCrc.KnownVector (0 ms)
+[----------] 1 test from FrameCrc (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameCrc.EmptyInput" classname="FrameCrc.EmptyInput" time="0.00215946" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameCrc.EmptyInput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameCrc
+[ RUN      ] FrameCrc.EmptyInput
+[       OK ] FrameCrc.EmptyInput (0 ms)
+[----------] 1 test from FrameCrc (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameDecode.MaxPayload" classname="FrameDecode.MaxPayload" time="0.0027869" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameDecode.MaxPayload
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameDecode
+[ RUN      ] FrameDecode.MaxPayload
+[       OK ] FrameDecode.MaxPayload (0 ms)
+[----------] 1 test from FrameDecode (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameDecode.TrailingDataDoesNotAffectDecode" classname="FrameDecode.TrailingDataDoesNotAffectDecode" time="0.00284574" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameDecode.TrailingDataDoesNotAffectDecode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameDecode
+[ RUN      ] FrameDecode.TrailingDataDoesNotAffectDecode
+[       OK ] FrameDecode.TrailingDataDoesNotAffectDecode (0 ms)
+[----------] 1 test from FrameDecode (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.SetSwitchPosition" classname="CommandIngress.SetSwitchPosition" time="0.00256438" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.SetSwitchPosition
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.SetSwitchPosition
+[       OK ] CommandIngress.SetSwitchPosition (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.SetSignalAspect" classname="CommandIngress.SetSignalAspect" time="0.00224746" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.SetSignalAspect
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.SetSignalAspect
+[       OK ] CommandIngress.SetSignalAspect (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.SetBlockSection_Inverted" classname="CommandIngress.SetBlockSection_Inverted" time="0.00227954" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.SetBlockSection_Inverted
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.SetBlockSection_Inverted
+[       OK ] CommandIngress.SetBlockSection_Inverted (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.OperatorCommand" classname="CommandIngress.OperatorCommand" time="0.00215789" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.OperatorCommand
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.OperatorCommand
+[       OK ] CommandIngress.OperatorCommand (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.OperatorCommand_LevelCrossing" classname="CommandIngress.OperatorCommand_LevelCrossing" time="0.0022105" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.OperatorCommand_LevelCrossing
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.OperatorCommand_LevelCrossing
+[       OK ] CommandIngress.OperatorCommand_LevelCrossing (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.Ml8Command" classname="CommandIngress.Ml8Command" time="0.0022202" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.Ml8Command
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.Ml8Command
+[       OK ] CommandIngress.Ml8Command (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.UnknownCmdType" classname="CommandIngress.UnknownCmdType" time="0.00216131" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.UnknownCmdType
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.UnknownCmdType
+[       OK ] CommandIngress.UnknownCmdType (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.EmptyPayload" classname="CommandIngress.EmptyPayload" time="0.00212883" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.EmptyPayload
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.EmptyPayload
+[       OK ] CommandIngress.EmptyPayload (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="CommandIngress.TruncatedBody" classname="CommandIngress.TruncatedBody" time="0.00214454" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandIngress.TruncatedBody
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CommandIngress
+[ RUN      ] CommandIngress.TruncatedBody
+[       OK ] CommandIngress.TruncatedBody (0 ms)
+[----------] 1 test from CommandIngress (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.SetAndCheck" classname="OwnershipGuard.SetAndCheck" time="0.00217405" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.SetAndCheck
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.SetAndCheck
+[       OK ] OwnershipGuard.SetAndCheck (0 ms)
+[----------] 1 test from OwnershipGuard (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.ReleaseOne" classname="OwnershipGuard.ReleaseOne" time="0.00212854" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.ReleaseOne
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.ReleaseOne
+[       OK ] OwnershipGuard.ReleaseOne (0 ms)
+[----------] 1 test from OwnershipGuard (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.ReleaseAll" classname="OwnershipGuard.ReleaseAll" time="0.00227648" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.ReleaseAll
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.ReleaseAll
+[       OK ] OwnershipGuard.ReleaseAll (0 ms)
+[----------] 1 test from OwnershipGuard (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.GetOwner" classname="OwnershipGuard.GetOwner" time="0.00217285" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.GetOwner
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.GetOwner
+[       OK ] OwnershipGuard.GetOwner (0 ms)
+[----------] 1 test from OwnershipGuard (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.Overwrite" classname="OwnershipGuard.Overwrite" time="0.00215032" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.Overwrite
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.Overwrite
+[       OK ] OwnershipGuard.Overwrite (0 ms)
+[----------] 1 test from OwnershipGuard (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="OwnershipGuard.ConcurrentAccess" classname="OwnershipGuard.ConcurrentAccess" time="0.00505053" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = OwnershipGuard.ConcurrentAccess
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from OwnershipGuard
+[ RUN      ] OwnershipGuard.ConcurrentAccess
+[       OK ] OwnershipGuard.ConcurrentAccess (2 ms)
+[----------] 1 test from OwnershipGuard (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatEmpty  # GetParam() = 40-byte object &lt;65-1B AC-DA 97-63 00-00 03-00 00-00 2A-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatEmpty  # GetParam() = 40-byte object &lt;65-1B AC-DA 97-63 00-00 03-00 00-00 2A-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00&gt;" time="0.00213435" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatEmpty
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatEmpty
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatEmpty (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandWithPayload  # GetParam() = 40-byte object &lt;52-1B AC-DA 97-63 00-00 10-01 00-00 63-00 00-00 50-E1 0D-02 98-63 00-00 54-E1 0D-02 98-63 00-00 54-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandWithPayload  # GetParam() = 40-byte object &lt;52-1B AC-DA 97-63 00-00 10-01 00-00 63-00 00-00 50-E1 0D-02 98-63 00-00 54-E1 0D-02 98-63 00-00 54-E1 0D-02 98-63 00-00&gt;" time="0.00219484" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandWithPayload
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandWithPayload
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandWithPayload (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Handshake  # GetParam() = 40-byte object &lt;48-1B AC-DA 97-63 00-00 01-00 00-00 01-00 00-00 50-E1 0D-02 98-63 00-00 52-E1 0D-02 98-63 00-00 52-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Handshake  # GetParam() = 40-byte object &lt;48-1B AC-DA 97-63 00-00 01-00 00-00 01-00 00-00 50-E1 0D-02 98-63 00-00 52-E1 0D-02 98-63 00-00 52-E1 0D-02 98-63 00-00&gt;" time="0.00280857" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Handshake
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Handshake
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Handshake (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HandshakeAck  # GetParam() = 40-byte object &lt;3B-1B AC-DA 97-63 00-00 02-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HandshakeAck  # GetParam() = 40-byte object &lt;3B-1B AC-DA 97-63 00-00 02-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.00252457" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HandshakeAck
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HandshakeAck
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HandshakeAck (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Heartbeat  # GetParam() = 40-byte object &lt;31-1B AC-DA 97-63 00-00 03-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Heartbeat  # GetParam() = 40-byte object &lt;31-1B AC-DA 97-63 00-00 03-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.0025562" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Heartbeat
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Heartbeat
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Heartbeat (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatAck  # GetParam() = 40-byte object &lt;24-1B AC-DA 97-63 00-00 04-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatAck  # GetParam() = 40-byte object &lt;24-1B AC-DA 97-63 00-00 04-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.0025043" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatAck
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatAck
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/HeartbeatAck (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Command  # GetParam() = 40-byte object &lt;1C-1B AC-DA 97-63 00-00 10-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Command  # GetParam() = 40-byte object &lt;1C-1B AC-DA 97-63 00-00 10-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.00223797" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Command
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Command
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/Command (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandAck  # GetParam() = 40-byte object &lt;11-1B AC-DA 97-63 00-00 11-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandAck  # GetParam() = 40-byte object &lt;11-1B AC-DA 97-63 00-00 11-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.00246694" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandAck
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandAck
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandAck (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandNak  # GetParam() = 40-byte object &lt;06-1B AC-DA 97-63 00-00 12-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandNak  # GetParam() = 40-byte object &lt;06-1B AC-DA 97-63 00-00 12-00 00-00 01-00 00-00 90-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00 92-E1 0D-02 98-63 00-00&gt;" time="0.0026493" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandNak
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandNak
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/CommandNak (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DomainEvent  # GetParam() = 40-byte object &lt;FA-1A AC-DA 97-63 00-00 20-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DomainEvent  # GetParam() = 40-byte object &lt;FA-1A AC-DA 97-63 00-00 20-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" time="0.00250097" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DomainEvent
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DomainEvent
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DomainEvent (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotRequest  # GetParam() = 40-byte object &lt;EA-1A AC-DA 97-63 00-00 30-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotRequest  # GetParam() = 40-byte object &lt;EA-1A AC-DA 97-63 00-00 30-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" time="0.00247679" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotRequest
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotRequest
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotRequest (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotChunk  # GetParam() = 40-byte object &lt;DC-1A AC-DA 97-63 00-00 31-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotChunk  # GetParam() = 40-byte object &lt;DC-1A AC-DA 97-63 00-00 31-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" time="0.00236486" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotChunk
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotChunk
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SnapshotChunk (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SessionNotice  # GetParam() = 40-byte object &lt;CE-1A AC-DA 97-63 00-00 40-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SessionNotice  # GetParam() = 40-byte object &lt;CE-1A AC-DA 97-63 00-00 40-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" time="0.00243272" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SessionNotice
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SessionNotice
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/SessionNotice (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverRequest  # GetParam() = 40-byte object &lt;BE-1A AC-DA 97-63 00-00 50-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverRequest  # GetParam() = 40-byte object &lt;BE-1A AC-DA 97-63 00-00 50-00 00-00 01-00 00-00 C0-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00 C2-D9 0D-02 98-63 00-00&gt;" time="0.00244861" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverRequest
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverRequest
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverRequest (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverResponse  # GetParam() = 40-byte object &lt;AD-1A AC-DA 97-63 00-00 51-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverResponse  # GetParam() = 40-byte object &lt;AD-1A AC-DA 97-63 00-00 51-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" time="0.00251794" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverResponse
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverResponse
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/TakeoverResponse (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/ChatMessage  # GetParam() = 40-byte object &lt;A1-1A AC-DA 97-63 00-00 60-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/ChatMessage  # GetParam() = 40-byte object &lt;A1-1A AC-DA 97-63 00-00 60-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" time="0.00246389" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/ChatMessage
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/ChatMessage
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/ChatMessage (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DispatchChannel  # GetParam() = 40-byte object &lt;91-1A AC-DA 97-63 00-00 61-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DispatchChannel  # GetParam() = 40-byte object &lt;91-1A AC-DA 97-63 00-00 61-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" time="0.00223782" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DispatchChannel
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DispatchChannel
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/DispatchChannel (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceJoin  # GetParam() = 40-byte object &lt;87-1A AC-DA 97-63 00-00 70-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceJoin  # GetParam() = 40-byte object &lt;87-1A AC-DA 97-63 00-00 70-00 00-00 01-00 00-00 20-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00 22-D9 0D-02 98-63 00-00&gt;" time="0.00232435" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceJoin
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceJoin
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceJoin (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceLeave  # GetParam() = 40-byte object &lt;7C-1A AC-DA 97-63 00-00 71-00 00-00 01-00 00-00 D0-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceLeave  # GetParam() = 40-byte object &lt;7C-1A AC-DA 97-63 00-00 71-00 00-00 01-00 00-00 D0-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00&gt;" time="0.00250181" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceLeave
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceLeave
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceLeave (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceState  # GetParam() = 40-byte object &lt;71-1A AC-DA 97-63 00-00 72-00 00-00 01-00 00-00 D0-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00&gt;" classname="FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceState  # GetParam() = 40-byte object &lt;71-1A AC-DA 97-63 00-00 72-00 00-00 01-00 00-00 D0-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00 D2-E2 0D-02 98-63 00-00&gt;" time="0.00250271" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceState
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest
+[ RUN      ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceState
+[       OK ] FrameRoundTripCases/FrameRoundTripTest.PreservesFieldsAndPayload/VoiceState (0 ms)
+[----------] 1 test from FrameRoundTripCases/FrameRoundTripTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/HeaderTruncated  # GetParam() = 40-byte object &lt;74-1B AC-DA 97-63 00-00 10-E1 0D-02 98-63 00-00 20-E1 0D-02 98-63 00-00 20-E1 0D-02 98-63 00-00 0F-00 00-00 00-00 00-00&gt;" classname="NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/HeaderTruncated  # GetParam() = 40-byte object &lt;74-1B AC-DA 97-63 00-00 10-E1 0D-02 98-63 00-00 20-E1 0D-02 98-63 00-00 20-E1 0D-02 98-63 00-00 0F-00 00-00 00-00 00-00&gt;" time="0.0025002" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/HeaderTruncated
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from NeedMoreDataCases/FrameDecodeNeedMoreDataTest
+[ RUN      ] NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/HeaderTruncated
+[       OK ] NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/HeaderTruncated (0 ms)
+[----------] 1 test from NeedMoreDataCases/FrameDecodeNeedMoreDataTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/PayloadTruncated  # GetParam() = 40-byte object &lt;84-1B AC-DA 97-63 00-00 A0-C6 0D-02 98-63 00-00 F0-C6 0D-02 98-63 00-00 F0-C6 0D-02 98-63 00-00 1A-00 00-00 00-00 00-00&gt;" classname="NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/PayloadTruncated  # GetParam() = 40-byte object &lt;84-1B AC-DA 97-63 00-00 A0-C6 0D-02 98-63 00-00 F0-C6 0D-02 98-63 00-00 F0-C6 0D-02 98-63 00-00 1A-00 00-00 00-00 00-00&gt;" time="0.00249277" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/PayloadTruncated
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from NeedMoreDataCases/FrameDecodeNeedMoreDataTest
+[ RUN      ] NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/PayloadTruncated
+[       OK ] NeedMoreDataCases/FrameDecodeNeedMoreDataTest.ReturnsNeedMoreData/PayloadTruncated (0 ms)
+[----------] 1 test from NeedMoreDataCases/FrameDecodeNeedMoreDataTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadMagic  # GetParam() = 24-byte object &lt;38-1C AC-DA 97-63 00-00 CD-86 A2-DA 97-63 00-00 02-00 00-00 FF-7F 00-00&gt;" classname="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadMagic  # GetParam() = 24-byte object &lt;38-1C AC-DA 97-63 00-00 CD-86 A2-DA 97-63 00-00 02-00 00-00 FF-7F 00-00&gt;" time="0.00221834" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadMagic
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest
+[ RUN      ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadMagic
+[       OK ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadMagic (0 ms)
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadCrc  # GetParam() = 24-byte object &lt;31-1C AC-DA 97-63 00-00 F4-86 A2-DA 97-63 00-00 04-00 00-00 00-00 00-00&gt;" classname="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadCrc  # GetParam() = 24-byte object &lt;31-1C AC-DA 97-63 00-00 F4-86 A2-DA 97-63 00-00 04-00 00-00 00-00 00-00&gt;" time="0.00249383" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadCrc
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest
+[ RUN      ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadCrc
+[       OK ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadCrc (0 ms)
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadLength  # GetParam() = 24-byte object &lt;27-1C AC-DA 97-63 00-00 1F-87 A2-DA 97-63 00-00 03-00 00-00 FF-7F 00-00&gt;" classname="InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadLength  # GetParam() = 24-byte object &lt;27-1C AC-DA 97-63 00-00 1F-87 A2-DA 97-63 00-00 03-00 00-00 FF-7F 00-00&gt;" time="0.0024896" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-protocol"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadLength
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest
+[ RUN      ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadLength
+[       OK ] InvalidWireCases/FrameDecodeInvalidWireTest.ReturnsExpectedStatus/BadLength (0 ms)
+[----------] 1 test from InvalidWireCases/FrameDecodeInvalidWireTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.SignalAspectChanged" classname="DispatchBus.SignalAspectChanged" time="0.00245055" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.SignalAspectChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.SignalAspectChanged
+[       OK ] DispatchBus.SignalAspectChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.SwitchPositionChanged" classname="DispatchBus.SwitchPositionChanged" time="0.00253273" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.SwitchPositionChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.SwitchPositionChanged
+[       OK ] DispatchBus.SwitchPositionChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.BlockSectionStateChanged" classname="DispatchBus.BlockSectionStateChanged" time="0.0024555" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.BlockSectionStateChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.BlockSectionStateChanged
+[       OK ] DispatchBus.BlockSectionStateChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.BlockDirectionChanged" classname="DispatchBus.BlockDirectionChanged" time="0.00243212" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.BlockDirectionChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.BlockDirectionChanged
+[       OK ] DispatchBus.BlockDirectionChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.DerailerStateChanged" classname="DispatchBus.DerailerStateChanged" time="0.00222548" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.DerailerStateChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.DerailerStateChanged
+[       OK ] DispatchBus.DerailerStateChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.RouteSet" classname="DispatchBus.RouteSet" time="0.00218847" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.RouteSet
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.RouteSet
+[       OK ] DispatchBus.RouteSet (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.RouteReleased" classname="DispatchBus.RouteReleased" time="0.00220825" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.RouteReleased
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.RouteReleased
+[       OK ] DispatchBus.RouteReleased (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.AlarmRaised" classname="DispatchBus.AlarmRaised" time="0.00215783" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.AlarmRaised
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.AlarmRaised
+[       OK ] DispatchBus.AlarmRaised (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.AlarmCleared" classname="DispatchBus.AlarmCleared" time="0.00213038" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.AlarmCleared
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.AlarmCleared
+[       OK ] DispatchBus.AlarmCleared (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.EventIdMonotonicallyIncreasing" classname="DispatchBus.EventIdMonotonicallyIncreasing" time="0.00213732" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.EventIdMonotonicallyIncreasing
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.EventIdMonotonicallyIncreasing
+[       OK ] DispatchBus.EventIdMonotonicallyIncreasing (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.OperatorCommandStateChanged" classname="DispatchBus.OperatorCommandStateChanged" time="0.00216473" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.OperatorCommandStateChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.OperatorCommandStateChanged
+[       OK ] DispatchBus.OperatorCommandStateChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchBus.Ml8CommandStateChanged" classname="DispatchBus.Ml8CommandStateChanged" time="0.00212636" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchBus.Ml8CommandStateChanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchBus
+[ RUN      ] DispatchBus.Ml8CommandStateChanged
+[       OK ] DispatchBus.Ml8CommandStateChanged (0 ms)
+[----------] 1 test from DispatchBus (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.InitialStatusIsIdle" classname="DispatchExchangeManager.InitialStatusIsIdle" time="0.00208418" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.InitialStatusIsIdle
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.InitialStatusIsIdle
+[       OK ] DispatchExchangeManager.InitialStatusIsIdle (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.HappyPath_S2_to_Close" classname="DispatchExchangeManager.HappyPath_S2_to_Close" time="0.00215541" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.HappyPath_S2_to_Close
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.HappyPath_S2_to_Close
+[       OK ] DispatchExchangeManager.HappyPath_S2_to_Close (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.DangerousGoodsPath_S55_S56" classname="DispatchExchangeManager.DangerousGoodsPath_S55_S56" time="0.00217744" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.DangerousGoodsPath_S55_S56
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.DangerousGoodsPath_S55_S56
+[       OK ] DispatchExchangeManager.DangerousGoodsPath_S55_S56 (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.CancellationPath_S35" classname="DispatchExchangeManager.CancellationPath_S35" time="0.00210615" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.CancellationPath_S35
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.CancellationPath_S35
+[       OK ] DispatchExchangeManager.CancellationPath_S35 (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.NewExchangeAfterClosed" classname="DispatchExchangeManager.NewExchangeAfterClosed" time="0.00255649" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.NewExchangeAfterClosed
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.NewExchangeAfterClosed
+[       OK ] DispatchExchangeManager.NewExchangeAfterClosed (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.NewExchangeAfterCancelled" classname="DispatchExchangeManager.NewExchangeAfterCancelled" time="0.00246785" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.NewExchangeAfterCancelled
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.NewExchangeAfterCancelled
+[       OK ] DispatchExchangeManager.NewExchangeAfterCancelled (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.DuplicateS2IsRejected" classname="DispatchExchangeManager.DuplicateS2IsRejected" time="0.00245901" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.DuplicateS2IsRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.DuplicateS2IsRejected
+[       OK ] DispatchExchangeManager.DuplicateS2IsRejected (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.DuplicateS24IsRejected" classname="DispatchExchangeManager.DuplicateS24IsRejected" time="0.0022968" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.DuplicateS24IsRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.DuplicateS24IsRejected
+[       OK ] DispatchExchangeManager.DuplicateS24IsRejected (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.S24BeforeS2IsRejected" classname="DispatchExchangeManager.S24BeforeS2IsRejected" time="0.00225217" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.S24BeforeS2IsRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.S24BeforeS2IsRejected
+[       OK ] DispatchExchangeManager.S24BeforeS2IsRejected (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.S25BeforeS24IsRejected" classname="DispatchExchangeManager.S25BeforeS24IsRejected" time="0.00246697" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.S25BeforeS24IsRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.S25BeforeS24IsRejected
+[       OK ] DispatchExchangeManager.S25BeforeS24IsRejected (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.S35FromIdleIsRejected" classname="DispatchExchangeManager.S35FromIdleIsRejected" time="0.00246808" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.S35FromIdleIsRejected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.S35FromIdleIsRejected
+[       OK ] DispatchExchangeManager.S35FromIdleIsRejected (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.DirectionsAreIndependent" classname="DispatchExchangeManager.DirectionsAreIndependent" time="0.00247065" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.DirectionsAreIndependent
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.DirectionsAreIndependent
+[       OK ] DispatchExchangeManager.DirectionsAreIndependent (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.CloseNoOpWhenIdle" classname="DispatchExchangeManager.CloseNoOpWhenIdle" time="0.00222412" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.CloseNoOpWhenIdle
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.CloseNoOpWhenIdle
+[       OK ] DispatchExchangeManager.CloseNoOpWhenIdle (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.CloseNoOpWhenS2Sent" classname="DispatchExchangeManager.CloseNoOpWhenS2Sent" time="0.00218008" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.CloseNoOpWhenS2Sent
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.CloseNoOpWhenS2Sent
+[       OK ] DispatchExchangeManager.CloseNoOpWhenS2Sent (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.S51AcceptedWhenExchangeActive" classname="DispatchExchangeManager.S51AcceptedWhenExchangeActive" time="0.00231515" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.S51AcceptedWhenExchangeActive
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.S51AcceptedWhenExchangeActive
+[       OK ] DispatchExchangeManager.S51AcceptedWhenExchangeActive (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.S51RejectedWhenIdle" classname="DispatchExchangeManager.S51RejectedWhenIdle" time="0.00234729" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.S51RejectedWhenIdle
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.S51RejectedWhenIdle
+[       OK ] DispatchExchangeManager.S51RejectedWhenIdle (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchExchangeManager.ExchangeIdsAreUnique" classname="DispatchExchangeManager.ExchangeIdsAreUnique" time="0.00241422" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchExchangeManager.ExchangeIdsAreUnique
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchExchangeManager
+[ RUN      ] DispatchExchangeManager.ExchangeIdsAreUnique
+[       OK ] DispatchExchangeManager.ExchangeIdsAreUnique (0 ms)
+[----------] 1 test from DispatchExchangeManager (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.S2_ReturnsOutcome" classname="DispatchCoordinatorFixture.S2_ReturnsOutcome" time="0.00240959" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.S2_ReturnsOutcome
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.S2_ReturnsOutcome
+[       OK ] DispatchCoordinatorFixture.S2_ReturnsOutcome (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.S2_PersistsRow" classname="DispatchCoordinatorFixture.S2_PersistsRow" time="0.00239414" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.S2_PersistsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.S2_PersistsRow
+[       OK ] DispatchCoordinatorFixture.S2_PersistsRow (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.S24_UpdatesEdrTrackClearTime" classname="DispatchCoordinatorFixture.S24_UpdatesEdrTrackClearTime" time="0.00239561" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.S24_UpdatesEdrTrackClearTime
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.S24_UpdatesEdrTrackClearTime
+[       OK ] DispatchCoordinatorFixture.S24_UpdatesEdrTrackClearTime (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.S56_UpdatesEdrTrackClearTime" classname="DispatchCoordinatorFixture.S56_UpdatesEdrTrackClearTime" time="0.00238391" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.S56_UpdatesEdrTrackClearTime
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.S56_UpdatesEdrTrackClearTime
+[       OK ] DispatchCoordinatorFixture.S56_UpdatesEdrTrackClearTime (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.RejectedTelegram_ReturnsNullopt" classname="DispatchCoordinatorFixture.RejectedTelegram_ReturnsNullopt" time="0.00236064" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.RejectedTelegram_ReturnsNullopt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.RejectedTelegram_ReturnsNullopt
+[       OK ] DispatchCoordinatorFixture.RejectedTelegram_ReturnsNullopt (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.RejectedTelegram_NoEdrUpdate" classname="DispatchCoordinatorFixture.RejectedTelegram_NoEdrUpdate" time="0.00237499" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.RejectedTelegram_NoEdrUpdate
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.RejectedTelegram_NoEdrUpdate
+[       OK ] DispatchCoordinatorFixture.RejectedTelegram_NoEdrUpdate (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.SequentialExchangeIds_Match" classname="DispatchCoordinatorFixture.SequentialExchangeIds_Match" time="0.00246185" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.SequentialExchangeIds_Match
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.SequentialExchangeIds_Match
+[       OK ] DispatchCoordinatorFixture.SequentialExchangeIds_Match (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.TrackNumber_Persisted" classname="DispatchCoordinatorFixture.TrackNumber_Persisted" time="0.00235698" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.TrackNumber_Persisted
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.TrackNumber_Persisted
+[       OK ] DispatchCoordinatorFixture.TrackNumber_Persisted (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.S25_Sent_EdrDepartureForSrcArea" classname="DispatchCoordinatorFixture.S25_Sent_EdrDepartureForSrcArea" time="0.00244848" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.S25_Sent_EdrDepartureForSrcArea
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.S25_Sent_EdrDepartureForSrcArea
+[       OK ] DispatchCoordinatorFixture.S25_Sent_EdrDepartureForSrcArea (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.FreeText_PersistsRow" classname="DispatchCoordinatorFixture.FreeText_PersistsRow" time="0.00237771" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.FreeText_PersistsRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.FreeText_PersistsRow
+[       OK ] DispatchCoordinatorFixture.FreeText_PersistsRow (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.FreeText_NoEdrUpdates" classname="DispatchCoordinatorFixture.FreeText_NoEdrUpdates" time="0.00240149" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.FreeText_NoEdrUpdates
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.FreeText_NoEdrUpdates
+[       OK ] DispatchCoordinatorFixture.FreeText_NoEdrUpdates (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchCoordinatorFixture.FreeText_DoesNotAffectExchangeState" classname="DispatchCoordinatorFixture.FreeText_DoesNotAffectExchangeState" time="0.00240767" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchCoordinatorFixture.FreeText_DoesNotAffectExchangeState
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchCoordinatorFixture
+[ RUN      ] DispatchCoordinatorFixture.FreeText_DoesNotAffectExchangeState
+[       OK ] DispatchCoordinatorFixture.FreeText_DoesNotAffectExchangeState (0 ms)
+[----------] 1 test from DispatchCoordinatorFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.S2_Accepted_WritesOneRow" classname="DispatchChannelFixture.S2_Accepted_WritesOneRow" time="0.00249212" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.S2_Accepted_WritesOneRow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.S2_Accepted_WritesOneRow
+[       OK ] DispatchChannelFixture.S2_Accepted_WritesOneRow (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.S24_Accepted_WritesRowAndEdrUpdate" classname="DispatchChannelFixture.S24_Accepted_WritesRowAndEdrUpdate" time="0.00233591" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.S24_Accepted_WritesRowAndEdrUpdate
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.S24_Accepted_WritesRowAndEdrUpdate
+[       OK ] DispatchChannelFixture.S24_Accepted_WritesRowAndEdrUpdate (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.HappyPath_S2_S24_S25_S26_WritesAll" classname="DispatchChannelFixture.HappyPath_S2_S24_S25_S26_WritesAll" time="0.00232936" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.HappyPath_S2_S24_S25_S26_WritesAll
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.HappyPath_S2_S24_S25_S26_WritesAll
+[       OK ] DispatchChannelFixture.HappyPath_S2_S24_S25_S26_WritesAll (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.S55_S56_Accepted_WritesEdrUpdate" classname="DispatchChannelFixture.S55_S56_Accepted_WritesEdrUpdate" time="0.00235994" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.S55_S56_Accepted_WritesEdrUpdate
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.S55_S56_Accepted_WritesEdrUpdate
+[       OK ] DispatchChannelFixture.S55_S56_Accepted_WritesEdrUpdate (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.RejectedTelegram_NoDbWrite" classname="DispatchChannelFixture.RejectedTelegram_NoDbWrite" time="0.00231828" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.RejectedTelegram_NoDbWrite
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.RejectedTelegram_NoDbWrite
+[       OK ] DispatchChannelFixture.RejectedTelegram_NoDbWrite (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.FreeText_WritesOneRow_NoEdrUpdate" classname="DispatchChannelFixture.FreeText_WritesOneRow_NoEdrUpdate" time="0.00280187" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.FreeText_WritesOneRow_NoEdrUpdate
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.FreeText_WritesOneRow_NoEdrUpdate
+[       OK ] DispatchChannelFixture.FreeText_WritesOneRow_NoEdrUpdate (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.SpoofedSrcArea_Dropped" classname="DispatchChannelFixture.SpoofedSrcArea_Dropped" time="0.00242979" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.SpoofedSrcArea_Dropped
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.SpoofedSrcArea_Dropped
+[       OK ] DispatchChannelFixture.SpoofedSrcArea_Dropped (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.MalformedPayload_Dropped" classname="DispatchChannelFixture.MalformedPayload_Dropped" time="0.00252582" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.MalformedPayload_Dropped
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.MalformedPayload_Dropped
+[       OK ] DispatchChannelFixture.MalformedPayload_Dropped (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.EmptyPayload_Dropped" classname="DispatchChannelFixture.EmptyPayload_Dropped" time="0.00243166" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.EmptyPayload_Dropped
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.EmptyPayload_Dropped
+[       OK ] DispatchChannelFixture.EmptyPayload_Dropped (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.AllTelegramsSameExchange_SameExchangeId" classname="DispatchChannelFixture.AllTelegramsSameExchange_SameExchangeId" time="0.00237295" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.AllTelegramsSameExchange_SameExchangeId
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.AllTelegramsSameExchange_SameExchangeId
+[       OK ] DispatchChannelFixture.AllTelegramsSameExchange_SameExchangeId (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="DispatchChannelFixture.S25_Sent_SetsEdrDepartureForSrcArea" classname="DispatchChannelFixture.S25_Sent_SetsEdrDepartureForSrcArea" time="0.0022828" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = DispatchChannelFixture.S25_Sent_SetsEdrDepartureForSrcArea
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DispatchChannelFixture
+[ RUN      ] DispatchChannelFixture.S25_Sent_SetsEdrDepartureForSrcArea
+[       OK ] DispatchChannelFixture.S25_Sent_SetsEdrDepartureForSrcArea (0 ms)
+[----------] 1 test from DispatchChannelFixture (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipWriter.FreeSection_UpsertWithEmptyTrains" classname="PipWriter.FreeSection_UpsertWithEmptyTrains" time="0.00217285" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipWriter.FreeSection_UpsertWithEmptyTrains
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipWriter
+[ RUN      ] PipWriter.FreeSection_UpsertWithEmptyTrains
+[       OK ] PipWriter.FreeSection_UpsertWithEmptyTrains (0 ms)
+[----------] 1 test from PipWriter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipWriter.OccupiedSection_UpsertWithTrainSlot" classname="PipWriter.OccupiedSection_UpsertWithTrainSlot" time="0.00224166" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipWriter.OccupiedSection_UpsertWithTrainSlot
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipWriter
+[ RUN      ] PipWriter.OccupiedSection_UpsertWithTrainSlot
+[       OK ] PipWriter.OccupiedSection_UpsertWithTrainSlot (0 ms)
+[----------] 1 test from PipWriter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipWriter.LcsBoundaryCrossing_UpsertTargetSection" classname="PipWriter.LcsBoundaryCrossing_UpsertTargetSection" time="0.00215801" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipWriter.LcsBoundaryCrossing_UpsertTargetSection
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipWriter
+[ RUN      ] PipWriter.LcsBoundaryCrossing_UpsertTargetSection
+[       OK ] PipWriter.LcsBoundaryCrossing_UpsertTargetSection (0 ms)
+[----------] 1 test from PipWriter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="PipWriter.MultipleBatch_UpsertAllSections" classname="PipWriter.MultipleBatch_UpsertAllSections" time="0.00214864" status="run">
+		<properties>
+			<property name="cmake_labels" value="group:unit-server-dispatch"/>
+		</properties>
+		<system-out>Running main() from /home/kamil/workspace/symulator/3rdPartyLinux/vcpkg/buildtrees/gtest/src/v1.17.0-0c449efaff.clean/googletest/src/gtest_main.cc
+Note: Google Test filter = PipWriter.MultipleBatch_UpsertAllSections
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PipWriter
+[ RUN      ] PipWriter.MultipleBatch_UpsertAllSections
+[       OK ] PipWriter.MultipleBatch_UpsertAllSections (0 ms)
+[----------] 1 test from PipWriter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+</testsuite>

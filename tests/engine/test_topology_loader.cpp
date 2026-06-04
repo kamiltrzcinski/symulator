@@ -4,41 +4,16 @@
 #include <engine/core/topology_loader.hpp>
 #include <engine/core/types.hpp>
 
-#include <chrono>
+#include <tests/common/file_test_helpers.hpp>
+
 #include <filesystem>
-#include <fstream>
 #include <stdexcept>
 
 namespace
 {
 
 using namespace engine::core;
-
-// ── Temp directory helper ─────────────────────────────────────────────────────
-
-class TempDir
-{
-public:
-    TempDir()
-    {
-        const auto nonce = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-        path_ = std::filesystem::temp_directory_path() /
-                ("symulator_topo_test_" + std::to_string(nonce));
-        std::filesystem::create_directories(path_);
-    }
-    ~TempDir() { std::filesystem::remove_all(path_); }
-    const std::filesystem::path& path() const { return path_; }
-
-private:
-    std::filesystem::path path_;
-};
-
-void write_text(const std::filesystem::path& path, const std::string& content)
-{
-    std::filesystem::create_directories(path.parent_path());
-    std::ofstream f(path);
-    f << content;
-}
+using tests::common::write_text;
 
 // UIDs used in test scenario (scope=1 = station GOr)
 // Boundary nodes
@@ -67,7 +42,7 @@ constexpr UID kSta = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1)
 // Create a minimal test scenario directory with meta.json + topology.json + objects.json.
 std::filesystem::path make_test_scenario()
 {
-    static TempDir tmp;
+    static tests::common::TemporaryDirectory tmp{"symulator_topo_test_"};
     const auto dir = tmp.path() / "scenario";
     std::filesystem::create_directories(dir);
 

@@ -10,5 +10,6 @@ target_link_libraries(tests_proto PRIVATE
 target_compile_features(tests_proto PRIVATE cxx_std_20)
 add_dependencies(tests_proto generate_proto_headers)
 
-include(GoogleTest)
-gtest_discover_tests(tests_proto)
+symulator_discover_gtest(tests_proto
+    GROUP_LABEL group:unit-proto
+)

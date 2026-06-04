@@ -12,11 +12,12 @@
 
 #include "server/pg_db_writer.hpp"
 
+#include <tests/common/db_integration_fixture.hpp>
+
 #include <pqxx/pqxx>
 
 #include <gtest/gtest.h>
 
-#include <cstdlib>
 #include <string>
 
 namespace
@@ -29,48 +30,25 @@ static constexpr uint64_t kGdyUid = 1004ULL;
 static constexpr uint64_t kGdnUid = 1005ULL;
 static constexpr uint64_t kObjectUid = 123456ULL;
 
-static const char* db_conn_str()
-{
-    return std::getenv("SYMULATOR_TEST_DB");
-}
-
 // ── Fixture ───────────────────────────────────────────────────────────────────
 
-class PgDbWriterFixture : public ::testing::Test
+class PgDbWriterFixture : public tests::common::DbIntegrationFixture
 {
+public:
+    PgDbWriterFixture() : DbIntegrationFixture("test-integration") {}
+
 protected:
     void SetUp() override
     {
-        const char* cs = db_conn_str();
-        if (!cs)
-            GTEST_SKIP() << "SYMULATOR_TEST_DB not set — skipping PostgreSQL integration tests";
-
-        conn_str_ = cs;
-        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
-        session_uuid_ = writer_->init_session("test-integration", 1);
-    }
-
-    void TearDown() override
-    {
-        if (conn_str_.empty() || session_uuid_.empty())
+        DbIntegrationFixture::SetUp();
+        if (conn_str_.empty())
             return;
-        try
-        {
-            pqxx::connection c{conn_str_};
-            pqxx::work tx{c};
-            // CASCADE handles dispatch_telegrams and edr_entries rows.
-            tx.exec("DELETE FROM session.sessions WHERE id = $1::uuid",
-                    pqxx::params{session_uuid_});
-            tx.commit();
-        }
-        catch (...)
-        {
-        }
+
+        writer_ = std::make_unique<server::PgDbWriter>(conn_str_);
+        session_uuid_ = writer_->init_session(session_display_name(), 1);
     }
 
-    std::string conn_str_;
     std::unique_ptr<server::PgDbWriter> writer_;
-    std::string session_uuid_;
 };
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
