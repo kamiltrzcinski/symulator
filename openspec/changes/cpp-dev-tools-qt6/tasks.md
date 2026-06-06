@@ -1,4 +1,11 @@
-## 1. Shared layer — domain types and UID infrastructure
+## 1. Survey existing tools and data schemas
+
+- [ ] 1.1 Read `tools/uid-generator/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
+- [ ] 1.2 Read `tools/vehicle-browser/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
+- [ ] 1.3 Read `engine/include/engine/core/types.hpp` — catalogue all `UIDDomain` and `UIDKind` enumerations with numeric values for `uid_legend_table.hpp`
+- [ ] 1.4 Read JSON files in `packages/vehicle-types/`, `packages/vehicles/`, `packages/trains/` — note field names and types needed by `JsonLoader`
+
+## 2. Shared layer — domain types and UID infrastructure
 
 - [ ] 2.1 Create `tools/shared/domain/uid_types.hpp` — re-exports `UIDDomain`, `UIDKind`, `make_uid` from `engine/include/engine/core/types.hpp`
 - [ ] 2.2 Create `tools/shared/domain/uid_legend_table.hpp` — constexpr table mapping every `UIDDomain`+`UIDKind` to display name, hex, and SCOPE semantics; add `static_assert` for completeness
