@@ -2,6 +2,11 @@
 
 All notable changes are documented here.
 
+## [0.5.10] - 2026-06-06
+
+### Added
+- `data-version.txt` tracked in repo; CD in symulator-data commits new tag here after every release, triggering `post-merge` which auto-fetches packages
+
 ## [0.5.9] - 2026-06-06
 
 ### Changed
