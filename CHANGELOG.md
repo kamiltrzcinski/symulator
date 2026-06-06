@@ -2,6 +2,17 @@
 
 All notable changes are documented here.
 
+## [0.5.10] - 2026-06-06
+
+### Fixed
+- Test and script paths updated after data migration: `data/stations.json` → `scenarios/stations.json`,
+  `data/vehicle_types` → `packages/vehicle-types`, `data/vehicles` → `packages/vehicles`,
+  `data/trains` → `packages/trains`, `data/carriers.json` → `packages/carriers/carriers.json`
+- CI workflow: replaced old zip-based symulator-data download with `scripts/fetch_packages.py`
+
+### Changed
+- README: documented git hooks activation and initial package fetch step
+
 ## [0.5.9] - 2026-06-06
 
 ### Changed

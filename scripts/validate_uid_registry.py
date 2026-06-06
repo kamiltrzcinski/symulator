@@ -122,7 +122,7 @@ def validate_uid(value, field_name: str, file_path: str) -> bool:
 
 
 def load_stations() -> None:
-    stations_file = ROOT / "data" / "stations.json"
+    stations_file = ROOT / "scenarios" / "stations.json"
     if not stations_file.exists():
         print(f"WARNING: {stations_file} not found; skipping station-scope validation")
         return
@@ -134,7 +134,7 @@ def load_stations() -> None:
 
 
 def validate_vehicle_types() -> None:
-    types_dir = ROOT / "data" / "vehicle_types"
+    types_dir = ROOT / "packages" / "vehicle-types"
     if not types_dir.exists():
         return
 
@@ -171,7 +171,7 @@ def validate_vehicle_types() -> None:
 
 def validate_vehicles() -> dict[int, str]:
     """Returns mapping uid → file for cross-reference checking."""
-    vehicles_dir = ROOT / "data" / "vehicles"
+    vehicles_dir = ROOT / "packages" / "vehicles"
     if not vehicles_dir.exists():
         return {}
 
@@ -211,13 +211,13 @@ def validate_vehicles() -> dict[int, str]:
 
 
 def validate_trains(vehicle_uids: dict[int, str]) -> None:
-    trains_dir = ROOT / "data" / "trains"
-    if not trains_dir.exists():
-        return
+    train_dirs = [ROOT / "packages" / "trains"]
 
     seen_uids: dict[int, str] = {}
     count = 0
-    for path in sorted(trains_dir.rglob("*.json")):
+    for path in sorted(
+        p for d in train_dirs if d.exists() for p in d.rglob("*.json")
+    ):
         with open(path) as f:
             try:
                 obj = json.load(f)
@@ -252,7 +252,7 @@ def validate_trains(vehicle_uids: dict[int, str]) -> None:
 
 
 def validate_carriers() -> None:
-    carriers_file = ROOT / "data" / "carriers.json"
+    carriers_file = ROOT / "packages" / "carriers" / "carriers.json"
     if not carriers_file.exists():
         return
 
@@ -288,6 +288,46 @@ def validate_carriers() -> None:
     print(f"  Checked {len(carriers)} carrier(s)")
 
 
+def _validate_topology_obj(obj: dict, rel: str, seen_uids: dict[int, str]) -> None:
+    if "gID" in obj:
+        err(rel, f"found old 'gID' field (must be 'uid' with numeric value): {obj.get('gID')}")
+    if "sID" in obj:
+        err(rel, "found old 'sID' field (must be removed; station encoded in SCOPE)")
+
+    if "uid" not in obj:
+        return
+
+    uid_val = obj["uid"]
+    validate_uid(uid_val, "uid", rel)
+
+    if isinstance(uid_val, int) and uid_val in seen_uids:
+        err(rel, f"duplicate uid {uid_val:#x}")
+    elif isinstance(uid_val, int):
+        seen_uids[uid_val] = str(uid_val)
+
+    # Validate UID fields nested inside port sub-objects
+    # (sideA/sideB for track sections, trunk/straight/divergent for switches)
+    for port_key in ("sideA", "sideB", "trunk", "straight", "divergent"):
+        port = obj.get(port_key)
+        if not isinstance(port, dict):
+            continue
+        for key in ("neighborUID", "itUID", "izUID", "counterUID"):
+            if key in port:
+                validate_uid(port[key], f"{port_key}.{key}", rel)
+        if isinstance(port.get("signalUIDs"), list):
+            for j, ref in enumerate(port["signalUIDs"]):
+                validate_uid(ref, f"{port_key}.signalUIDs[{j}]", rel)
+
+    # Also handle any top-level UID fields (flat legacy format)
+    for key in ("neighborUID", "counterUID", "itUID", "izUID"):
+        if key in obj:
+            validate_uid(obj[key], key, rel)
+    for key in ("signalUIDs", "szlak_section_uids", "section_uids", "switch_uids", "derailer_uids"):
+        if key in obj and isinstance(obj[key], list):
+            for j, ref in enumerate(obj[key]):
+                validate_uid(ref, f"{key}[{j}]", rel)
+
+
 def validate_topology(topology_path: Path) -> None:
     with open(topology_path) as f:
         try:
@@ -299,38 +339,21 @@ def validate_topology(topology_path: Path) -> None:
     rel = str(topology_path.relative_to(ROOT))
     seen_uids: dict[int, str] = {}
 
-    sections = list(data) if isinstance(data, list) else []
-    for obj in sections:
-        if not isinstance(obj, dict):
-            continue
+    if isinstance(data, list):
+        objects: list = data
+    elif isinstance(data, dict):
+        objects = []
+        for key in ("boundary_nodes", "track_sections", "switches"):
+            section = data.get(key, [])
+            if isinstance(section, list):
+                objects.extend(section)
+    else:
+        err(rel, "topology root must be a list or object")
+        return
 
-        # Check old-style string gID fields
-        if "gID" in obj:
-            err(rel, f"found old 'gID' field (must be 'uid' with numeric value): {obj.get('gID')}")
-
-        if "sID" in obj:
-            err(rel, "found old 'sID' field (must be removed; station encoded in SCOPE)")
-
-        if "uid" not in obj:
-            continue
-
-        uid_val = obj["uid"]
-        validate_uid(uid_val, "uid", rel)
-
-        if isinstance(uid_val, int) and uid_val in seen_uids:
-            err(rel, f"duplicate uid {uid_val:#x}")
-        elif isinstance(uid_val, int):
-            seen_uids[uid_val] = str(uid_val)
-
-        # Recursively check nested UID fields
-        for key in ("neighborUID", "counterUID", "itUID", "izUID"):
-            if key in obj:
-                validate_uid(obj[key], key, rel)
-
-        for key in ("signalUIDs", "szlak_section_uids", "section_uids", "switch_uids", "derailer_uids"):
-            if key in obj and isinstance(obj[key], list):
-                for j, ref in enumerate(obj[key]):
-                    validate_uid(ref, f"{key}[{j}]", rel)
+    for obj in objects:
+        if isinstance(obj, dict):
+            _validate_topology_obj(obj, rel, seen_uids)
 
     print(f"  Checked {len(seen_uids)} topology UID(s) in {topology_path.name}")
 

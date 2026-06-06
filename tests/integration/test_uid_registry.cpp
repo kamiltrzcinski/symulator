@@ -54,7 +54,7 @@ struct StationEntry
 
 std::vector<StationEntry> load_stations()
 {
-    const auto path = fs::path(REPO_ROOT) / "data" / "stations.json";
+    const auto path = fs::path(REPO_ROOT) / "scenarios" / "stations.json";
     const json j = read_json(path);
     std::vector<StationEntry> result;
     for (const auto& entry : j)
@@ -91,8 +91,8 @@ bool is_valid_uid(std::uint64_t v)
 
 TEST(UidRegistry, StationsJsonExists)
 {
-    const auto path = fs::path(REPO_ROOT) / "data" / "stations.json";
-    EXPECT_TRUE(fs::exists(path)) << "data/stations.json not found";
+    const auto path = fs::path(REPO_ROOT) / "scenarios" / "stations.json";
+    EXPECT_TRUE(fs::exists(path)) << "scenarios/stations.json not found";
 }
 
 TEST(UidRegistry, StationsHaveUniqueInstances)
@@ -115,8 +115,9 @@ TEST(UidRegistry, StationsHaveUniqueInstances)
 
 TEST(UidRegistry, VehicleTypesHaveValidUids)
 {
-    const auto types_dir = fs::path(REPO_ROOT) / "data" / "vehicle_types";
-    ASSERT_TRUE(fs::exists(types_dir));
+    const auto types_dir = fs::path(REPO_ROOT) / "packages" / "vehicle-types";
+    ASSERT_TRUE(fs::exists(types_dir))
+        << "packages/vehicle-types not found — run scripts/fetch_packages.py";
 
     std::set<std::uint64_t> seen;
     int count = 0;
@@ -143,8 +144,9 @@ TEST(UidRegistry, VehicleTypesHaveValidUids)
 
 TEST(UidRegistry, VehiclesHaveValidUids)
 {
-    const auto vehicles_dir = fs::path(REPO_ROOT) / "data" / "vehicles";
-    ASSERT_TRUE(fs::exists(vehicles_dir));
+    const auto vehicles_dir = fs::path(REPO_ROOT) / "packages" / "vehicles";
+    ASSERT_TRUE(fs::exists(vehicles_dir))
+        << "packages/vehicles not found — run scripts/fetch_packages.py";
 
     std::set<std::uint64_t> seen;
     int count = 0;
@@ -168,8 +170,8 @@ TEST(UidRegistry, VehiclesHaveValidUids)
 
 TEST(UidRegistry, VehicleTypeUidsReferencedInVehicles)
 {
-    const auto types_dir = fs::path(REPO_ROOT) / "data" / "vehicle_types";
-    const auto vehicles_dir = fs::path(REPO_ROOT) / "data" / "vehicles";
+    const auto types_dir = fs::path(REPO_ROOT) / "packages" / "vehicle-types";
+    const auto vehicles_dir = fs::path(REPO_ROOT) / "packages" / "vehicles";
     ASSERT_TRUE(fs::exists(types_dir) && fs::exists(vehicles_dir));
 
     std::set<std::uint64_t> known_types;

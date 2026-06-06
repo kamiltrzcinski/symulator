@@ -9,11 +9,16 @@ jest dostępna w katalogu `docs/`.
 
 ## Rozpoczęcie pracy
 
-1. Po sklonowaniu repozytorium aktywuj hook commitów:
+1. Po sklonowaniu repozytorium aktywuj hooki:
    `git config core.hooksPath .githooks`
-2. Przeczytaj indeks dokumentacji w `docs/README.md`.
-3. Uzgodnij otwarte decyzje techniczne opisane w dokumencie architektury.
-4. Podziel MVP na zadania i przypisz właścicieli.
+2. Pobierz paczki z danymi:
+   `python3 scripts/fetch_packages.py`
+3. Przeczytaj indeks dokumentacji w `docs/README.md`.
+4. Uzgodnij otwarte decyzje techniczne opisane w dokumencie architektury.
+5. Podziel MVP na zadania i przypisz właścicieli.
+
+> Paczki z danymi (`packages/`) są ignorowane przez git i pobierane automatycznie
+> po każdym `git pull` (hook `post-merge`). Można je też pobrać ręcznie skryptem.
 
 ## Cel projektu
 
@@ -35,11 +40,16 @@ is available in `docs/`.
 
 ## Getting started
 
-1. After cloning, activate the commit hook once:
+1. After cloning, activate git hooks once:
    `git config core.hooksPath .githooks`
-2. Read the documentation index in `docs/README.md`.
-3. Align on open technical decisions from the architecture document.
-4. Break the MVP into issues and assign owners.
+2. Fetch data packages:
+   `python3 scripts/fetch_packages.py`
+3. Read the documentation index in `docs/README.md`.
+4. Align on open technical decisions from the architecture document.
+5. Break the MVP into issues and assign owners.
+
+> Data packages (`packages/`) are git-ignored and fetched automatically after
+> every `git pull` via the `post-merge` hook. Run the script manually on first clone.
 
 ## Goal
 
