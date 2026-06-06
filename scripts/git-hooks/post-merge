@@ -2,19 +2,47 @@
 # scripts/git-hooks/post-merge
 #
 # Runs automatically after every successful `git pull` / `git merge`.
-# Refreshes the packages/ directory so it always matches the latest release.
-#
-# Installed via core.hooksPath (set by CMakeLists.txt) — no manual setup needed.
+# Checks latest GitHub release tag and fetches packages if version changed.
 
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 FETCH_SCRIPT="$REPO_ROOT/scripts/fetch_packages.py"
+PACKAGES_DIR="$REPO_ROOT/packages"
+KNOWN_PACKAGES=(trains vehicles vehicle-types schedules carriers)
 
 if [ ! -f "$FETCH_SCRIPT" ]; then
-    echo "[post-merge] WARNING: $FETCH_SCRIPT not found — skipping package refresh." >&2
+    echo "[post-merge] WARNING: $FETCH_SCRIPT not found — skipping." >&2
     exit 0
 fi
 
-echo "[post-merge] Odświeżanie paczek danych..."
-python3 "$FETCH_SCRIPT"
+# Get latest release tag from GitHub
+LATEST=$(curl -sf "https://api.github.com/repos/kamiltrzcinski/symulator-data/releases/latest" \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null || echo "")
+
+if [ -z "$LATEST" ]; then
+    echo "[post-merge] Nie można sprawdzić release — pomijam." >&2
+    exit 0
+fi
+
+# Check if any package is missing or on a different version
+NEEDS_FETCH=0
+for pkg in "${KNOWN_PACKAGES[@]}"; do
+    version_file="$PACKAGES_DIR/$pkg/.version"
+    if [ ! -f "$version_file" ]; then
+        NEEDS_FETCH=1
+        break
+    fi
+    local_ver="v$(cat "$version_file")"
+    if [ "$local_ver" != "$LATEST" ]; then
+        NEEDS_FETCH=1
+        break
+    fi
+done
+
+if [ "$NEEDS_FETCH" = "1" ]; then
+    echo "[post-merge] Nowa wersja paczek ($LATEST) — pobieranie..."
+    python3 "$FETCH_SCRIPT"
+else
+    echo "[post-merge] Paczki aktualne ($LATEST)."
+fi

@@ -5,8 +5,7 @@ All notable changes are documented here.
 ## [Unreleased]
 
 ### Changed
-- `data-version.txt` tracked in repo; CD in symulator-data auto-commits new tag on release, triggering `post-merge` hook which runs `fetch_packages.py`
-- Added `post-merge` and `post-checkout` git hooks to auto-fetch packages
+- `post-merge` hook compares local package versions against latest GitHub release and auto-fetches if outdated
 
 ## [0.5.10] - 2026-06-06
 
