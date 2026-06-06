@@ -2,7 +2,19 @@
 
 All notable changes are documented here.
 
-## [0.5.10] - 2026-06-06
+## [0.5.9] - 2026-06-06
+
+### Changed
+- External data (trains, vehicles, vehicle-types, schedules, carriers) moved to `symulator-data` repo, distributed as versioned packages
+- `data/stations.json` moved to `scenarios/stations.json`
+- `scenarios/trains/` removed — schedules are now in the `schedules` package
+- README: documented git hooks activation and initial package fetch step
+- `post-merge` hook compares local package versions against latest GitHub release and auto-fetches if outdated
+
+### Added
+- `packages/` directory for downloaded data packages (git-ignored)
+- `scripts/fetch_packages.py` — fetches latest packages from GitHub Releases, cleans old versions
+- `.githooks/post-merge` — auto-fetches packages after `git pull`
 
 ### Fixed
 - Test and script paths updated after data migration: `data/stations.json` → `scenarios/stations.json`,
@@ -10,22 +22,6 @@ All notable changes are documented here.
   `data/trains` → `packages/trains`, `data/carriers.json` → `packages/carriers/carriers.json`
 - CI workflow: replaced old zip-based symulator-data download with `scripts/fetch_packages.py`
 - Fixed fetch_packages.py hitting GitHub API rate limit in CI (pass GITHUB_TOKEN)
-
-### Changed
-- README: documented git hooks activation and initial package fetch step
-- `post-merge` hook compares local package versions against latest GitHub release and auto-fetches if outdated
-
-## [0.5.9] - 2026-06-06
-
-### Changed
-- External data (trains, vehicles, vehicle-types, schedules, carriers) moved to `symulator-data` repo, distributed as versioned packages
-- `data/stations.json` moved to `scenarios/stations.json`
-- `scenarios/trains/` removed — schedules are now in the `schedules` package
-
-### Added
-- `packages/` directory for downloaded data packages (git-ignored)
-- `scripts/fetch_packages.py` — fetches latest packages from GitHub Releases, cleans old versions
-- `.githooks/post-merge` — auto-fetches packages after `git pull`
 
 ## [0.5.8] - 2026-06-04
 
