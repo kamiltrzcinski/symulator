@@ -2,6 +2,18 @@
 
 All notable changes are documented here.
 
+## [0.5.9] - 2026-06-06
+
+### Changed
+- External data (trains, vehicles, vehicle-types, schedules, carriers) moved to `symulator-data` repo, distributed as versioned packages
+- `data/stations.json` moved to `scenarios/stations.json`
+- `scenarios/trains/` removed — schedules are now in the `schedules` package
+
+### Added
+- `packages/` directory for downloaded data packages (git-ignored)
+- `scripts/fetch_packages.py` — fetches latest packages from GitHub Releases, cleans old versions
+- `.githooks/post-merge` — auto-fetches packages after `git pull`
+
 ## [0.5.8] - 2026-06-04
 
 ### Changed

@@ -55,3 +55,7 @@ docs/instructions/
 # Compilation database
 compile_commands.json
 
+# Downloaded data packages (managed by scripts/fetch_packages.py)
+packages/*
+!packages/.gitkeep
+
