@@ -62,4 +62,5 @@ packages/*
 # Private agent configurations files
 .claude/
 .opencode/
+.codex/
 

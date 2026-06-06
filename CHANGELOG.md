@@ -2,12 +2,6 @@
 
 All notable changes are documented here.
 
-## [0.5.10] - 2026-06-06
-
-### Added
-- `data-version.txt` tracked in repo; CD in symulator-data commits new tag here after every release, triggering `post-merge` which auto-fetches packages
-- `post-merge` hook rewritten in Python for cross-platform support (Linux, macOS, Windows)
-
 ## [0.5.9] - 2026-06-06
 
 ### Changed
@@ -21,6 +15,9 @@ All notable changes are documented here.
 - `packages/` directory for downloaded data packages (git-ignored)
 - `scripts/fetch_packages.py` — fetches latest packages from GitHub Releases, cleans old versions
 - `.githooks/post-merge` — auto-fetches packages after `git pull`
+- **`data-version.txt` tracking**: added to repo; CD in `symulator-data` commits a new tag here after every release, triggering `post-merge` which auto-fetches packages
+- **Cross-platform `post-merge` hook**: rewritten in Python for Linux, macOS, and Windows
+- **OpenSpec docs for C++/Qt6 tools**: full design artifacts (`proposal.md`, `design.md`, `tasks.md`, per-tool specs) for `uid-generator` and `vehicle-browser` rewrites in `openspec/changes/cpp-dev-tools-qt6/`
 
 ### Fixed
 - Test and script paths updated after data migration: `data/stations.json` → `scenarios/stations.json`,
