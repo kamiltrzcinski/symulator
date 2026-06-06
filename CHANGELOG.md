@@ -2,11 +2,6 @@
 
 All notable changes are documented here.
 
-## [Unreleased]
-
-### Changed
-- `post-merge` hook compares local package versions against latest GitHub release and auto-fetches if outdated
-
 ## [0.5.10] - 2026-06-06
 
 ### Fixed
@@ -14,9 +9,11 @@ All notable changes are documented here.
   `data/vehicle_types` → `packages/vehicle-types`, `data/vehicles` → `packages/vehicles`,
   `data/trains` → `packages/trains`, `data/carriers.json` → `packages/carriers/carriers.json`
 - CI workflow: replaced old zip-based symulator-data download with `scripts/fetch_packages.py`
+- Fixed fetch_packages.py hitting GitHub API rate limit in CI (pass GITHUB_TOKEN)
 
 ### Changed
 - README: documented git hooks activation and initial package fetch step
+- `post-merge` hook compares local package versions against latest GitHub release and auto-fetches if outdated
 
 ## [0.5.9] - 2026-06-06
 
