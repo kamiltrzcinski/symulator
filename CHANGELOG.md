@@ -995,3 +995,4 @@ Entry format:
 - Roadmap with 5 delivery stages (Stage 0–4) and definition of done per stage
 - Starter backlog with P0/P1/P2 prioritization
 - Dedicated server sizing baseline with first-principles load analysis and RPi4/RPi5 assessments
+- Fixed fetch_packages.py hitting GitHub API rate limit in CI (pass GITHUB_TOKEN)

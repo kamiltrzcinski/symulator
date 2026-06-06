@@ -19,9 +19,18 @@ API_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
 
 KNOWN_PACKAGES = ["trains", "vehicles", "vehicle-types", "schedules", "carriers"]
 
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+
+
+def _headers():
+    h = {"User-Agent": "symulator-fetch"}
+    if GITHUB_TOKEN:
+        h["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    return h
+
 
 def fetch_latest_release():
-    req = urllib.request.Request(API_URL, headers={"User-Agent": "symulator-fetch"})
+    req = urllib.request.Request(API_URL, headers=_headers())
     try:
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read())
@@ -44,7 +53,7 @@ def download_and_extract(asset_name, download_url, pkg_name):
     pkg_dir = PACKAGES_DIR / pkg_name
 
     print(f"  Pobieranie {asset_name}...")
-    req = urllib.request.Request(download_url, headers={"User-Agent": "symulator-fetch"})
+    req = urllib.request.Request(download_url, headers=_headers())
     with urllib.request.urlopen(req) as resp, open(tmp_path, "wb") as f:
         shutil.copyfileobj(resp, f)
 
