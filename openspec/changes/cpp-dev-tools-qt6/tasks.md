@@ -72,12 +72,26 @@
 - [ ] 11.3 Create `tools/docs/vehicle-browser.md` — installation, CLI args, data source modes, browse/filter, create Vehicle, compose Train, JSON output format, legend panel
 - [ ] 11.4 Create `tools/docs/index.md` — overview, quick-start for both tools, link to uid-legend.md
 
-## 12. Verification
+## 12. Unit tests
 
-- [ ] 12.1 Build both tools locally with `cmake -DBUILD_TOOLS=ON` and verify dynamic Qt linkage
-- [ ] 12.2 Verify `static_assert` in `uid_legend_table.hpp` fires when a `UIDKind` entry is removed from the table
-- [ ] 12.3 Run uid-generator: generate a UID that already exists in the registry — verify it is never presented to the user
-- [ ] 12.4 Run vehicle-browser: create a Vehicle with a colliding UID — verify it is auto-incremented before the dialog closes
-- [ ] 12.5 Run both tools with `--data-dir /path/to/symulator-data/data` and verify data loads correctly
-- [ ] 12.6 Verify `UidLegendPanel` displays before any data source is loaded
-- [ ] 12.7 Update `CHANGELOG.md`
+- [ ] 12.1 Create `tools/uid-generator/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
+- [ ] 12.2 Create `tools/uid-generator/tests/test_uid_registry.cpp` — `UidRegistry::contains()`, `insert()`, duplicate insertion rejected
+- [ ] 12.3 Create `tools/uid-generator/tests/test_uid_validator.cpp` — `UidValidator::isAvailable()` returns false for occupied UID, true for free UID
+- [ ] 12.4 Create `tools/uid-generator/tests/test_uid_generator_service.cpp` — successful generation, INSTANCE auto-increment on collision, `UidExhaustedException` when SCOPE full
+- [ ] 12.5 Create `tools/uid-generator/tests/test_json_loader.cpp` — parse `VehicleType`, `Vehicle`, `Train` from minimal JSON fixtures; verify field mapping
+- [ ] 12.6 Create `tools/vehicle-browser/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
+- [ ] 12.7 Create `tools/vehicle-browser/tests/test_vehicle_type_model.cpp` — `rowCount()`, `data()`, column index mapping
+- [ ] 12.8 Create `tools/vehicle-browser/tests/test_vehicle_model.cpp` — `setFilterVehicleType()` filters correctly, no filter shows all vehicles
+- [ ] 12.9 Create `tools/vehicle-browser/tests/test_train_model.cpp` — append vehicle, reorder via `moveRow()`, remove entry
+- [ ] 12.10 Wire both test targets into `tools/CMakeLists.txt` under `if(BUILD_TOOLS)`
+
+## 13. Verification
+
+- [ ] 13.1 Build both tools locally with `cmake -DBUILD_TOOLS=ON` and verify dynamic Qt linkage
+- [ ] 13.2 Verify `static_assert` in `uid_legend_table.hpp` fires when a `UIDKind` entry is removed from the table
+- [ ] 13.3 Run all unit tests with `ctest --label-regex tools` — all pass
+- [ ] 13.4 Run uid-generator: generate a UID that already exists in the registry — verify it is never presented to the user
+- [ ] 13.5 Run vehicle-browser: create a Vehicle with a colliding UID — verify it is auto-incremented before the dialog closes
+- [ ] 13.6 Run both tools with `--data-dir /path/to/symulator-data/data` and verify data loads correctly
+- [ ] 13.7 Verify `UidLegendPanel` displays before any data source is loaded
+- [ ] 13.8 Update `CHANGELOG.md`

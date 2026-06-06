@@ -99,6 +99,35 @@ The uid-generator tool SHALL be decomposed with each class having a single respo
 - **WHEN** `UidValidator::isAvailable(uid)` is called
 - **THEN** it SHALL query only `UidRegistry` — it SHALL NOT open files or call `IDataSource`
 
+### Requirement: Unit tests
+
+The shared service and registry classes SHALL be covered by unit tests using Qt Test, registered with CTest.
+
+#### Scenario: UidRegistry rejects duplicate insert
+
+- **WHEN** `UidRegistry::insert(uid, file)` is called with a UID already present
+- **THEN** `contains(uid)` SHALL return true and no second entry SHALL be created
+
+#### Scenario: UidValidator returns correct availability
+
+- **WHEN** `UidValidator::isAvailable(uid)` is called
+- **THEN** it SHALL return false if `uid` is in the registry, true otherwise
+
+#### Scenario: UidGeneratorService increments on collision
+
+- **WHEN** `UidGeneratorService::generate(domain, kind, scope)` is called and the first candidate collides
+- **THEN** INSTANCE SHALL be incremented and the next free UID returned
+
+#### Scenario: UidGeneratorService throws when SCOPE is full
+
+- **WHEN** all 65534 INSTANCE values are occupied for the given SCOPE
+- **THEN** `UidGeneratorService::generate()` SHALL throw `UidExhaustedException`
+
+#### Scenario: JsonLoader maps fields correctly
+
+- **WHEN** `JsonLoader` parses a minimal JSON fixture for `VehicleType`, `Vehicle`, and `Train`
+- **THEN** each returned struct SHALL contain the expected field values with no data loss
+
 ### Requirement: Dynamic Qt6 linking
 
 The tool SHALL be compiled with dynamic Qt6::Widgets linkage.

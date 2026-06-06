@@ -127,6 +127,32 @@ The vehicle-browser tool SHALL be decomposed with each class having a single res
 - **WHEN** `MainWindow` is instantiated
 - **THEN** it SHALL delegate all data loading to the application layer and all display to panel classes — no JSON parsing or UID logic in `MainWindow`
 
+### Requirement: Unit tests
+
+The Qt model classes SHALL be covered by unit tests using Qt Test, registered with CTest.
+
+#### Scenario: VehicleTypeModel returns correct data
+
+- **WHEN** `VehicleTypeModel` is populated with a known list of `VehicleType` records
+- **THEN** `rowCount()` SHALL equal the record count and `data()` SHALL return correct values for each column
+
+#### Scenario: VehicleModel filters by VehicleType
+
+- **WHEN** `VehicleModel::setFilterVehicleType(uid)` is called with a specific VehicleType UID
+- **THEN** only vehicles with matching `vehicleTypeUid` SHALL be visible in the model
+
+#### Scenario: VehicleModel shows all when filter cleared
+
+- **WHEN** `setFilterVehicleType` is called with a null/empty UID
+- **THEN** `rowCount()` SHALL equal the total vehicle count
+
+#### Scenario: TrainModel appends and reorders
+
+- **WHEN** a Vehicle is appended to `TrainModel`
+- **THEN** `rowCount()` SHALL increase by 1
+- **WHEN** `moveRow()` is called with valid source and destination indices
+- **THEN** the item order SHALL reflect the move
+
 ### Requirement: Dynamic Qt6 linking
 
 The tool SHALL be compiled with dynamic Qt6::Widgets linkage.
