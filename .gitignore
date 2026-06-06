@@ -59,3 +59,7 @@ compile_commands.json
 packages/*
 !packages/.gitkeep
 
+# Private agent configurations files
+.claude/
+.opencode/
+

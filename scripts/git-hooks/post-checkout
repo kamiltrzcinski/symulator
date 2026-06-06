@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# scripts/git-hooks/post-checkout
+#
+# Fires after: git checkout, git pull (even "already up to date"), git switch.
+# Refreshes packages/ only when something is missing or stale.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+FETCH_SCRIPT="$REPO_ROOT/scripts/fetch_packages.py"
+PACKAGES_DIR="$REPO_ROOT/packages"
+
+# Skip if it's a file checkout (not a branch switch / pull), indicated by the
+# third argument being 0.  See githooks(5): post-checkout <prev> <new> <flag>
+# flag=1 means branch checkout; flag=0 means file checkout.
+FLAG="${3:-1}"
+if [ "$FLAG" = "0" ]; then
+    exit 0
+fi
+
+if [ ! -f "$FETCH_SCRIPT" ]; then
+    echo "[post-checkout] WARNING: $FETCH_SCRIPT not found — skipping package refresh." >&2
+    exit 0
+fi
+
+# Check if any known package directory is missing — quick heuristic.
+NEEDS_FETCH=0
+for pkg in trains vehicles vehicle-types schedules carriers; do
+    if [ ! -d "$PACKAGES_DIR/$pkg" ]; then
+        NEEDS_FETCH=1
+        break
+    fi
+done
+
+if [ "$NEEDS_FETCH" = "1" ]; then
+    echo "[post-checkout] Brakujące paczki — uruchamiam fetch..."
+    python3 "$FETCH_SCRIPT"
+fi

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# scripts/git-hooks/post-merge
+#
+# Runs automatically after every successful `git pull` / `git merge`.
+# Refreshes the packages/ directory so it always matches the latest release.
+#
+# Installed via core.hooksPath (set by CMakeLists.txt) — no manual setup needed.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+FETCH_SCRIPT="$REPO_ROOT/scripts/fetch_packages.py"
+
+if [ ! -f "$FETCH_SCRIPT" ]; then
+    echo "[post-merge] WARNING: $FETCH_SCRIPT not found — skipping package refresh." >&2
+    exit 0
+fi
+
+echo "[post-merge] Odświeżanie paczek danych..."
+python3 "$FETCH_SCRIPT"
