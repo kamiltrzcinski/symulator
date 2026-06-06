@@ -6,6 +6,7 @@ All notable changes are documented here.
 
 ### Added
 - `data-version.txt` tracked in repo; CD in symulator-data commits new tag here after every release, triggering `post-merge` which auto-fetches packages
+- `post-merge` hook rewritten in Python for cross-platform support (Linux, macOS, Windows)
 
 ## [0.5.9] - 2026-06-06
 

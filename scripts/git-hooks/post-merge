@@ -1,48 +1,20 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 # scripts/git-hooks/post-merge
 #
 # Runs automatically after every successful `git pull` / `git merge`.
-# Checks latest GitHub release tag and fetches packages if version changed.
+# Cross-platform (Linux, macOS, Windows with Git for Windows).
 
-set -euo pipefail
+import subprocess
+import sys
+from pathlib import Path
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-FETCH_SCRIPT="$REPO_ROOT/scripts/fetch_packages.py"
-PACKAGES_DIR="$REPO_ROOT/packages"
-KNOWN_PACKAGES=(trains vehicles vehicle-types schedules carriers)
+REPO_ROOT = Path(
+    subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+)
+FETCH_SCRIPT = REPO_ROOT / "scripts" / "fetch_packages.py"
 
-if [ ! -f "$FETCH_SCRIPT" ]; then
-    echo "[post-merge] WARNING: $FETCH_SCRIPT not found — skipping." >&2
-    exit 0
-fi
+if not FETCH_SCRIPT.exists():
+    print(f"[post-merge] WARNING: {FETCH_SCRIPT} not found — skipping.", file=sys.stderr)
+    sys.exit(0)
 
-# Get latest release tag from GitHub
-LATEST=$(curl -sf "https://api.github.com/repos/kamiltrzcinski/symulator-data/releases/latest" \
-    | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null || echo "")
-
-if [ -z "$LATEST" ]; then
-    echo "[post-merge] Nie można sprawdzić release — pomijam." >&2
-    exit 0
-fi
-
-# Check if any package is missing or on a different version
-NEEDS_FETCH=0
-for pkg in "${KNOWN_PACKAGES[@]}"; do
-    version_file="$PACKAGES_DIR/$pkg/.version"
-    if [ ! -f "$version_file" ]; then
-        NEEDS_FETCH=1
-        break
-    fi
-    local_ver="v$(cat "$version_file")"
-    if [ "$local_ver" != "$LATEST" ]; then
-        NEEDS_FETCH=1
-        break
-    fi
-done
-
-if [ "$NEEDS_FETCH" = "1" ]; then
-    echo "[post-merge] Nowa wersja paczek ($LATEST) — pobieranie..."
-    python3 "$FETCH_SCRIPT"
-else
-    echo "[post-merge] Paczki aktualne ($LATEST)."
-fi
+subprocess.run([sys.executable, str(FETCH_SCRIPT)], check=False)
