@@ -74,16 +74,16 @@
 
 ## 12. Unit tests
 
-- [ ] 12.1 Create `tools/uid-generator/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
-- [ ] 12.2 Create `tools/uid-generator/tests/test_uid_registry.cpp` — `UidRegistry::contains()`, `insert()`, duplicate insertion rejected
-- [ ] 12.3 Create `tools/uid-generator/tests/test_uid_validator.cpp` — `UidValidator::isAvailable()` returns false for occupied UID, true for free UID
-- [ ] 12.4 Create `tools/uid-generator/tests/test_uid_generator_service.cpp` — successful generation, INSTANCE auto-increment on collision, `UidExhaustedException` when SCOPE full
-- [ ] 12.5 Create `tools/uid-generator/tests/test_json_loader.cpp` — parse `VehicleType`, `Vehicle`, `Train` from minimal JSON fixtures; verify field mapping
+- [ ] 12.1 Create `tools/shared/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
+- [ ] 12.2 Create `tools/shared/tests/test_uid_registry.cpp` — `UidRegistry::contains()`, `insert()`, duplicate insertion rejected
+- [ ] 12.3 Create `tools/shared/tests/test_uid_validator.cpp` — `UidValidator::isAvailable()` returns false for occupied UID, true for free UID
+- [ ] 12.4 Create `tools/shared/tests/test_uid_generator_service.cpp` — successful generation, INSTANCE auto-increment on collision, `UidExhaustedException` when SCOPE full
+- [ ] 12.5 Create `tools/shared/tests/test_json_loader.cpp` — parse `VehicleType`, `Vehicle`, `Train` from minimal JSON fixtures; verify field mapping
 - [ ] 12.6 Create `tools/vehicle-browser/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
 - [ ] 12.7 Create `tools/vehicle-browser/tests/test_vehicle_type_model.cpp` — `rowCount()`, `data()`, column index mapping
 - [ ] 12.8 Create `tools/vehicle-browser/tests/test_vehicle_model.cpp` — `setFilterVehicleType()` filters correctly, no filter shows all vehicles
 - [ ] 12.9 Create `tools/vehicle-browser/tests/test_train_model.cpp` — append vehicle, reorder via `moveRow()`, remove entry
-- [ ] 12.10 Wire both test targets into `tools/CMakeLists.txt` under `if(BUILD_TOOLS)`
+- [ ] 12.10 Wire all three test targets into `tools/shared/CMakeLists.txt` and `tools/CMakeLists.txt` under `if(BUILD_TOOLS)`
 
 ## 13. Verification
 

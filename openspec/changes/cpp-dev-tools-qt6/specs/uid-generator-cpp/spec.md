@@ -101,7 +101,7 @@ The uid-generator tool SHALL be decomposed with each class having a single respo
 
 ### Requirement: Unit tests
 
-The shared service and registry classes SHALL be covered by unit tests using Qt Test, registered with CTest.
+The shared service and registry classes SHALL be covered by unit tests in `tools/shared/tests/` using Qt Test, registered with CTest.
 
 #### Scenario: UidRegistry rejects duplicate insert
 
