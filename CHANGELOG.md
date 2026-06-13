@@ -2,6 +2,20 @@
 
 All notable changes are documented here.
 
+## [0.5.10] - 2026-06-13
+
+### Added
+- C++20/Qt6 `uid-generator` with collision-safe UID generation, registry view,
+  clipboard support, directory/package data sources and an in-app UID legend
+- C++20/Qt6 `vehicle-browser` with VehicleType/Vehicle browsing, Vehicle JSON
+  creation, Train consist composition and collision-safe Train saving
+- Shared tools library, Qt Test coverage, GPL-2.0-or-later notice and complete
+  user documentation in `tools/docs/`
+
+### Changed
+- Developer tools are now optional CMake targets enabled with `BUILD_TOOLS=ON`
+- Removed the legacy Python implementations of both developer tools
+
 ## [0.5.9] - 2026-06-06
 
 ### Changed

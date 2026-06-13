@@ -1,97 +1,128 @@
 ## 1. Survey existing tools and data schemas
 
-- [ ] 1.1 Read `tools/uid-generator/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
-- [ ] 1.2 Read `tools/vehicle-browser/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
-- [ ] 1.3 Read `engine/include/engine/core/types.hpp` — catalogue all `UIDDomain` and `UIDKind` enumerations with numeric values for `uid_legend_table.hpp`
-- [ ] 1.4 Read JSON files in `packages/vehicle-types/`, `packages/vehicles/`, `packages/trains/` — note field names and types needed by `JsonLoader`
+- [x] 1.1 Read `tools/uid-generator/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
+  - CLI supports `--domain`, `--kind`, `--scope`, and `--root`; when domain or kind is omitted, it switches to an interactive console flow.
+  - Interactive flow lists domains, lists all kinds with the number of occupied UIDs, asks for SCOPE, then prints the generated UID.
+  - Repository root is auto-detected from nearby `data/` or `schedules/` directories, unless explicitly supplied.
+  - Registry recursively scans JSON files and collects positive integer values from `uid`, `type_uid`, `vehicle_uids`, and `carriers[].id`; unreadable or invalid JSON files are skipped.
+  - UID encoding validates DOMAIN, KIND, SCOPE, and INSTANCE ranges, uses the `domain/kind/scope/instance` bit layout, and enforces the JSON-safe `2^53-1` limit.
+  - Generation checks occupied UIDs and returns the first free INSTANCE in the `1..65535` range; exhaustion raises an error.
+  - Output includes decimal UID, structured hexadecimal UID, and decoded domain/kind/scope/instance details.
+  - Decimal and hexadecimal output are implemented through separate formatter classes.
+- [x] 1.2 Read `tools/vehicle-browser/` (Python) — note all features and UI flows to replicate in C++; these files are **reference only** and will be fully removed in task 5.1
+  - Launch accepts an optional repository-root path as the first positional argument; otherwise it finds a nearby directory containing `data/`.
+  - The Tkinter window is `1100x600` and contains one shared text filter plus two tabs: `Typy pojazdów` and `Pojazdy`.
+  - Vehicle-type columns are `uid`, `typeName`, `vehicleType`, `vehicleSubtype`, `lengthM`, `massGrossT`, and `maxSpeedKmh`.
+  - Vehicle columns are `uid`, `pID`, `displayName`, and `type_uid`.
+  - Typing in the filter performs a case-insensitive substring search across every displayed value in both tables.
+  - Clicking a column heading sorts the currently displayed rows; clicking it again reverses the order and changes the direction indicator.
+  - Vehicle types are loaded recursively from `data/vehicle_types/*.json`; files missing `uid` or `typeName`, invalid JSON, and unreadable files are skipped.
+  - Vehicles are loaded recursively only from `data/vehicles/**/vehicle.json`; files missing `uid`, invalid JSON, and unreadable files are skipped.
+  - The window title reports the number of loaded vehicle types and vehicles.
+  - The current application is read-only: it does not create Vehicles, compose Trains, save JSON, switch data sources, or display a UID legend. Those are new requirements from this OpenSpec change.
+- [x] 1.3 Read `engine/include/engine/core/types.hpp` — catalogue all `UIDDomain` and `UIDKind` enumerations with numeric values for `uid_legend_table.hpp`
+  - `UIDDomain`: `ROLLING_STOCK = 0x01`, `INFRASTRUCTURE = 0x02`, `OPERATIONS = 0x03`.
+  - `UIDKind` for rolling stock: `VEHICLE_TYPE = 0x01`, `VEHICLE = 0x02`, `TRAIN_CONSIST = 0x03`, `CARRIER = 0x04`.
+  - `UIDKind` for infrastructure: `STATION = 0x11`, `DISPATCH_AREA = 0x12`, `TRACK_SECTION = 0x13`, `SWITCH = 0x14`, `SIGNAL = 0x15`, `DERAILER = 0x16`, `BLOCK_SECTION = 0x17`, `BOUNDARY_NODE = 0x18`, `LEVEL_CROSSING = 0x19`, `AXLE_COUNTER = 0x1A`, `INTERLOCKING = 0x1B`, `POWER_SUPPLY = 0x1C`.
+  - `UIDKind` for operations: `ROUTE = 0x21`, `ALARM = 0x22`, `DISPATCH_EXCHANGE = 0x23`.
+  - UID layout is `DOMAIN[47:40] | KIND[39:32] | SCOPE[31:16] | INSTANCE[15:0]`; bits 63-48 are reserved and must be zero.
+  - `make_uid()` and the matching decode helpers are the C++ source of truth; the Qt tools must include these definitions rather than copy the enum declarations.
+  - `UID_MAX_SAFE_JSON_INTEGER` is `2^53 - 1`, and `uid_is_safe_json_integer()` performs the JSON-safety check.
+- [x] 1.4 Read JSON files in `packages/vehicle-types/`, `packages/vehicles/`, `packages/trains/` — note field names and types needed by `JsonLoader`
+  - Surveyed all current package files: 293 VehicleTypes, 5 Vehicles, and 1 Train.
+  - VehicleType required fields: `uid` (number), `typeName` (string), `vehicleType` (string), `lengthM` (number), `axleCount` (number), `massEmptyT` (number), `maxSpeedKmh` (number), `brakingLambdaPct` (number).
+  - VehicleType optional/nullable fields: `pkpSeries`, `family`, `vehicleSubtype`, `massGrossT`, `powerKW`, `tractionForceKN`, `multipleCouplingCapable`, `davisA`, `davisB`, `davisC`.
+  - Vehicle required fields: `uid` (number), `type_uid` (number), `pID` (string), `displayName` (string). Current optional fields include `massGrossT` and `tractionStatus`; the parser also accepts the documented physical overrides, `carrierId`, `inventoryNumber`, and `notes`.
+  - Train required fields: `uid` (number), `pID` (string), `displayName` (string), `trainCategory` (string), `vehicle_uids` (number array). `carrierId` is optional.
+  - VehicleTypes and Trains are recursive `*.json` scans; Vehicles are loaded only from recursive `vehicle.json` files in package mode.
 
 ## 2. Shared layer — domain types and UID infrastructure
 
-- [ ] 2.1 Create `tools/shared/domain/uid_types.hpp` — re-exports `UIDDomain`, `UIDKind`, `make_uid` from `engine/include/engine/core/types.hpp`
-- [ ] 2.2 Create `tools/shared/domain/uid_legend_table.hpp` — constexpr table mapping every `UIDDomain`+`UIDKind` to display name, hex, and SCOPE semantics; add `static_assert` for completeness
-- [ ] 2.3 Create `tools/shared/registry/uid_registry.hpp/.cpp` — stores loaded UIDs, provides `contains(UID)` and `insert(UID, sourceFile)` (SRP: registry only)
-- [ ] 2.4 Create `tools/shared/registry/uid_validator.hpp/.cpp` — `isAvailable(UID)` queries `UidRegistry` (SRP: validation only, no file I/O)
-- [ ] 2.5 Create `tools/shared/services/uid_generator_service.hpp/.cpp` — `generate(domain, kind, scope)` retries until `UidValidator::isAvailable()` returns true or throws `UidExhaustedException` (SRP: generation only)
-- [ ] 2.6 Create `tools/shared/services/clipboard_service.hpp/.cpp` — wraps `QClipboard::setText()` (SRP: clipboard only)
+- [x] 2.1 Create `tools/shared/domain/uid_types.hpp` — re-exports `UIDDomain`, `UIDKind`, `make_uid` from `engine/include/engine/core/types.hpp`
+- [x] 2.2 Create `tools/shared/domain/uid_legend_table.hpp` — constexpr table mapping every `UIDDomain`+`UIDKind` to display name, hex, and SCOPE semantics; add `static_assert` for completeness
+- [x] 2.3 Create `tools/shared/registry/uid_registry.hpp/.cpp` — stores loaded UIDs, provides `contains(UID)` and `insert(UID, sourceFile)` (SRP: registry only)
+- [x] 2.4 Create `tools/shared/registry/uid_validator.hpp/.cpp` — `isAvailable(UID)` queries `UidRegistry` (SRP: validation only, no file I/O)
+- [x] 2.5 Create `tools/shared/services/uid_generator_service.hpp/.cpp` — `generate(domain, kind, scope)` retries until `UidValidator::isAvailable()` returns true or throws `UidExhaustedException` (SRP: generation only)
+- [x] 2.6 Create `tools/shared/services/clipboard_service.hpp/.cpp` — wraps `QClipboard::setText()` (SRP: clipboard only)
 
 ## 3. Shared layer — data access
 
-- [ ] 3.1 Create `tools/shared/data/i_data_source.hpp` — pure abstract interface: `loadVehicleTypes()`, `loadVehicles()`, `loadTrains()`
-- [ ] 3.2 Create `tools/shared/data/json_loader.hpp/.cpp` — parses JSON → domain structs `VehicleType`, `Vehicle`, `Train` (SRP: parsing only)
-- [ ] 3.3 Create `tools/shared/data/packages_data_source.hpp/.cpp` — implements `IDataSource`, reads from `packages/`
-- [ ] 3.4 Create `tools/shared/data/directory_data_source.hpp/.cpp` — implements `IDataSource`, reads recursively from a given path
-- [ ] 3.5 Create `tools/shared/CMakeLists.txt` — static library `tools_shared` linking Qt6::Widgets and engine include path
+- [x] 3.1 Create `tools/shared/data/i_data_source.hpp` — pure abstract interface: `loadVehicleTypes()`, `loadVehicles()`, `loadTrains()`
+- [x] 3.2 Create `tools/shared/data/json_loader.hpp/.cpp` — parses JSON → domain structs `VehicleType`, `Vehicle`, `Train` (SRP: parsing only)
+- [x] 3.3 Create `tools/shared/data/packages_data_source.hpp/.cpp` — implements `IDataSource`, reads from `packages/`
+- [x] 3.4 Create `tools/shared/data/directory_data_source.hpp/.cpp` — implements `IDataSource`, reads recursively from a given path
+- [x] 3.5 Create `tools/shared/CMakeLists.txt` — static library `tools_shared` linking Qt6::Widgets and engine include path
 
 ## 4. Shared layer — UID legend widget
 
-- [ ] 4.1 Create `tools/shared/ui/uid_legend_panel.hpp/.cpp` — `QWidget` displaying bit layout diagram and Domain/Kind table from `uid_legend_table.hpp` (SRP: legend display only)
+- [x] 4.1 Create `tools/shared/ui/uid_legend_panel.hpp/.cpp` — `QWidget` displaying bit layout diagram and Domain/Kind table from `uid_legend_table.hpp` (SRP: legend display only)
 
 ## 5. Project scaffolding
 
-- [ ] 5.1 Remove Python files from `tools/uid-generator/` and `tools/vehicle-browser/`
-- [ ] 5.2 Create `tools/COPYING` with GPL-2.0-or-later full text
-- [ ] 5.3 Create `tools/CMakeLists.txt` with `BUILD_TOOLS` option, add subdirectories for shared, uid-generator, vehicle-browser
-- [ ] 5.4 Wire `tools/CMakeLists.txt` into root `CMakeLists.txt` under `if(BUILD_TOOLS)`
+- [x] 5.1 Remove Python files from `tools/uid-generator/` and `tools/vehicle-browser/`
+- [x] 5.2 Create `tools/COPYING` with GPL-2.0-or-later full text
+- [x] 5.3 Create `tools/CMakeLists.txt` with `BUILD_TOOLS` option, add subdirectories for shared, uid-generator, vehicle-browser
+- [x] 5.4 Wire `tools/CMakeLists.txt` into root `CMakeLists.txt` under `if(BUILD_TOOLS)`
 
 ## 6. uid-generator — CMake and skeleton
 
-- [ ] 6.1 Create `tools/uid-generator/CMakeLists.txt` — target links `tools_shared`, Qt6::Widgets (dynamic)
-- [ ] 6.2 Create `tools/uid-generator/main.cpp` — `QApplication` init, parse `--data-dir`, construct `MainWindow`
+- [x] 6.1 Create `tools/uid-generator/CMakeLists.txt` — target links `tools_shared`, Qt6::Widgets (dynamic)
+- [x] 6.2 Create `tools/uid-generator/main.cpp` — `QApplication` init, parse `--data-dir`, construct `MainWindow`
 
 ## 7. uid-generator — UI components (one class per file)
 
-- [ ] 7.1 Create `tools/uid-generator/ui/main_window.hpp/.cpp` — `QMainWindow` shell: menu ("File", "Help/UID Legend"), tab widget hosting `UidForm`+`UidResultView`, `UidRegistryView`, `UidLegendPanel`
-- [ ] 7.2 Create `tools/uid-generator/ui/uid_form.hpp/.cpp` — Domain/Kind combos, SCOPE/INSTANCE spinboxes, Generate button; emits `generateRequested(domain, kind, scope, instance)` signal
-- [ ] 7.3 Create `tools/uid-generator/ui/uid_result_view.hpp/.cpp` — displays decimal + hex UID, Copy button; calls `UidClipboardService` on copy
-- [ ] 7.4 Create `tools/uid-generator/ui/uid_registry_view.hpp/.cpp` — `QTableView` backed by `UidRegistry` (read-only display, no logic)
-- [ ] 7.5 Wire `UidForm::generateRequested` → `UidGeneratorService::generate()` → `UidResultView::showUid()` in `MainWindow`
+- [x] 7.1 Create `tools/uid-generator/ui/main_window.hpp/.cpp` — `QMainWindow` shell: menu ("File", "Help/UID Legend"), tab widget hosting `UidForm`+`UidResultView`, `UidRegistryView`, `UidLegendPanel`
+- [x] 7.2 Create `tools/uid-generator/ui/uid_form.hpp/.cpp` — Domain/Kind combos, SCOPE/INSTANCE spinboxes, Generate button; emits `generateRequested(domain, kind, scope, instance)` signal
+- [x] 7.3 Create `tools/uid-generator/ui/uid_result_view.hpp/.cpp` — displays decimal + hex UID, Copy button; calls `UidClipboardService` on copy
+- [x] 7.4 Create `tools/uid-generator/ui/uid_registry_view.hpp/.cpp` — `QTableView` backed by `UidRegistry` (read-only display, no logic)
+- [x] 7.5 Wire `UidForm::generateRequested` → `UidGeneratorService::generate()` → `UidResultView::showUid()` in `MainWindow`
 
 ## 8. vehicle-browser — CMake and skeleton
 
-- [ ] 8.1 Create `tools/vehicle-browser/CMakeLists.txt` — target links `tools_shared`, Qt6::Widgets (dynamic)
-- [ ] 8.2 Create `tools/vehicle-browser/main.cpp` — `QApplication` init, parse `--data-dir`, construct `MainWindow`
+- [x] 8.1 Create `tools/vehicle-browser/CMakeLists.txt` — target links `tools_shared`, Qt6::Widgets (dynamic)
+- [x] 8.2 Create `tools/vehicle-browser/main.cpp` — `QApplication` init, parse `--data-dir`, construct `MainWindow`
 
 ## 9. vehicle-browser — models (one class per file)
 
-- [ ] 9.1 Create `tools/vehicle-browser/models/vehicle_type_model.hpp/.cpp` — `QAbstractTableModel` for `VehicleType` (SRP: model only)
-- [ ] 9.2 Create `tools/vehicle-browser/models/vehicle_model.hpp/.cpp` — `QAbstractTableModel` for `Vehicle` with `setFilterVehicleType()` (SRP: model only)
-- [ ] 9.3 Create `tools/vehicle-browser/models/train_model.hpp/.cpp` — `QAbstractListModel` for Train consist with drag-and-drop support (SRP: model only)
+- [x] 9.1 Create `tools/vehicle-browser/models/vehicle_type_model.hpp/.cpp` — `QAbstractTableModel` for `VehicleType` (SRP: model only)
+- [x] 9.2 Create `tools/vehicle-browser/models/vehicle_model.hpp/.cpp` — `QAbstractTableModel` for `Vehicle` with `setFilterVehicleType()` (SRP: model only)
+- [x] 9.3 Create `tools/vehicle-browser/models/train_model.hpp/.cpp` — `QAbstractListModel` for Train consist with drag-and-drop support (SRP: model only)
 
 ## 10. vehicle-browser — UI components (one class per file)
 
-- [ ] 10.1 Create `tools/vehicle-browser/ui/main_window.hpp/.cpp` — shell: menu, toolbar, data source switching; no model or loading logic
-- [ ] 10.2 Create `tools/vehicle-browser/ui/vehicle_type_panel.hpp/.cpp` — `QTableView` + `QSortFilterProxyModel` for VehicleType; emits `vehicleTypeSelected` signal
-- [ ] 10.3 Create `tools/vehicle-browser/ui/vehicle_panel.hpp/.cpp` — `QTableView` for Vehicle, connected to `vehicleTypeSelected`; emits `addToTrainRequested` signal
-- [ ] 10.4 Create `tools/vehicle-browser/ui/train_builder_panel.hpp/.cpp` — `QListView` with drag-and-drop reordering, Save Train button
-- [ ] 10.5 Create `tools/vehicle-browser/ui/vehicle_edit_dialog.hpp/.cpp` — new Vehicle form; calls `UidGeneratorService` for UID proposal; calls `UidValidator` before enabling Save
+- [x] 10.1 Create `tools/vehicle-browser/ui/main_window.hpp/.cpp` — shell: menu, toolbar, data source switching; no model or loading logic
+- [x] 10.2 Create `tools/vehicle-browser/ui/vehicle_type_panel.hpp/.cpp` — `QTableView` + `QSortFilterProxyModel` for VehicleType; emits `vehicleTypeSelected` signal
+- [x] 10.3 Create `tools/vehicle-browser/ui/vehicle_panel.hpp/.cpp` — `QTableView` for Vehicle, connected to `vehicleTypeSelected`; emits `addToTrainRequested` signal
+- [x] 10.4 Create `tools/vehicle-browser/ui/train_builder_panel.hpp/.cpp` — `QListView` with drag-and-drop reordering, Save Train button
+- [x] 10.5 Create `tools/vehicle-browser/ui/vehicle_edit_dialog.hpp/.cpp` — new Vehicle form; calls `UidGeneratorService` for UID proposal; calls `UidValidator` before enabling Save
 
 ## 11. User documentation
 
-- [ ] 11.1 Create `tools/docs/uid-legend.md` — full UID bit layout, all Domain/Kind/SCOPE values from `types.hpp`, JSON safety limit, `make_uid()` reference
-- [ ] 11.2 Create `tools/docs/uid-generator.md` — installation, CLI args, data source modes, step-by-step workflow, collision guard behaviour, clipboard, legend panel
-- [ ] 11.3 Create `tools/docs/vehicle-browser.md` — installation, CLI args, data source modes, browse/filter, create Vehicle, compose Train, JSON output format, legend panel
-- [ ] 11.4 Create `tools/docs/index.md` — overview, quick-start for both tools, link to uid-legend.md
+- [x] 11.1 Create `tools/docs/uid-legend.md` — full UID bit layout, all Domain/Kind/SCOPE values from `types.hpp`, JSON safety limit, `make_uid()` reference
+- [x] 11.2 Create `tools/docs/uid-generator.md` — installation, CLI args, data source modes, step-by-step workflow, collision guard behaviour, clipboard, legend panel
+- [x] 11.3 Create `tools/docs/vehicle-browser.md` — installation, CLI args, data source modes, browse/filter, create Vehicle, compose Train, JSON output format, legend panel
+- [x] 11.4 Create `tools/docs/index.md` — overview, quick-start for both tools, link to uid-legend.md
 
 ## 12. Unit tests
 
-- [ ] 12.1 Create `tools/shared/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
-- [ ] 12.2 Create `tools/shared/tests/test_uid_registry.cpp` — `UidRegistry::contains()`, `insert()`, duplicate insertion rejected
-- [ ] 12.3 Create `tools/shared/tests/test_uid_validator.cpp` — `UidValidator::isAvailable()` returns false for occupied UID, true for free UID
-- [ ] 12.4 Create `tools/shared/tests/test_uid_generator_service.cpp` — successful generation, INSTANCE auto-increment on collision, `UidExhaustedException` when SCOPE full
-- [ ] 12.5 Create `tools/shared/tests/test_json_loader.cpp` — parse `VehicleType`, `Vehicle`, `Train` from minimal JSON fixtures; verify field mapping
-- [ ] 12.6 Create `tools/vehicle-browser/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
-- [ ] 12.7 Create `tools/vehicle-browser/tests/test_vehicle_type_model.cpp` — `rowCount()`, `data()`, column index mapping
-- [ ] 12.8 Create `tools/vehicle-browser/tests/test_vehicle_model.cpp` — `setFilterVehicleType()` filters correctly, no filter shows all vehicles
-- [ ] 12.9 Create `tools/vehicle-browser/tests/test_train_model.cpp` — append vehicle, reorder via `moveRow()`, remove entry
-- [ ] 12.10 Wire all three test targets into `tools/shared/CMakeLists.txt` and `tools/CMakeLists.txt` under `if(BUILD_TOOLS)`
+- [x] 12.1 Create `tools/shared/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
+- [x] 12.2 Create `tools/shared/tests/test_uid_registry.cpp` — `UidRegistry::contains()`, `insert()`, duplicate insertion rejected
+- [x] 12.3 Create `tools/shared/tests/test_uid_validator.cpp` — `UidValidator::isAvailable()` returns false for occupied UID, true for free UID
+- [x] 12.4 Create `tools/shared/tests/test_uid_generator_service.cpp` — successful generation, INSTANCE auto-increment on collision, `UidExhaustedException` when SCOPE full
+- [x] 12.5 Create `tools/shared/tests/test_json_loader.cpp` — parse `VehicleType`, `Vehicle`, `Train` from minimal JSON fixtures; verify field mapping
+- [x] 12.6 Create `tools/vehicle-browser/tests/CMakeLists.txt` — test executable linking `tools_shared`, Qt6::Test; register with CTest
+- [x] 12.7 Create `tools/vehicle-browser/tests/test_vehicle_type_model.cpp` — `rowCount()`, `data()`, column index mapping
+- [x] 12.8 Create `tools/vehicle-browser/tests/test_vehicle_model.cpp` — `setFilterVehicleType()` filters correctly, no filter shows all vehicles
+- [x] 12.9 Create `tools/vehicle-browser/tests/test_train_model.cpp` — append vehicle, reorder via `moveRow()`, remove entry
+- [x] 12.10 Wire all three test targets into `tools/shared/CMakeLists.txt` and `tools/CMakeLists.txt` under `if(BUILD_TOOLS)`
 
 ## 13. Verification
 
-- [ ] 13.1 Build both tools locally with `cmake -DBUILD_TOOLS=ON` and verify dynamic Qt linkage
-- [ ] 13.2 Verify `static_assert` in `uid_legend_table.hpp` fires when a `UIDKind` entry is removed from the table
-- [ ] 13.3 Run all unit tests with `ctest --label-regex tools` — all pass
-- [ ] 13.4 Run uid-generator: generate a UID that already exists in the registry — verify it is never presented to the user
-- [ ] 13.5 Run vehicle-browser: create a Vehicle with a colliding UID — verify it is auto-incremented before the dialog closes
-- [ ] 13.6 Run both tools with `--data-dir /path/to/symulator-data/data` and verify data loads correctly
-- [ ] 13.7 Verify `UidLegendPanel` displays before any data source is loaded
-- [ ] 13.8 Update `CHANGELOG.md`
+- [x] 13.1 Build both tools locally with `cmake -DBUILD_TOOLS=ON` and verify dynamic Qt linkage
+- [x] 13.2 Verify `static_assert` in `uid_legend_table.hpp` fires when a `UIDKind` entry is removed from the table
+- [x] 13.3 Run all unit tests with `ctest --label-regex tools` — all pass
+- [x] 13.4 Run uid-generator: generate a UID that already exists in the registry — verify it is never presented to the user
+- [x] 13.5 Run vehicle-browser: create a Vehicle with a colliding UID — verify it is auto-incremented before the dialog closes
+- [x] 13.6 Run both tools with `--data-dir /path/to/symulator-data/data` and verify data loads correctly
+- [x] 13.7 Verify `UidLegendPanel` displays before any data source is loaded
+- [x] 13.8 Update `CHANGELOG.md`

@@ -168,14 +168,25 @@ endif()
 # Qt is only required for client-side components; skip on a headless server build.
 option(BUILD_CLIENT    "Build operator client"  ON)
 option(BUILD_EDITOR    "Build scenario editor"  ON)
+option(BUILD_TOOLS     "Build Qt developer tools" OFF)
 
 if(BUILD_CLIENT OR BUILD_EDITOR)
     find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Network)
+elseif(BUILD_TOOLS)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+endif()
+if(BUILD_CLIENT OR BUILD_EDITOR OR BUILD_TOOLS)
     qt_standard_project_setup()
 endif()
 if(BUILD_EDITOR)
     find_package(Qt6 REQUIRED COMPONENTS Sql)
 endif()
+if(BUILD_TOOLS)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+endif()
+
+# Tests can be registered by any optional sub-component below.
+enable_testing()
 
 # ── Sub-components ──────────────────────────────────────────────────────────
 add_subdirectory(engine)
@@ -192,7 +203,9 @@ endif()
 if(BUILD_EDITOR)
     add_subdirectory(editor)
 endif()
+if(BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()
 
 # ── Tests ───────────────────────────────────────────────────────────────────
-enable_testing()
 add_subdirectory(tests)
