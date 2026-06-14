@@ -27,7 +27,7 @@ UidLegendPanel::UidLegendPanel(QWidget* parent)
 {
     auto* layout = new QVBoxLayout(this);
 
-    auto* title = new QLabel(tr("UID bit layout"), this);
+    auto* title = new QLabel(tr("Układ bitów UID"), this);
     QFont title_font = title->font();
     title_font.setBold(true);
     title_font.setPointSize(title_font.pointSize() + 2);
@@ -38,8 +38,8 @@ UidLegendPanel::UidLegendPanel(QWidget* parent)
         QStringLiteral(
             "63        48 47    40 39    32 31             16 15              0\n"
             "+------------+--------+--------+----------------+------------------+\n"
-            "|  reserved  | DOMAIN |  KIND  |     SCOPE      |     INSTANCE     |\n"
-            "|   16 bits  | 8 bits | 8 bits |    16 bits     |      16 bits     |\n"
+            "| zarezerw.  | DOMENA | RODZAJ |     ZAKRES     |    INSTANCJA     |\n"
+            "|  16 bitów  | 8 bit. | 8 bit. |    16 bitów    |     16 bitów     |\n"
             "+------------+--------+--------+----------------+------------------+"),
         this);
     diagram->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
@@ -48,7 +48,8 @@ UidLegendPanel::UidLegendPanel(QWidget* parent)
 
     auto* table = new QTableWidget(static_cast<int>(kUidLegendEntries.size()), 5, this);
     table->setHorizontalHeaderLabels(
-        {tr("Domain"), tr("Domain hex"), tr("Kind"), tr("Kind hex"), tr("SCOPE meaning")});
+        {tr("Domena"), tr("Domena hex"), tr("Rodzaj"), tr("Rodzaj hex"),
+         tr("Znaczenie ZAKRESU")});
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionBehavior(QAbstractItemView::SelectRows);
     table->setAlternatingRowColors(true);

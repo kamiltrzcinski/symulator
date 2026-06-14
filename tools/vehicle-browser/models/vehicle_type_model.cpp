@@ -70,17 +70,17 @@ QVariant VehicleTypeModel::headerData(int section, Qt::Orientation orientation, 
     case UID_COLUMN:
         return tr("UID");
     case NAME_COLUMN:
-        return tr("Name");
+        return tr("Nazwa");
     case FAMILY_COLUMN:
-        return tr("Family / manufacturer");
+        return tr("Rodzina / producent");
     case TYPE_COLUMN:
-        return tr("Vehicle type");
+        return tr("Rodzaj pojazdu");
     case SUBTYPE_COLUMN:
-        return tr("Traction / subtype");
+        return tr("Trakcja / podtyp");
     case MASS_COLUMN:
-        return tr("Mass [t]");
+        return tr("Masa [t]");
     case LENGTH_COLUMN:
-        return tr("Length [m]");
+        return tr("Długość [m]");
     default:
         return {};
     }

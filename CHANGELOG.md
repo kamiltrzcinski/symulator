@@ -15,6 +15,12 @@ All notable changes are documented here.
 ### Changed
 - Developer tools are now optional CMake targets enabled with `BUILD_TOOLS=ON`
 - Removed the legacy Python implementations of both developer tools
+- `vehicle-browser` now edits existing Vehicle and Train JSON files, reloads data
+  after saving, and supports saving Train copies with a new collision-free UID
+
+### Fixed
+- Disabled editor actions that require a selection and blocked Train saves when
+  referenced Vehicles are missing, preventing silent loss of `vehicle_uids`
 
 ## [0.5.9] - 2026-06-06
 

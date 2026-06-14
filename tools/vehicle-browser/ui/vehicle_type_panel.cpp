@@ -18,10 +18,10 @@ VehicleTypePanel::VehicleTypePanel(VehicleTypeModel& model, QWidget* parent)
     , model_(model)
 {
     auto* layout = new QVBoxLayout(this);
-    layout->addWidget(new QLabel(tr("Vehicle types"), this));
+    layout->addWidget(new QLabel(tr("Typy pojazdów"), this));
 
     filter_ = new QLineEdit(this);
-    filter_->setPlaceholderText(tr("Filter vehicle types..."));
+    filter_->setPlaceholderText(tr("Filtruj typy pojazdów..."));
     layout->addWidget(filter_);
 
     proxy_ = new QSortFilterProxyModel(this);

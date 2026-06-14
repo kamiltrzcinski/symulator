@@ -11,6 +11,7 @@ class TrainModelTest final : public QObject
 
 private slots:
     void appendsMovesAndRemoves();
+    void replacesEntireConsist();
 };
 
 void TrainModelTest::appendsMovesAndRemoves()
@@ -37,6 +38,24 @@ void TrainModelTest::appendsMovesAndRemoves()
     QVERIFY(model.removeVehicle(0));
     QCOMPARE(model.rowCount(), 1);
     QCOMPARE(model.vehicles().front().uid, first.uid);
+}
+
+void TrainModelTest::replacesEntireConsist()
+{
+    Vehicle first;
+    first.uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 1);
+    first.pid = "A";
+
+    Vehicle second;
+    second.uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 2);
+    second.pid = "B";
+
+    TrainModel model;
+    model.appendVehicle(first);
+    model.setVehicles({second});
+
+    QCOMPARE(model.rowCount(), 1);
+    QCOMPARE(model.vehicles().front().uid, second.uid);
 }
 
 }  // namespace symulator::tools::vehicle_browser
