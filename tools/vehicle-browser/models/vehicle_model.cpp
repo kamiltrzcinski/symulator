@@ -66,13 +66,13 @@ QVariant VehicleModel::headerData(int section, Qt::Orientation orientation, int 
     case UID_COLUMN:
         return tr("UID");
     case TYPE_UID_COLUMN:
-        return tr("VehicleType UID");
+        return tr("UID typu pojazdu");
     case SIDE_NUMBER_COLUMN:
-        return tr("Side number");
+        return tr("Numer boczny");
     case DISPLAY_NAME_COLUMN:
-        return tr("Display name");
+        return tr("Nazwa wyświetlana");
     case CARRIER_COLUMN:
-        return tr("Carrier UID");
+        return tr("UID przewoźnika");
     default:
         return {};
     }

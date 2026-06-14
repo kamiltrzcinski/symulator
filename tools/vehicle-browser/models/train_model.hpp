@@ -26,6 +26,7 @@ public:
                                 int destination_child) override;
 
     void appendVehicle(const Vehicle& vehicle);
+    void setVehicles(std::vector<Vehicle> vehicles);
     [[nodiscard]] bool removeVehicle(int row);
     void clear();
     [[nodiscard]] const std::vector<Vehicle>& vehicles() const noexcept;

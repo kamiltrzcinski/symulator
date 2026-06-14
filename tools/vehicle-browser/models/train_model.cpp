@@ -87,6 +87,13 @@ void TrainModel::appendVehicle(const Vehicle& vehicle)
     endInsertRows();
 }
 
+void TrainModel::setVehicles(std::vector<Vehicle> vehicles)
+{
+    beginResetModel();
+    vehicles_ = std::move(vehicles);
+    endResetModel();
+}
+
 bool TrainModel::removeVehicle(int row)
 {
     if (row < 0 || row >= static_cast<int>(vehicles_.size()))

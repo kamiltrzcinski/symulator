@@ -35,6 +35,8 @@ private slots:
     void showUidLegend();
     void addSelectedVehicleToTrain(qulonglong vehicle_uid);
     void createVehicle();
+    void editVehicle(qulonglong vehicle_uid);
+    void reloadActiveSource();
 
 private:
     void buildUi();
@@ -42,6 +44,7 @@ private:
     void loadPackages();
     void loadDirectory(const std::filesystem::path& directory);
     [[nodiscard]] const Vehicle* findVehicle(UID uid) const;
+    [[nodiscard]] const VehicleType* findVehicleType(UID uid) const;
 
     BrowserDataController data_controller_;
     BrowserDataSet data_;
@@ -51,6 +54,8 @@ private:
     VehicleTypeModel vehicle_type_model_;
     VehicleModel vehicle_model_;
     TrainModel train_model_;
+    std::filesystem::path active_source_root_;
+    bool packages_mode_ = true;
 
     VehicleTypePanel* vehicle_type_panel_ = nullptr;
     VehiclePanel* vehicle_panel_ = nullptr;
