@@ -10,10 +10,10 @@
 #include <QVBoxLayout>
 
 #include <cctype>
-#include <fstream>
-#include <nlohmann/json.hpp>
+#include <optional>
 #include <utility>
 
+#include "application/editor_persistence_service.hpp"
 #include "registry/uid_registry.hpp"
 #include "registry/uid_validator.hpp"
 #include "services/uid_generator_service.hpp"
@@ -36,6 +36,16 @@ namespace
         }
     }
     return result;
+}
+
+[[nodiscard]] std::optional<std::string> optionalString(const QString& value)
+{
+    const QString trimmed = value.trimmed();
+    if (trimmed.isEmpty())
+    {
+        return std::nullopt;
+    }
+    return trimmed.toStdString();
 }
 
 }  // namespace
@@ -176,70 +186,36 @@ std::filesystem::path VehicleEditDialog::saveToFile(const std::filesystem::path&
     const QString display_name = display_name_field_->text().trimmed().isEmpty()
                                      ? side_number
                                      : display_name_field_->text().trimmed();
-    nlohmann::json document = nlohmann::json::object();
-    if (original_vehicle_.has_value() &&
-        std::filesystem::exists(original_vehicle_->source_file))
-    {
-        std::ifstream input(original_vehicle_->source_file);
-        if (input)
-        {
-            input >> document;
-        }
-    }
-    document["uid"] = proposed_uid_.value;
-    document["type_uid"] = type_.uid.value;
-    document["pID"] = side_number.toStdString();
-    document["displayName"] = display_name.toStdString();
+    std::optional<UID> carrier_uid;
 
     if (!carrier_uid_field_->text().trimmed().isEmpty())
     {
         bool valid = false;
         const qulonglong carrier = carrier_uid_field_->text().toULongLong(&valid);
-        if (!valid)
+        if (!valid || carrier == 0)
         {
-            throw std::invalid_argument("UID przewoźnika musi być liczbą");
+            throw std::invalid_argument("UID przewoźnika musi być dodatnią liczbą");
         }
-        document["carrierId"] = carrier;
-    }
-    else
-    {
-        document.erase("carrierId");
-    }
-    if (!inventory_number_field_->text().trimmed().isEmpty())
-    {
-        document["inventoryNumber"] =
-            inventory_number_field_->text().trimmed().toStdString();
-    }
-    else
-    {
-        document.erase("inventoryNumber");
-    }
-    if (!notes_field_->toPlainText().trimmed().isEmpty())
-    {
-        document["notes"] = notes_field_->toPlainText().trimmed().toStdString();
-    }
-    else
-    {
-        document.erase("notes");
+        carrier_uid = UID{static_cast<std::uint64_t>(carrier)};
     }
 
-    if (!file.parent_path().empty())
-    {
-        std::filesystem::create_directories(file.parent_path());
-    }
-    std::ofstream output(file);
-    if (!output)
-    {
-        throw std::runtime_error("Nie można utworzyć pliku JSON pojazdu: " +
-                                 file.string());
-    }
-    output << document.dump(2) << '\n';
+    const EditorPersistenceService persistence;
+    const std::filesystem::path saved_file = persistence.saveVehicle(
+        VehicleSaveRequest{.file = file,
+                           .preserve_existing_fields = original_vehicle_.has_value(),
+                           .uid = proposed_uid_,
+                           .type_uid = type_.uid,
+                           .pid = side_number.toStdString(),
+                           .display_name = display_name.toStdString(),
+                           .carrier_id = carrier_uid,
+                           .inventory_number = optionalString(inventory_number_field_->text()),
+                           .notes = optionalString(notes_field_->toPlainText())});
     if (!original_vehicle_.has_value())
     {
-        static_cast<void>(registry_.insert(proposed_uid_, file));
+        static_cast<void>(registry_.insert(proposed_uid_, saved_file));
     }
-    saved_file_ = file;
-    return file;
+    saved_file_ = saved_file;
+    return saved_file;
 }
 
 void VehicleEditDialog::updateSaveState()

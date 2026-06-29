@@ -1,7 +1,6 @@
 #include "data/directory_data_source.hpp"
 
 #include <algorithm>
-#include <stdexcept>
 #include <system_error>
 #include <utility>
 #include <vector>
@@ -14,13 +13,27 @@ namespace symulator::tools
 namespace
 {
 
+void ensureDirectory(const std::filesystem::path& root)
+{
+    std::error_code error;
+    const bool exists = std::filesystem::exists(root, error);
+    if (error || !exists)
+    {
+        throw DataSourceError("Data source directory does not exist: " + root.string());
+    }
+
+    error.clear();
+    const bool is_directory = std::filesystem::is_directory(root, error);
+    if (error || !is_directory)
+    {
+        throw DataSourceError("Data source path is not a directory: " + root.string());
+    }
+}
+
 [[nodiscard]] std::vector<std::filesystem::path> collectJsonFiles(
     const std::filesystem::path& root)
 {
-    if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root))
-    {
-        throw std::invalid_argument("Data source directory does not exist: " + root.string());
-    }
+    ensureDirectory(root);
 
     std::vector<std::filesystem::path> files;
     std::error_code error;
@@ -72,6 +85,11 @@ template<typename Record, typename Loader>
 DirectoryDataSource::DirectoryDataSource(std::filesystem::path root)
     : root_(std::move(root))
 {
+}
+
+void DirectoryDataSource::validate() const
+{
+    ensureDirectory(root_);
 }
 
 std::vector<VehicleType> DirectoryDataSource::loadVehicleTypes() const

@@ -12,6 +12,7 @@ class DirectoryDataSource final : public IDataSource
 public:
     explicit DirectoryDataSource(std::filesystem::path root);
 
+    void validate() const override;
     [[nodiscard]] std::vector<VehicleType> loadVehicleTypes() const override;
     [[nodiscard]] std::vector<Vehicle> loadVehicles() const override;
     [[nodiscard]] std::vector<Train> loadTrains() const override;

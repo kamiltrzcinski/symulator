@@ -22,6 +22,8 @@ BrowserDataSet BrowserDataController::loadDirectory(const std::filesystem::path&
 
 BrowserDataSet BrowserDataController::loadSource(const IDataSource& source, UidRegistry& registry)
 {
+    source.validate();
+
     BrowserDataSet data;
     data.vehicle_types = source.loadVehicleTypes();
     data.vehicles = source.loadVehicles();

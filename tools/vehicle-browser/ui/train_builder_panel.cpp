@@ -12,11 +12,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include <fstream>
-#include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <utility>
 
+#include "application/editor_persistence_service.hpp"
 #include "models/train_model.hpp"
 #include "registry/uid_registry.hpp"
 #include "services/uid_generator_service.hpp"
@@ -161,46 +160,23 @@ UID TrainBuilderPanel::saveTrainTo(
                         : generator_.generate(UIDDomain::ROLLING_STOCK,
                                               UIDKind::TRAIN_CONSIST, 0,
                                               first_instance);
-    nlohmann::json document = nlohmann::json::object();
-    if (existing_uid.has_value() && std::filesystem::exists(file))
-    {
-        std::ifstream input(file);
-        if (input)
-        {
-            input >> document;
-        }
-    }
-    document["uid"] = uid.value;
-    document["pID"] = pid.trimmed().toStdString();
-    document["displayName"] = display_name.trimmed().isEmpty()
-                                  ? pid.trimmed().toStdString()
-                                  : display_name.trimmed().toStdString();
-    document["trainCategory"] = category.toUpper().toStdString();
-    document["vehicle_uids"] = nlohmann::json::array();
-    if (carrier_id.has_value())
-    {
-        document["carrierId"] = carrier_id->value;
-    }
-    else
-    {
-        document.erase("carrierId");
-    }
+    std::vector<UID> vehicle_uids;
+    vehicle_uids.reserve(model_.vehicles().size());
     for (const auto& vehicle : model_.vehicles())
     {
-        document["vehicle_uids"].push_back(vehicle.uid.value);
+        vehicle_uids.push_back(vehicle.uid);
     }
 
-    if (!file.parent_path().empty())
-    {
-        std::filesystem::create_directories(file.parent_path());
-    }
-    std::ofstream output(file);
-    if (!output)
-    {
-        throw std::runtime_error("Nie można utworzyć pliku JSON składu: " +
-                                 file.string());
-    }
-    output << document.dump(2) << '\n';
+    const EditorPersistenceService persistence;
+    static_cast<void>(persistence.saveTrain(
+        TrainSaveRequest{.file = file,
+                         .preserve_existing_fields = existing_uid.has_value(),
+                         .uid = uid,
+                         .pid = pid.trimmed().toStdString(),
+                         .display_name = display_name.trimmed().toStdString(),
+                         .train_category = category.toUpper().toStdString(),
+                         .carrier_id = carrier_id,
+                         .vehicle_uids = std::move(vehicle_uids)}));
     if (!existing_uid.has_value())
     {
         static_cast<void>(registry_.insert(uid, file));
