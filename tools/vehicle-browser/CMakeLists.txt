@@ -18,6 +18,7 @@ target_compile_features(vehicle_browser_models PUBLIC cxx_std_20)
 qt_add_executable(vehicle-browser
     main.cpp
     application/browser_data_controller.cpp
+    application/editor_persistence_service.cpp
     ui/main_window.cpp
     ui/train_builder_panel.cpp
     ui/vehicle_edit_dialog.cpp
