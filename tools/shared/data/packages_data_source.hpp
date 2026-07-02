@@ -13,6 +13,7 @@ public:
     explicit PackagesDataSource(
         std::filesystem::path packages_root = std::filesystem::current_path() / "packages");
 
+    void validate() const override;
     [[nodiscard]] std::vector<VehicleType> loadVehicleTypes() const override;
     [[nodiscard]] std::vector<Vehicle> loadVehicles() const override;
     [[nodiscard]] std::vector<Train> loadTrains() const override;

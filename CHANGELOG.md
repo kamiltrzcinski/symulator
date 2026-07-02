@@ -45,6 +45,9 @@ All notable changes are documented here.
 - Removed the legacy Python implementations of both developer tools
 - `vehicle-browser` now edits existing Vehicle and Train JSON files, reloads data
   after saving, and supports saving Train copies with a new collision-free UID
+- `vehicle-browser` persistence moved out of UI widgets into an application
+  service, with data sources now validating missing or malformed roots through
+  a shared contract
 
 ### Fixed
 - Disabled editor actions that require a selection and blocked Train saves when
