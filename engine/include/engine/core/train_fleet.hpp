@@ -43,8 +43,8 @@ struct TrainEntry
 struct NextSectionInfo
 {
     std::optional<UID> section_uid;     ///< UID of the next TrackSection, or nullopt when
-                                        ///< the train is blocked (MOVING switch, unknown
-                                        ///< neighbor) or exiting via a BoundaryNode.
+                                        ///< the train is blocked (MOVING switch) or exiting
+                                        ///< via a BoundaryNode / unknown neighbor (world edge).
     UID from_uid;                       ///< Value to store in TrainEntry::from_uid after a
                                         ///< crossing.  For switch traversal this is the switch
                                         ///< UID so that ahead_port() works on the next section.
@@ -91,8 +91,10 @@ public:
     /// Handles:
     ///   - Direct TrackSection neighbour (unchanged behaviour)
     ///   - Switch traversal: trunk→straight/divergent and leg→trunk based on position
-    ///   - BoundaryNode: marks is_boundary_crossing = true so tick_all removes the train
-    ///   - MOVING switch or unknown neighbour: returns section_uid = nullopt (dead-end)
+    ///   - BoundaryNode, or an unknown neighbour (e.g. a cross-referenced section from
+    ///     an unloaded scenario): marks is_boundary_crossing = true so tick_all removes
+    ///     the train, instead of leaving it stalled indefinitely
+    ///   - MOVING switch: returns section_uid = nullopt (dead-end, train waits)
     static NextSectionInfo resolve_next_section(const IStateView& state, UID current_uid,
                                                 UID from_uid);
 

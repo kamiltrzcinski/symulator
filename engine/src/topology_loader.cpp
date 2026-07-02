@@ -161,6 +161,7 @@ ScenarioMeta load_scenario(EngineState& state, const std::filesystem::path& dir)
         ts.electrified = j.value("electrified", false);
         ts.max_speed_kmh = j.value("maxSpeedKmh", 0);
         ts.occupancy = j.value("occupied", false) ? TrackOccupancy::OCCUPIED : TrackOccupancy::FREE;
+        ts.station_section = j.value("station_section", true);
         state.insert_track_section(ts);
     }
 
@@ -213,6 +214,28 @@ ScenarioMeta load_scenario(EngineState& state, const std::filesystem::path& dir)
     }
 
     return result;
+}
+
+std::vector<ScenarioMeta> load_world(EngineState& state,
+                                     const std::vector<std::filesystem::path>& scenario_dirs)
+{
+    if (scenario_dirs.empty())
+    {
+        throw std::runtime_error("load_world: scenario_dirs must not be empty");
+    }
+
+    std::vector<ScenarioMeta> results;
+    results.reserve(scenario_dirs.size());
+    for (const auto& dir : scenario_dirs)
+    {
+        results.push_back(load_scenario(state, dir));
+    }
+
+    // The first scenario is primary: restore its session id, since every
+    // load_scenario() call above overwrote it with its own station_sid.
+    state.set_session_id(results.front().station_sid);
+
+    return results;
 }
 
 }  // namespace engine::core

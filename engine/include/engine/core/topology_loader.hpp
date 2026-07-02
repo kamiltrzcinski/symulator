@@ -10,6 +10,7 @@
 
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace engine::core
 {
@@ -33,5 +34,18 @@ struct ScenarioMeta
 ///
 /// @throws std::runtime_error on any IO or parse error.
 ScenarioMeta load_scenario(EngineState& state, const std::filesystem::path& scenario_dir);
+
+/// Load multiple scenario directories into the same `state`, forming one
+/// multi-station world. Calls `load_scenario()` for each directory in order;
+/// `insert_*()` on EngineState is idempotent, so UID collisions across
+/// scenarios are safe no-ops rather than overwrites.
+///
+/// The first directory in `scenario_dirs` is the "primary" scenario: its
+/// session id wins even though every `load_scenario()` call sets it, since
+/// each station's own `station_sid` would otherwise clobber the previous one.
+///
+/// @throws std::runtime_error on any IO or parse error, or if `scenario_dirs` is empty.
+std::vector<ScenarioMeta> load_world(EngineState& state,
+                                     const std::vector<std::filesystem::path>& scenario_dirs);
 
 }  // namespace engine::core

@@ -19,7 +19,7 @@ class FleetRegistryCouplingTest : public FleetDataFixture
 
 TEST_F(FleetRegistryCouplingTest, AcceptsMultipleCouplingCapabilityForEmuMotorType)
 {
-    write_data("vehicle_types/emu_unit/motor/en57.json", R"json({
+    write_data("vehicle-types/emu_unit/motor/en57.json", R"json({
   "uid": 1103806595076,
   "typeName": "EN57",
   "pkpSeries": "EN57",
@@ -61,7 +61,7 @@ TEST_F(FleetRegistryCouplingTest, AcceptsMultipleCouplingCapabilityForEmuMotorTy
 
 TEST_F(FleetRegistryCouplingTest, RejectsMultipleCouplingCapabilityForNonTractionType)
 {
-    write_data("vehicle_types/freight_wagon/hopper/452w.json", R"json({
+    write_data("vehicle-types/freight_wagon/hopper/452w.json", R"json({
   "uid": 1103806595074,
   "typeName": "452W",
   "pkpSeries": null,
@@ -85,7 +85,7 @@ TEST_F(FleetRegistryCouplingTest, RejectsMultipleCouplingCapabilityForNonTractio
 
 TEST_F(FleetRegistryCouplingTest, DefaultsTractionStatusAndAppliesDefectiveAsBallast)
 {
-    write_data("vehicle_types/locomotive/electric/201e.json", R"json({
+    write_data("vehicle-types/locomotive/electric/201e.json", R"json({
   "uid": 1103806595073,
   "typeName": "201E",
   "pkpSeries": "ET22",
@@ -103,7 +103,7 @@ TEST_F(FleetRegistryCouplingTest, DefaultsTractionStatusAndAppliesDefectiveAsBal
   "family": "et22"
 })json");
 
-    write_data("vehicle_types/freight_wagon/hopper/452w.json", R"json({
+    write_data("vehicle-types/freight_wagon/hopper/452w.json", R"json({
   "uid": 1103806595074,
   "typeName": "452W",
   "pkpSeries": null,
@@ -196,7 +196,7 @@ TEST_P(FleetRegistryCouplingParamTest, ComputesTractionByCouplingPolicy)
 
     if (param.scenario == CouplingScenario::DifferentTypesCapable)
     {
-        write_data("vehicle_types/locomotive/electric/eu07.json", R"json({
+        write_data("vehicle-types/locomotive/electric/eu07.json", R"json({
   "uid": 1103806595075,
   "typeName": "EU07",
   "pkpSeries": "EU07",
@@ -214,7 +214,7 @@ TEST_P(FleetRegistryCouplingParamTest, ComputesTractionByCouplingPolicy)
   "family": "eu07"
 })json");
 
-        write_data("vehicle_types/locomotive/electric/201e.json", R"json({
+        write_data("vehicle-types/locomotive/electric/201e.json", R"json({
   "uid": 1103806595073,
   "typeName": "201E",
   "pkpSeries": "ET22",
@@ -263,7 +263,7 @@ TEST_P(FleetRegistryCouplingParamTest, ComputesTractionByCouplingPolicy)
         const char* capability_field =
             include_capability ? "\n  \"multipleCouplingCapable\": true," : "";
 
-        write_data("vehicle_types/locomotive/electric/eu07.json", std::string(R"json({
+        write_data("vehicle-types/locomotive/electric/eu07.json", std::string(R"json({
   "uid": 1103806595075,
   "typeName": "EU07",
   "pkpSeries": "EU07",

@@ -44,8 +44,10 @@ static int current_iso_weekday()
 
 static void print_usage(std::ostream& out)
 {
-    out << "Usage: simserver --scenario <dir> [--data <dir>] [--port <N>] [--db <connstr>]\n"
-           "  --scenario / -s  path to scenario directory   (required)\n"
+    out << "Usage: simserver --scenario <dir> [--scenario <dir> ...] [--data <dir>] [--port <N>] "
+           "[--db <connstr>]\n"
+           "  --scenario / -s  path to scenario directory   (required, repeatable —\n"
+           "                   the first occurrence is the primary scenario)\n"
            "  --data     / -d  path to fleet data root       (default: ./data)\n"
            "  --port     / -p  TCP listen port               (default: 9420)\n"
            "  --db             libpq connection string        (default: NullDbWriter)\n"
@@ -62,7 +64,7 @@ SessionServer SessionServer::from_args(int argc, char* argv[])
     {
         std::string_view arg(argv[i]);
         if ((arg == "--scenario" || arg == "-s") && i + 1 < argc)
-            cfg.scenario_dir = argv[++i];
+            cfg.scenario_dirs.push_back(argv[++i]);
         else if ((arg == "--data" || arg == "-d") && i + 1 < argc)
             cfg.data_dir = argv[++i];
         else if ((arg == "--port" || arg == "-p") && i + 1 < argc)
@@ -76,7 +78,7 @@ SessionServer SessionServer::from_args(int argc, char* argv[])
         }
     }
 
-    if (cfg.scenario_dir.empty())
+    if (cfg.scenario_dirs.empty())
     {
         std::cerr << "error: --scenario is required.\n";
         print_usage(std::cerr);
@@ -151,9 +153,12 @@ void SessionServer::start()
         db_writer_ = std::make_unique<NullDbWriter>();
     }
 
-    // 1. Load topology → EngineState.
-    std::cout << "[server] Loading scenario: " << config_.scenario_dir << "\n";
-    const auto meta = engine::core::load_scenario(state_, config_.scenario_dir);
+    // 1. Load topology → EngineState. The first --scenario is primary: its
+    // session id and control system are what the rest of start() uses.
+    for (const auto& dir : config_.scenario_dirs)
+        std::cout << "[server] Loading scenario: " << dir << "\n";
+    const auto metas = engine::core::load_world(state_, config_.scenario_dirs);
+    const auto& meta = metas.front();
     state_.set_session_id(meta.station_sid);
     std::cout << "[server] Station: " << meta.station_sid
               << "  control_system: " << meta.control_system_id << "\n";

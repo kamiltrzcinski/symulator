@@ -44,7 +44,9 @@ namespace server
 
 struct SessionConfig
 {
-    std::filesystem::path scenario_dir;  ///< Scenario directory (meta.json, topology.json, …)
+    std::vector<std::filesystem::path> scenario_dirs;  ///< Scenario directories (meta.json,
+                                                       ///< topology.json, …), one or more.
+                                                       ///< The first is the primary scenario.
     std::filesystem::path data_dir;      ///< Fleet data root (vehicle_types/, vehicles/, trains/)
     uint16_t port = 9420;                ///< TCP listen port
     /// libpq connection string, e.g. "host=localhost port=5432 dbname=symulator user=sim password=…"

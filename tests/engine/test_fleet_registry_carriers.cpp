@@ -18,7 +18,7 @@ class FleetRegistryCarrierTest : public FleetDataFixture
 protected:
     void write_sm42_type_and_vehicle()
     {
-        write_data("vehicle_types/locomotive/diesel/sm42.json", R"json({
+        write_data("vehicle-types/locomotive/diesel/sm42.json", R"json({
   "uid": 1103806595077,
   "typeName": "SM42",
   "pkpSeries": "SM42",
@@ -45,7 +45,7 @@ protected:
 
     void write_known_carrier_file()
     {
-        write_data("carriers.json", R"json({
+        write_data("carriers/carriers.json", R"json({
   "carriers": [
     {
       "id": 1116691496961,
@@ -61,7 +61,7 @@ protected:
 TEST_F(FleetRegistryCarrierTest, LoadsCarriersFromFile)
 {
     create_minimal_tree();
-    write_data("carriers.json", R"json({
+    write_data("carriers/carriers.json", R"json({
   "carriers": [
     {
       "id": 1116691496961,
@@ -122,7 +122,7 @@ TEST_P(FleetRegistryCarrierAssignmentParamTest, ValidatesCarrierReferences)
 
     if (param.scenario == CarrierAssignmentScenario::ValidCarrier)
     {
-        write_data("carriers.json", R"json({
+        write_data("carriers/carriers.json", R"json({
   "carriers": [
     {
       "id": 1116691496961,
@@ -238,13 +238,13 @@ TEST_P(FleetRegistryInvalidCarrierFileTest, ThrowsFleetLoadError)
 
     if (GetParam().scenario == InvalidCarrierFileScenario::RootNotObject)
     {
-        write_data("carriers.json", R"json([
+        write_data("carriers/carriers.json", R"json([
   "CARRIER-A"
 ])json");
     }
     else
     {
-        write_data("carriers.json", R"json({
+        write_data("carriers/carriers.json", R"json({
   "carriers": [
     {
       "id": 1116691496961,

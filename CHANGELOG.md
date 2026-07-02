@@ -2,6 +2,34 @@
 
 All notable changes are documented here.
 
+## [0.5.11] - 2026-07-02
+
+### Added
+- `engine::core::load_world()` — loads multiple station scenarios into a single
+  `EngineState`, forming one multi-station world
+- `--scenario` is now repeatable on `symulator-server` (the first occurrence is
+  the primary scenario for session id / control system resolution)
+- `TrackSection::station_section` field (defaults to `true`), read from
+  `topology.json`, distinguishing station-internal sections from trunk-line
+  ("szlak") sections
+- Integration tests: `test_world_loading.cpp`, `test_unknown_uid_fallback.cpp`,
+  `test_cross_section_transit.cpp`
+- `TrainScheduler` shape declaration (not yet wired into `EngineLoop` or the
+  server — blocked on the schedule data format gaining engine-ready spawn
+  fields)
+
+### Changed
+- `TrainFleet::resolve_next_section()` now treats an unknown neighbour UID
+  (e.g. a cross-referenced section in a station scenario that hasn't been
+  loaded) the same as a `BoundaryNode` crossing, removing the train cleanly
+  instead of stalling it indefinitely on its current section
+
+### Fixed
+- `FleetRegistry::load()` looked for `vehicle_types/` and a flat
+  `carriers.json`; the real `packages/` data root uses `vehicle-types/`
+  (hyphen) and `carriers/carriers.json`, causing the server to crash on
+  startup when loading real fleet data
+
 ## [0.5.10] - 2026-06-13
 
 ### Added

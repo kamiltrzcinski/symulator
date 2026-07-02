@@ -89,6 +89,7 @@ std::filesystem::path make_test_scenario()
                    "      \"lengthM\": 150.0,\n"
                    "      \"electrified\": true,\n"
                    "      \"maxSpeedKmh\": 110,\n"
+                   "      \"station_section\": false,\n"
                    "      \"sideA\": { \"neighborUID\": " +
                    std::to_string(kBndN.value) + ", \"itUID\": " + std::to_string(kItN.value) +
                    " },\n"
@@ -237,6 +238,24 @@ TEST(TopologyLoader, TrackSectionFieldsCorrect)
     EXPECT_TRUE(ts->electrified);
     EXPECT_EQ(ts->max_speed_kmh, 110);
     EXPECT_EQ(ts->occupancy, TrackOccupancy::FREE);
+}
+
+TEST(TopologyLoader, TrackSectionStationSectionDefaultsTrue)
+{
+    EngineState st;
+    load_scenario(st, make_test_scenario());
+    const auto* ts = st.find_track_section(kOtT1a);
+    ASSERT_NE(ts, nullptr);
+    EXPECT_TRUE(ts->station_section);
+}
+
+TEST(TopologyLoader, TrackSectionStationSectionFalseWhenSet)
+{
+    EngineState st;
+    load_scenario(st, make_test_scenario());
+    const auto* ts = st.find_track_section(kOtT2a);
+    ASSERT_NE(ts, nullptr);
+    EXPECT_FALSE(ts->station_section);
 }
 
 TEST(TopologyLoader, TrackSectionPortsWired)

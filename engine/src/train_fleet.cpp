@@ -73,12 +73,10 @@ NextSectionInfo TrainFleet::resolve_next_section(const IStateView& state, UID cu
         return {exit_uid, next_uid, false};
     }
 
-    // ── Boundary node — train is leaving the LCS area ───────────────────────
-    if (state.find_boundary_node(next_uid))
-        return {std::nullopt, {}, true};
-
-    // Unknown neighbour type — treat as dead-end.
-    return {};
+    // ── Boundary node, or an unknown neighbour (e.g. a section cross-referenced
+    // from a station scenario that hasn't been loaded) — both are treated as a
+    // world edge so the train is removed cleanly instead of stalling forever.
+    return {std::nullopt, {}, true};
 }
 
 SignalAspect TrainFleet::ahead_signal_aspect(const IStateView& state, const TrackSection& section,

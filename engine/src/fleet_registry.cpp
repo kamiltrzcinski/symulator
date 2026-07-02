@@ -341,9 +341,9 @@ void FleetRegistry::load(const std::filesystem::path& data_root)
     consists_.clear();
     carriers_.clear();
 
-    load_types_(data_root / "vehicle_types");
+    load_types_(data_root / "vehicle-types");
     load_vehicles_(data_root / "vehicles");
-    load_carriers_(data_root / "carriers.json");
+    load_carriers_(data_root / "carriers" / "carriers.json");
     load_consists_(data_root / "trains");
 }
 

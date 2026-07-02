@@ -30,7 +30,7 @@ class FleetRegistryLoadingTest : public FleetDataFixture
 protected:
     void write_sm42_type_and_vehicle()
     {
-        write_data("vehicle_types/locomotive/diesel/sm42.json", R"json({
+        write_data("vehicle-types/locomotive/diesel/sm42.json", R"json({
   "uid": 1103806595077,
   "typeName": "SM42",
   "pkpSeries": "SM42",
@@ -58,7 +58,7 @@ protected:
 
 TEST_F(FleetRegistryLoadingTest, LoadsRecursiveAndBuildsDerivedConsist)
 {
-    write_data("vehicle_types/locomotive/electric/201e.json", R"json({
+    write_data("vehicle-types/locomotive/electric/201e.json", R"json({
   "uid": 1103806595073,
   "typeName": "201E",
   "pkpSeries": "ET22",
@@ -78,7 +78,7 @@ TEST_F(FleetRegistryLoadingTest, LoadsRecursiveAndBuildsDerivedConsist)
   "davisC": 0.0017658
 })json");
 
-    write_data("vehicle_types/freight_wagon/hopper/452w.json", R"json({
+    write_data("vehicle-types/freight_wagon/hopper/452w.json", R"json({
   "uid": 1103806595074,
   "typeName": "452W",
   "pkpSeries": null,
@@ -152,7 +152,7 @@ TEST_F(FleetRegistryLoadingTest, LoadsRecursiveAndBuildsDerivedConsist)
 
 TEST_F(FleetRegistryLoadingTest, AppliesDavisDefaultsWhenMissing)
 {
-    write_data("vehicle_types/locomotive/electric/eu07.json", R"json({
+    write_data("vehicle-types/locomotive/electric/eu07.json", R"json({
   "uid": 1103806595075,
   "typeName": "EU07",
   "pkpSeries": "EU07",
@@ -194,7 +194,7 @@ TEST_F(FleetRegistryLoadingTest, AppliesDavisDefaultsWhenMissing)
 
 TEST_F(FleetRegistryLoadingTest, IgnoresVehicleSidecarJsonFiles)
 {
-    write_data("vehicle_types/locomotive/electric/eu07.json", R"json({
+    write_data("vehicle-types/locomotive/electric/eu07.json", R"json({
   "uid": 1103806595075,
   "typeName": "EU07",
   "pkpSeries": "EU07",

@@ -46,7 +46,7 @@ inline void write_text(const std::filesystem::path& path, std::string_view conte
 
 inline void create_minimal_fleet_tree(const std::filesystem::path& root)
 {
-    std::filesystem::create_directories(root / "vehicle_types");
+    std::filesystem::create_directories(root / "vehicle-types");
     std::filesystem::create_directories(root / "vehicles");
     std::filesystem::create_directories(root / "trains");
 }

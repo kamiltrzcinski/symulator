@@ -64,6 +64,7 @@ struct TrackSection
     float length_m = 0.0f;
     bool electrified = false;
     int max_speed_kmh = 0;
+    bool station_section = true;  // false = trunk-line ("szlak") section
 
     // ── Runtime ──
     TrackOccupancy occupancy = TrackOccupancy::FREE;
