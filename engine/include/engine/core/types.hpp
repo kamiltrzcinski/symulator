@@ -160,7 +160,7 @@ enum class SignalAspect : std::uint8_t
 };
 
 // ── Random event types ────────────────────────────────────────────────────────
-// Used by IRandomEventSource (see docs/03-initial-architecture.md).
+// Used by IRandomEventSource (see docs/ARCHITECTURE.md).
 // The engine dispatches these as first-class commands at EMERGENCY priority.
 // New values can be appended without modifying engine dispatch logic.
 
@@ -178,7 +178,7 @@ enum class RandomEventType : std::uint8_t
 // Top-level classification of a train definition.
 // Determines which S-form dispatch path applies and the default icon.
 // Matches fleet.train_definitions.train_category in the database.
-// See docs/15-dispatch-forms.md.
+// See docs/ARCHITECTURE.md.
 
 enum class TrainCategory : std::uint8_t
 {
@@ -197,7 +197,7 @@ enum class TractionStatus : std::uint8_t
 
 // ── Dispatch form types (S-forms) ────────────────────────────────────────────
 // Formal dispatch exchange forms between neighbouring LCS.
-// Full state machine documented in docs/15-dispatch-forms.md.
+// Full state machine documented in docs/ARCHITECTURE.md.
 
 enum class DispatchFormType : std::uint8_t
 {
@@ -228,7 +228,7 @@ enum class TelegramStatus : std::uint8_t
 };
 
 // State of one dispatch S-form exchange.
-// Transitions documented in docs/15-dispatch-forms.md.
+// Transitions documented in docs/ARCHITECTURE.md.
 enum class ExchangeStatus : std::uint8_t
 {
     IDLE,          // No active exchange; initial state
@@ -262,7 +262,7 @@ enum class DerailerState : std::uint8_t
 // ── SHL-12 block direction state ──────────────────────────────────────────────
 // State of a line block section in the SHL-12 automatic block system.
 // Managed by libsrk_ml8; libsrk_ebilock uses only BlockSectionState (OPEN/CLOSED).
-// See docs/14-interlocking-model.md and docs/17-control-system-interface.md.
+// See docs/ARCHITECTURE.md.
 
 enum class BlockDirectionState : std::uint8_t
 {
@@ -285,8 +285,8 @@ enum class BlockSectionState : std::uint8_t
 
 // ── PIP (Train Identification Panel) types ───────────────────────────────────
 // These types are shared between the ENGINE (producer) and PIP_WRITER (consumer).
-// See docs/03-initial-architecture.md and docs/11-database-model.md for the
-// full PIP threading model and pip.track_state schema.
+// See docs/ARCHITECTURE.md for the full PIP threading model and
+// pip.track_state schema.
 
 // Direction from which a train entered a track section.
 // Used by TrainSlot to determine placement of the '*' suffix in the alternating

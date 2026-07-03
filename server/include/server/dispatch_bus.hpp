@@ -10,7 +10,7 @@
 //    5       8    timestamp_us (uint64 LE)
 //   13       N    FlatBuffers body
 //
-// See docs/09-communication-contract.md — "DOMAIN_EVENT payload".
+// See docs/ARCHITECTURE.md — "DOMAIN_EVENT payload".
 
 #pragma once
 

@@ -4,18 +4,18 @@
 
 Projekt symulatora sterowania ruchem kolejowym inspirowany workflow Ebilock.
 
-Repozytorium znajduje się obecnie w fazie planowania. Pierwsza baza dokumentacji
-jest dostępna w katalogu `docs/`.
+Dokumentacja architektury i aktualnego stanu implementacji jest w
+`docs/ARCHITECTURE.md`.
 
 ## Rozpoczęcie pracy
 
-1. Po sklonowaniu repozytorium aktywuj hooki:
-   `git config core.hooksPath .githooks`
+1. Zainstaluj zależności: `python3 scripts/install_system_deps.py`
+   (git hooks aktywują się automatycznie przy pierwszym `cmake` — patrz
+   `docs/ARCHITECTURE.md` §13).
 2. Pobierz paczki z danymi:
    `python3 scripts/fetch_packages.py`
-3. Przeczytaj indeks dokumentacji w `docs/README.md`.
-4. Uzgodnij otwarte decyzje techniczne opisane w dokumencie architektury.
-5. Podziel MVP na zadania i przypisz właścicieli.
+3. Przeczytaj `docs/ARCHITECTURE.md`.
+4. Zbuduj projekt i uruchom testy — patrz `docs/ARCHITECTURE.md` §13.
 
 > Paczki z danymi (`packages/`) są ignorowane przez git i pobierane automatycznie
 > po każdym `git pull` (hook `post-merge`). Można je też pobrać ręcznie skryptem.
@@ -35,18 +35,18 @@ Stworzenie działającego, sieciowego symulatora SRK zawierającego:
 
 A railway signaling simulation project inspired by Ebilock workflows.
 
-The repository is currently in planning mode. The first documentation baseline
-is available in `docs/`.
+Architecture and current implementation status are documented in
+`docs/ARCHITECTURE.md`.
 
 ## Getting started
 
-1. After cloning, activate git hooks once:
-   `git config core.hooksPath .githooks`
+1. Install dependencies: `python3 scripts/install_system_deps.py`
+   (git hooks activate automatically on the first `cmake` configure — see
+   `docs/ARCHITECTURE.md` §13).
 2. Fetch data packages:
    `python3 scripts/fetch_packages.py`
-3. Read the documentation index in `docs/README.md`.
-4. Align on open technical decisions from the architecture document.
-5. Break the MVP into issues and assign owners.
+3. Read `docs/ARCHITECTURE.md`.
+4. Build the project and run the tests — see `docs/ARCHITECTURE.md` §13.
 
 > Data packages (`packages/`) are git-ignored and fetched automatically after
 > every `git pull` via the `post-merge` hook. Run the script manually on first clone.

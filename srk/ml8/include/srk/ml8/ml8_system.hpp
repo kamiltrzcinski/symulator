@@ -26,7 +26,7 @@
 //   SLI   direction=NEUTRAL, axle_count=0 required → RESET_PENDING
 //   SLK   RESET_PENDING → NEUTRAL, opens block section
 //
-// See docs/14-interlocking-model.md §SHL-12 and the ML8 instruction manual.
+// See docs/ARCHITECTURE.md §SHL-12 and the ML8 instruction manual.
 
 namespace srk::ml8
 {

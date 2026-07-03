@@ -10,7 +10,7 @@
 // ── EventDispatcher<EventT> ───────────────────────────────────────────────────
 // Synchronous, type-safe event dispatcher for intra-thread event delivery.
 //
-// Threading model (see docs/03-initial-architecture.md — Threading model):
+// Threading model (see docs/ARCHITECTURE.md — Threading model):
 //   - publish() is intended to be called from the ENGINE thread.
 //   - subscribe() and unsubscribe() may be called from any thread; the
 //     shared_mutex allows concurrent reads during publish() while serialising

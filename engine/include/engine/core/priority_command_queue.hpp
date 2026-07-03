@@ -13,7 +13,7 @@
 // Thread-safe multi-producer, single-consumer command queue with four FIFO
 // priority buckets ordered by CommandPriority.
 //
-// Threading model (see docs/03-initial-architecture.md — Threading model):
+// Threading model (see docs/ARCHITECTURE.md — Threading model):
 //   - WORK_POOL threads push commands after ownership validation.
 //   - ENGINE thread pops commands once per tick up to MAX_CMDS_PER_TICK.
 //

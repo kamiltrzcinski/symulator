@@ -8,7 +8,7 @@
 // Pure business logic — no I/O, no engine state, no threading.
 // Must be driven from a single logical thread (DISPATCHER).
 //
-// State machine and S-form catalogue: docs/15-dispatch-forms.md
+// State machine and S-form catalogue: docs/ARCHITECTURE.md
 
 #include "engine/core/types.hpp"
 

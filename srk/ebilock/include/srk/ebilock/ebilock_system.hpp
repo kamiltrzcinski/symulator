@@ -9,7 +9,7 @@
 // Implements IControlSystem for the EbiLock X4 / EbiScreen X4 station
 // interlocking system as deployed by PKP PLK.
 //
-// Supported commands (docs/14-interlocking-model.md):
+// Supported commands (docs/ARCHITECTURE.md):
 //   R1  SetSwitchPositionCmd
 //   R2  SetSignalAspectCmd
 //   R3  SetDerailerPositionCmd

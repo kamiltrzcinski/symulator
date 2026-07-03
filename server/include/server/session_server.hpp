@@ -11,8 +11,8 @@
 //
 // Shutdown order: stop ENGINE  →  stop IO  →  release resources
 //
-// See docs/03-initial-architecture.md — Threading model.
-// See docs/16-implementation-skeleton.md — Startup wiring sequence.
+// See docs/ARCHITECTURE.md — Threading model.
+// See docs/ARCHITECTURE.md — Startup wiring sequence.
 
 #pragma once
 

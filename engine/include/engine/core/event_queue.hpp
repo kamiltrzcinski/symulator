@@ -9,7 +9,7 @@
 // ── EventQueue<T> ─────────────────────────────────────────────────────────────
 // Thread-safe FIFO queue designed for crossing a single thread boundary.
 //
-// Threading model (see docs/03-initial-architecture.md — Threading model):
+// Threading model (see docs/ARCHITECTURE.md — Threading model):
 //   - Any number of producer threads may call push() concurrently.
 //   - Exactly one consumer thread calls wait_and_pop() or try_pop().
 //   - Multiple concurrent consumers are NOT supported.

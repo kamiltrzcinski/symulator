@@ -16,7 +16,7 @@
 // IControlSystem without copying.  All IStateView methods return raw pointers
 // into the internal maps — valid only for the duration of the ENGINE tick.
 //
-// See docs/03-initial-architecture.md for the threading model.
+// See docs/ARCHITECTURE.md for the threading model.
 
 namespace engine::core
 {

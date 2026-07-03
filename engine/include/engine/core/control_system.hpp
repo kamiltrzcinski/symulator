@@ -22,7 +22,7 @@
 // Threading: all methods are called exclusively on the ENGINE thread.
 // IControlSystem implementations must not spawn threads or do I/O.
 //
-// See docs/17-control-system-interface.md for the full contract.
+// See docs/ARCHITECTURE.md for the full contract.
 
 namespace engine::core
 {

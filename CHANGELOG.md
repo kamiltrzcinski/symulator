@@ -37,6 +37,7 @@ All notable changes are documented here.
 - `topology_loader` refactored to a per-object parser table — adding a new
   topology object kind is one parser function plus one registry row, with no
   changes to the public API
+- New docs/ARCHITECTURE.md - delete old files and update code documentation
 
 ### Added
 - `engine::core::load_world()` — loads multiple station scenarios into a single

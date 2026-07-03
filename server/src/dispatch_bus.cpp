@@ -14,7 +14,7 @@
 namespace server
 {
 
-// event_type constants — see docs/09-communication-contract.md
+// event_type constants — see docs/ARCHITECTURE.md
 namespace event_type
 {
 constexpr uint8_t kSwitchPositionChanged = 0x01;

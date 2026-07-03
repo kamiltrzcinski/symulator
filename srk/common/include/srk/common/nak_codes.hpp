@@ -4,7 +4,7 @@
 
 // ── COMMAND_NAK reason codes ──────────────────────────────────────────────────
 // Wire-protocol reason codes sent in the COMMAND_NAK frame (0x12).
-// Source of truth: docs/09-communication-contract.md §COMMAND_NAK
+// Source of truth: docs/ARCHITECTURE.md §COMMAND_NAK
 //
 // Used by: srk::common (device_rules), srk::ebilock, srk::ml8.
 // Must not be defined locally in each translation unit.

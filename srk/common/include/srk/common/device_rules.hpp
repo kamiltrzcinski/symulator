@@ -18,7 +18,7 @@
 //         execute_* returns the list of state changes to apply.
 //
 // All functions operate on the ENGINE thread and must not block.
-// See docs/14-interlocking-model.md for full rule tables.
+// See docs/ARCHITECTURE.md for full rule tables.
 
 namespace srk::common
 {

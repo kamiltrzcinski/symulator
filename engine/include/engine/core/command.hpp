@@ -15,8 +15,8 @@
 // Command variants are processed on the ENGINE thread via std::visit against
 // IControlSystem::check_command and IControlSystem::execute_command.
 //
-// See docs/09-communication-contract.md for wire-level mapping and
-// docs/14-interlocking-model.md for per-command interlocking rules.
+// See docs/ARCHITECTURE.md for wire-level mapping and per-command
+// interlocking rules.
 
 namespace engine::core
 {
@@ -66,7 +66,7 @@ struct AcknowledgeAlarmCmd
 
 // ── SHL-12 block direction commands (ML8 only) ────────────────────────────────
 // These correspond to the SHL-12 telegraph operations documented in the ML8
-// instruction manual.  See docs/14-interlocking-model.md §SHL-12.
+// instruction manual.  See docs/ARCHITECTURE.md §SHL-12.
 
 enum class Shl12Op : std::uint8_t
 {

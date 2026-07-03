@@ -11,7 +11,7 @@
 //   12       4    crc32  (CRC-32/ISO-HDLC over header bytes [0..11] + payload)
 //   16       N    payload
 //
-// See docs/09-communication-contract.md — "Frame format".
+// See docs/ARCHITECTURE.md — "Frame format".
 
 #pragma once
 

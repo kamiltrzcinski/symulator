@@ -2,7 +2,7 @@
 // Deserialises COMMAND (0x10) wire frames into engine EnvelopedCommand values.
 //
 // The COMMAND payload begins with a 1-byte cmd_type followed by a FlatBuffers
-// body.  See docs/09-communication-contract.md — "Command payload format".
+// body.  See docs/ARCHITECTURE.md — "Command payload format".
 
 #pragma once
 
