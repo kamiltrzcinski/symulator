@@ -19,10 +19,12 @@ namespace event_type
 {
 constexpr uint8_t kSwitchPositionChanged = 0x01;
 constexpr uint8_t kSignalAspectChanged = 0x03;
+constexpr uint8_t kTrackSectionOccupancyChanged = 0x04;
 constexpr uint8_t kDerailerPositionChanged = 0x05;
 constexpr uint8_t kBlockSectionStateChanged = 0x06;
 constexpr uint8_t kRouteSet = 0x07;
 constexpr uint8_t kRouteReleased = 0x08;
+// 0x09 = TrainMovement — reserved (doc 09); no emitter yet, see plan_przed_klientem.md Z1.5.
 constexpr uint8_t kAlarmRaised = 0x0A;
 constexpr uint8_t kAlarmCleared = 0x0B;
 constexpr uint8_t kBlockDirectionStateChanged = 0x10;
@@ -161,6 +163,14 @@ std::optional<std::vector<uint8_t>> DispatchBus::make_event_frame(
                 et = event_type::kDerailerPositionChanged;
                 auto off = proto::CreateDerailerPositionChanged(
                     fbb, ev.uid.value, to_proto_derailer(ev.new_state), to_proto_cause(ev.cause));
+                fbb.Finish(off);
+            }
+            else if constexpr (std::is_same_v<T, engine::core::TrackSectionOccupancyChange>)
+            {
+                et = event_type::kTrackSectionOccupancyChanged;
+                auto off = proto::CreateTrackSectionOccupancyChanged(
+                    fbb, ev.uid.value, ev.occupancy == engine::core::TrackOccupancy::OCCUPIED,
+                    ev.axle_count, ev.train_uid.value);
                 fbb.Finish(off);
             }
             else if constexpr (std::is_same_v<T, engine::core::BlockSectionStateChange>)

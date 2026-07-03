@@ -10,6 +10,9 @@
 #include "server/dispatch_bus.hpp"
 #include "server/frame.hpp"
 
+#include <flatbuffers/flatbuffers.h>
+#include "events_generated.h"
+
 #include <gtest/gtest.h>
 #include <cstdint>
 #include <vector>
@@ -122,6 +125,49 @@ TEST(DispatchBus, BlockSectionStateChanged)
     ASSERT_TRUE(frame.has_value());
     const auto ev = parse_event_frame(*frame);
     EXPECT_EQ(ev.event_type, 0x06u);
+}
+
+TEST(DispatchBus, TrackSectionOccupancyChanged)
+{
+    BusTestFixture f;
+    TrackSectionOccupancyChange ch;
+    ch.uid = kSec1;
+    ch.occupancy = TrackOccupancy::OCCUPIED;
+    ch.axle_count = 12;
+    ch.train_uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 1);
+
+    const auto frame = f.bus.make_event_frame(ch, 77u);
+    ASSERT_TRUE(frame.has_value());
+    const auto ev = parse_event_frame(*frame);
+    EXPECT_TRUE(ev.valid);
+    EXPECT_EQ(ev.event_type, 0x04u);  // kTrackSectionOccupancyChanged (doc 09)
+
+    const auto* body = flatbuffers::GetRoot<proto::TrackSectionOccupancyChanged>(ev.fb_body.data());
+    ASSERT_NE(body, nullptr);
+    EXPECT_EQ(body->uid(), kSec1.value);
+    EXPECT_TRUE(body->occupied());
+    EXPECT_EQ(body->axle_count(), 12);
+    EXPECT_EQ(body->train_uid(), ch.train_uid.value);
+}
+
+TEST(DispatchBus, TrackSectionOccupancyChanged_FreeSection)
+{
+    BusTestFixture f;
+    TrackSectionOccupancyChange ch;
+    ch.uid = kSec2;
+    ch.occupancy = TrackOccupancy::FREE;
+    ch.axle_count = 0;
+
+    const auto frame = f.bus.make_event_frame(ch, 78u);
+    ASSERT_TRUE(frame.has_value());
+    const auto ev = parse_event_frame(*frame);
+    EXPECT_EQ(ev.event_type, 0x04u);
+
+    const auto* body = flatbuffers::GetRoot<proto::TrackSectionOccupancyChanged>(ev.fb_body.data());
+    ASSERT_NE(body, nullptr);
+    EXPECT_FALSE(body->occupied());
+    EXPECT_EQ(body->axle_count(), 0);
+    EXPECT_EQ(body->train_uid(), 0u);
 }
 
 TEST(DispatchBus, BlockDirectionChanged)

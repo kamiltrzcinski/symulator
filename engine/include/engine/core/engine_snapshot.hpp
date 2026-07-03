@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 // ── Immutable snapshot of all engine state at a given tick ───────────────────
 // EngineSnapshot is a deep-copy value type.  The ENGINE thread constructs a new
@@ -33,6 +34,7 @@ struct EngineSnapshot final : public IStateView
     std::unordered_map<UID, BlockSection, std::hash<UID>> block_sections;
     std::unordered_map<UID, RouteState, std::hash<UID>> routes;
     std::unordered_map<UID, AlarmState, std::hash<UID>> alarms;
+    std::vector<TrainSnapshot> trains;
 
     // ── IStateView ────────────────────────────────────────────────────────────
     const BoundaryNode* find_boundary_node(UID uid) const noexcept override;

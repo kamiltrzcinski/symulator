@@ -193,6 +193,9 @@ TrainSimState make_train_sim_state(const core::TrainConsist& consist,
     TrainSimState state{};
     state.train_uid = consist.uid;
     state.current_section_uid = initial_section_uid;
+    state.total_axles = consist.total_axles;
+    state.total_length_m = consist.total_length_m;
+    state.vehicle_uids = consist.vehicle_uids;
     state.physics_params = physics::build_train_params(contrib.data(), contrib.size());
     state.max_brake_kn =
         physics::PhysicsModel::max_brake_kn(state.physics_params, consist.consist_lambda_pct);

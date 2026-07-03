@@ -60,6 +60,7 @@ add_executable(tests_engine_simulation
     test_train_sim.cpp
     test_train_fleet.cpp
     test_engine_loop.cpp
+    test_spawn_resolver.cpp
 )
 symulator_configure_engine_unit_target(tests_engine_simulation)
 symulator_discover_gtest(tests_engine_simulation

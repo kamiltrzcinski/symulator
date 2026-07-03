@@ -2,7 +2,41 @@
 
 All notable changes are documented here.
 
-## [0.5.11] - 2026-07-02
+## [0.5.12] - 2026-07-03
+
+### Added
+- Train movement is now visible to clients: `TrainFleet` emits
+  `TrackSectionOccupancyChange` device-state changes that `DispatchBus`
+  broadcasts as `TrackSectionOccupancyChanged` DOMAIN_EVENTs (0x04, doc 09)
+  and persists to `session.events`; event type 0x09 (`TrainMovement`) is
+  reserved but not yet emitted
+- Active trains in the world snapshot: `EngineSnapshot::trains` serialised as
+  `proto::TrainState`, with `TrackSectionState.train_uid` filled by joining
+  the trains list by section
+- Built-in server terminal on stdin with login and per-user permissions:
+  `ITerminalCommand` (one class per command), `CommandRegistry`, `IUserStore`
+  (single built-in `admin`/`admin123` account for now; DB-backed store with
+  hashed passwords planned), `TerminalSession` and a swappable
+  `ITerminalTransport`
+- Terminal commands: `spawn <consist> <boundary>`, `despawn <train>` and
+  `trains` — arguments accepted as decimal UID or pID
+- Runtime fleet mutations: thread-safe `EngineLoop::enqueue_fleet_command()`
+  (`SpawnRequest`/`DespawnRequest`) drained and re-validated at the start of
+  each tick — the seam the future `TrainScheduler` (E5) will plug into
+- `resolve_spawn_at_boundary()` — resolves the unique free track section
+  behind a boundary node for spawning
+- `BlockSection` is now loaded from `topology.json` (`block_sections` array)
+  with a new `type_id` field (default `"SHL-12"`); block data added for both
+  sides of the Sopot↔Gdynia Orłowo L202 and L250 lines, so the existing
+  SHL-12 SRK logic operates on a live server without any SRK changes
+
+### Changed
+- Section axle counters now use the consist's real `total_axles` (derived from
+  fleet data) instead of a hardcoded 4; a section reads FREE only when its
+  axle counter is back to zero
+- `topology_loader` refactored to a per-object parser table — adding a new
+  topology object kind is one parser function plus one registry row, with no
+  changes to the public API
 
 ### Added
 - `engine::core::load_world()` — loads multiple station scenarios into a single

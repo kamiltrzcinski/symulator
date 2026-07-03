@@ -14,6 +14,9 @@
 
 #include <gtest/gtest.h>
 
+#include <variant>
+#include <vector>
+
 using namespace engine;
 using namespace engine::core;
 
@@ -101,6 +104,10 @@ EngineState make_topology(SwitchPosition sw_pos)
     return s;
 }
 
+// Axle count used by the test train — deliberately different from the old
+// hardcoded 4 so tests catch any regression to a constant.
+constexpr int kTestAxles = 12;
+
 // Build a minimal TrainSimState that will cross a 100m section within a few
 // ticks.  The train starts at position_m = 99.0 m with v = 5 m/s.
 sim::TrainSimState make_fast_train(UID section_uid)
@@ -109,6 +116,7 @@ sim::TrainSimState make_fast_train(UID section_uid)
     st.train_uid = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 1);
     st.current_section_uid = section_uid;
     st.max_brake_kn = 50.0f;
+    st.total_axles = kTestAxles;
     st.physics_params.total_mass_t = 100.0f;
     st.physics_params.max_traction_kn = 200.0f;
     st.physics_params.max_speed_ms = 33.3f;  // ~120 km/h
@@ -120,6 +128,17 @@ sim::TrainSimState make_fast_train(UID section_uid)
     st.physics_state.velocity_ms = 5.0f;  // 18 km/h — will cross in one tick
     st.driver_state = physics::DriverState::CRUISING;
     return st;
+}
+
+// Extract all TrackSectionOccupancyChange values from a tick_all result.
+std::vector<TrackSectionOccupancyChange> occupancy_changes(
+    const std::vector<DeviceStateChange>& changes)
+{
+    std::vector<TrackSectionOccupancyChange> out;
+    for (const auto& c : changes)
+        if (const auto* occ = std::get_if<TrackSectionOccupancyChange>(&c))
+            out.push_back(*occ);
+    return out;
 }
 
 }  // namespace
@@ -246,6 +265,175 @@ TEST(TrainFleet_TickAll, TraversesThroughStraightSwitch)
     EXPECT_EQ(ota->occupancy, TrackOccupancy::FREE);
     EXPECT_EQ(otb->occupancy, TrackOccupancy::OCCUPIED);
     EXPECT_EQ(fleet.size(), 1u);
+}
+
+TEST(TrainFleet_TickAll, CrossingEmitsOccupancyChanges_WithRealAxleCount)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    state.apply_track_section_occupancy(kOtA, TrackOccupancy::OCCUPIED, kTestAxles);
+
+    TrainFleet fleet;
+    const UID train_uid = make_fast_train(kOtA).train_uid;
+    fleet.add_train(make_fast_train(kOtA), kBndEntry);
+
+    std::vector<TrackSectionOccupancyChange> captured;
+    for (int i = 0; i < 10 && captured.empty(); ++i)
+        captured = occupancy_changes(fleet.tick_all(state, static_cast<uint64_t>(i), nullptr));
+
+    // A crossing produces exactly two changes: from-section FREE, to-section OCCUPIED.
+    ASSERT_EQ(captured.size(), 2u);
+    EXPECT_EQ(captured[0].uid, kOtA);
+    EXPECT_EQ(captured[0].occupancy, TrackOccupancy::FREE);
+    EXPECT_EQ(captured[0].axle_count, 0);
+    EXPECT_EQ(captured[0].train_uid.value, 0u);
+
+    EXPECT_EQ(captured[1].uid, kOtB);
+    EXPECT_EQ(captured[1].occupancy, TrackOccupancy::OCCUPIED);
+    EXPECT_EQ(captured[1].axle_count, kTestAxles);
+    EXPECT_EQ(captured[1].train_uid, train_uid);
+
+    // Axle-counter invariant on the state itself: counter equals the consist's
+    // axles on the occupied section, zero on the freed one.
+    EXPECT_EQ(state.find_track_section(kOtA)->axle_count, 0);
+    EXPECT_EQ(state.find_track_section(kOtB)->axle_count, kTestAxles);
+}
+
+TEST(TrainFleet_TickAll, BoundaryCrossingEmitsFreeOccupancyChange)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    state.apply_track_section_occupancy(kOtB, TrackOccupancy::OCCUPIED, kTestAxles);
+
+    TrainFleet fleet;
+    fleet.add_train(make_fast_train(kOtB), kZwr1);
+
+    std::vector<TrackSectionOccupancyChange> captured;
+    for (int i = 0; i < 10 && !fleet.empty(); ++i)
+    {
+        auto changes = occupancy_changes(fleet.tick_all(state, static_cast<uint64_t>(i), nullptr));
+        captured.insert(captured.end(), changes.begin(), changes.end());
+    }
+
+    ASSERT_EQ(captured.size(), 1u);
+    EXPECT_EQ(captured[0].uid, kOtB);
+    EXPECT_EQ(captured[0].occupancy, TrackOccupancy::FREE);
+    EXPECT_EQ(captured[0].axle_count, 0);
+    EXPECT_EQ(state.find_track_section(kOtB)->axle_count, 0);
+}
+
+// ── spawn / despawn tests ─────────────────────────────────────────────────────
+
+TEST(TrainFleet_Spawn, OccupiesSectionAndEmitsEvents)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    TrainFleet fleet;
+
+    std::vector<DeviceStateChange> changes;
+    std::vector<PipEvent> pip_events;
+    const auto error = fleet.spawn(state, make_fast_train(kOtA), kBndEntry, changes, pip_events);
+
+    EXPECT_FALSE(error.has_value());
+    EXPECT_EQ(fleet.size(), 1u);
+    EXPECT_EQ(state.find_track_section(kOtA)->occupancy, TrackOccupancy::OCCUPIED);
+    EXPECT_EQ(state.find_track_section(kOtA)->axle_count, kTestAxles);
+
+    const auto occ = occupancy_changes(changes);
+    ASSERT_EQ(occ.size(), 1u);
+    EXPECT_EQ(occ[0].uid, kOtA);
+    EXPECT_EQ(occ[0].occupancy, TrackOccupancy::OCCUPIED);
+    EXPECT_EQ(occ[0].axle_count, kTestAxles);
+
+    ASSERT_EQ(pip_events.size(), 1u);
+    EXPECT_EQ(pip_events[0].section_uid, kOtA);
+    EXPECT_EQ(pip_events[0].occupancy, TrackOccupancy::OCCUPIED);
+    ASSERT_TRUE(pip_events[0].slot.has_value());
+}
+
+TEST(TrainFleet_Spawn, RejectedWhenSectionOccupied)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    state.apply_track_section_occupancy(kOtA, TrackOccupancy::OCCUPIED, 4);
+
+    TrainFleet fleet;
+    std::vector<DeviceStateChange> changes;
+    std::vector<PipEvent> pip_events;
+    const auto error = fleet.spawn(state, make_fast_train(kOtA), kBndEntry, changes, pip_events);
+
+    ASSERT_TRUE(error.has_value());
+    EXPECT_TRUE(fleet.empty());
+    EXPECT_TRUE(changes.empty());
+    EXPECT_TRUE(pip_events.empty());
+}
+
+TEST(TrainFleet_Spawn, RejectedWhenSectionUnknown)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    TrainFleet fleet;
+
+    auto train = make_fast_train(make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::TRACK_SECTION, 9, 9));
+    std::vector<DeviceStateChange> changes;
+    std::vector<PipEvent> pip_events;
+    const auto error = fleet.spawn(state, std::move(train), kBndEntry, changes, pip_events);
+
+    ASSERT_TRUE(error.has_value());
+    EXPECT_TRUE(fleet.empty());
+}
+
+TEST(TrainFleet_Despawn, FreesSectionAndRemovesTrain)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    TrainFleet fleet;
+
+    std::vector<DeviceStateChange> changes;
+    std::vector<PipEvent> pip_events;
+    const auto train = make_fast_train(kOtA);
+    ASSERT_FALSE(fleet.spawn(state, train, kBndEntry, changes, pip_events).has_value());
+    changes.clear();
+    pip_events.clear();
+
+    const auto error = fleet.despawn(state, train.train_uid, changes, pip_events);
+    EXPECT_FALSE(error.has_value());
+    EXPECT_TRUE(fleet.empty());
+    EXPECT_EQ(state.find_track_section(kOtA)->occupancy, TrackOccupancy::FREE);
+    EXPECT_EQ(state.find_track_section(kOtA)->axle_count, 0);
+
+    const auto occ = occupancy_changes(changes);
+    ASSERT_EQ(occ.size(), 1u);
+    EXPECT_EQ(occ[0].occupancy, TrackOccupancy::FREE);
+    ASSERT_EQ(pip_events.size(), 1u);
+    EXPECT_FALSE(pip_events[0].slot.has_value());
+}
+
+TEST(TrainFleet_Despawn, UnknownTrainReturnsError)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    TrainFleet fleet;
+
+    std::vector<DeviceStateChange> changes;
+    std::vector<PipEvent> pip_events;
+    const auto error =
+        fleet.despawn(state, make_uid(UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 99),
+                      changes, pip_events);
+    EXPECT_TRUE(error.has_value());
+}
+
+// ── snapshot_trains tests ─────────────────────────────────────────────────────
+
+TEST(TrainFleet_SnapshotTrains, ReflectsActiveTrains)
+{
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+    TrainFleet fleet;
+
+    auto train = make_fast_train(kOtA);
+    train.total_length_m = 85.5f;
+    fleet.add_train(train, kBndEntry);
+
+    const auto trains = fleet.snapshot_trains();
+    ASSERT_EQ(trains.size(), 1u);
+    EXPECT_EQ(trains[0].uid, train.train_uid);
+    EXPECT_EQ(trains[0].section_uid, kOtA);
+    EXPECT_EQ(trains[0].total_axles, kTestAxles);
+    EXPECT_FLOAT_EQ(trains[0].total_length_m, 85.5f);
+    EXPECT_FLOAT_EQ(trains[0].speed_kmh, 5.0f * 3.6f);
 }
 
 TEST(TrainFleet_TickAll, BoundaryNodeRemovesTrain_AndEmitsPipEvent)

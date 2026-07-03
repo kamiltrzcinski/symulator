@@ -4,7 +4,9 @@
 #include "engine/core/engine_snapshot.hpp"
 #include "engine/core/state_applier.hpp"
 
+#include <iostream>
 #include <memory>
+#include <variant>
 
 namespace engine::core
 {
@@ -25,6 +27,11 @@ EngineLoop::EngineLoop(EngineState& state, IControlSystem& control,
 void EngineLoop::add_train(sim::TrainSimState initial, UID from_uid)
 {
     train_fleet_.add_train(std::move(initial), from_uid);
+}
+
+void EngineLoop::enqueue_fleet_command(FleetCommand cmd)
+{
+    fleet_commands_.push(std::move(cmd));
 }
 
 EngineLoop::~EngineLoop()
@@ -111,14 +118,43 @@ void EngineLoop::do_tick()
         tick_all_changes.insert(tick_all_changes.end(), tick_changes.begin(), tick_changes.end());
     }
 
-    // 3. Tick all active trains (physics + occupancy + PipEvents).
-    if (!train_fleet_.empty())
-        train_fleet_.tick_all(state_, next_tick_num, pip_cb_);
+    // 3. Drain runtime fleet commands (spawn/despawn), re-validating against
+    //    the current state.  Resulting occupancy changes join the tick's
+    //    broadcast list; PipEvents go out through the PIP callback.
+    std::vector<PipEvent> fleet_pip_events;
+    while (auto cmd = fleet_commands_.try_pop())
+    {
+        const auto error = std::visit(
+            [&](auto&& req) -> std::optional<std::string>
+            {
+                using T = std::decay_t<decltype(req)>;
+                if constexpr (std::is_same_v<T, SpawnRequest>)
+                    return train_fleet_.spawn(state_, std::move(req.initial), req.from_uid,
+                                              tick_all_changes, fleet_pip_events);
+                else
+                    return train_fleet_.despawn(state_, req.train_uid, tick_all_changes,
+                                                fleet_pip_events);
+            },
+            std::move(*cmd));
+        if (error)
+            std::cerr << "[engine] fleet command rejected: " << *error << "\n";
+    }
+    if (pip_cb_ && !fleet_pip_events.empty())
+        pip_cb_(fleet_pip_events);
 
-    // 4. Advance the logical tick counter.
+    // 4. Tick all active trains (physics + occupancy + PipEvents).
+    if (!train_fleet_.empty())
+    {
+        auto fleet_changes = train_fleet_.tick_all(state_, next_tick_num, pip_cb_);
+        tick_all_changes.insert(tick_all_changes.end(),
+                                std::make_move_iterator(fleet_changes.begin()),
+                                std::make_move_iterator(fleet_changes.end()));
+    }
+
+    // 5. Advance the logical tick counter.
     state_.set_current_tick(next_tick_num);
 
-    // 5. Deep-copy the world state into a new immutable snapshot and publish it.
+    // 6. Deep-copy the world state into a new immutable snapshot and publish it.
     auto snap = std::make_shared<EngineSnapshot>();
     snap->session = state_.session_id();
     snap->tick = state_.current_tick();
@@ -130,9 +166,10 @@ void EngineLoop::do_tick()
     snap->block_sections = state_.block_sections();
     snap->routes = state_.routes();
     snap->alarms = state_.alarms();
+    snap->trains = train_fleet_.snapshot_trains();
     snapshot_.publish(std::move(snap));
 
-    // 6. Notify subscribers of all state changes from this tick.
+    // 7. Notify subscribers of all state changes from this tick.
     if (changes_cb_ && !tick_all_changes.empty())
         changes_cb_(tick_all_changes);
 }

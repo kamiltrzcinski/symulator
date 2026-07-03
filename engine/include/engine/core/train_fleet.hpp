@@ -13,12 +13,14 @@
 
 #pragma once
 
+#include "engine/core/control_system.hpp"
 #include "engine/core/engine_state.hpp"
 #include "engine/core/types.hpp"
 #include "engine/sim/train_sim.hpp"
 
 #include <functional>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace engine::core
@@ -65,7 +67,9 @@ public:
 
     // ── Mutation (call before EngineLoop::start()) ────────────────────────────
 
-    /// Add a train to the fleet.  Must be called before EngineLoop::start().
+    /// Add a train to the fleet without touching occupancy or emitting events.
+    /// Must be called before EngineLoop::start(); for runtime spawning use
+    /// spawn() (via EngineLoop::enqueue_fleet_command).
     ///
     /// @param initial   Initial physics + position state (use make_train_sim_state).
     /// @param from_uid  UID of the section or node the train is coming from.
@@ -75,6 +79,23 @@ public:
     bool empty() const noexcept { return entries_.empty(); }
     std::size_t size() const noexcept { return entries_.size(); }
 
+    // ── Runtime mutation (ENGINE thread only) ─────────────────────────────────
+
+    /// Spawn a train onto its initial section: validates the section exists and
+    /// is FREE, occupies it (axle counter = total_axles), and appends the
+    /// resulting TrackSectionOccupancyChange + PipEvent to the out vectors.
+    /// @return std::nullopt on success, otherwise a human-readable reason.
+    std::optional<std::string> spawn(EngineState& state, sim::TrainSimState initial, UID from_uid,
+                                     std::vector<DeviceStateChange>& changes,
+                                     std::vector<PipEvent>& pip_events);
+
+    /// Remove a train from the fleet: frees its current section (axle counter
+    /// back to zero) and appends the resulting change + PipEvent.
+    /// @return std::nullopt on success, otherwise a human-readable reason.
+    std::optional<std::string> despawn(EngineState& state, UID train_uid,
+                                       std::vector<DeviceStateChange>& changes,
+                                       std::vector<PipEvent>& pip_events);
+
     // ── Tick (ENGINE thread only) ─────────────────────────────────────────────
 
     /// Advance all trains by one tick.
@@ -83,7 +104,15 @@ public:
     /// @param tick_num Current tick counter (for logging).
     /// @param pip_cb   Callback invoked once with all PipEvents for this tick.
     ///                 May be nullptr (no events emitted).
-    void tick_all(EngineState& state, uint64_t tick_num, const PipCallback& pip_cb);
+    /// @return All TrackSectionOccupancyChange values produced by this tick,
+    ///         already applied to `state` — for DOMAIN_EVENT broadcast only.
+    std::vector<DeviceStateChange> tick_all(EngineState& state, uint64_t tick_num,
+                                            const PipCallback& pip_cb);
+
+    // ── Snapshot (ENGINE thread only) ─────────────────────────────────────────
+
+    /// Deep-copy view of all active trains for EngineSnapshot publication.
+    std::vector<TrainSnapshot> snapshot_trains() const;
 
     /// Determine the next section and traversal metadata for a train on `current_uid`
     /// that came from `from_uid`.

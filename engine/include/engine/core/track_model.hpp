@@ -154,6 +154,8 @@ struct BlockSection
     // ── Static ──
     UID uid;
     std::string pid;
+    std::string type_id;       // block system type, e.g. "SHL-12"; behaviour
+                               // differentiation lives in the SRK libraries
     UID station_uid;           // this station's UID
     UID neighbor_station_uid;  // the neighbouring station
     int line_number = 0;

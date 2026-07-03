@@ -8,6 +8,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <stdexcept>
 #include <string>
 
@@ -120,6 +121,147 @@ SignalAspect parse_initial_aspect(const std::string& s)
     throw std::runtime_error("topology_loader: unknown initial_aspect '" + s + "'");
 }
 
+BlockSectionState parse_block_state(const std::string& s)
+{
+    if (s == "CLOSED")
+        return BlockSectionState::CLOSED;
+    if (s == "OPEN")
+        return BlockSectionState::OPEN;
+    throw std::runtime_error("topology_loader: unknown initialState '" + s + "'");
+}
+
+BlockDirectionState parse_block_direction(const std::string& s)
+{
+    if (s == "NEUTRAL")
+        return BlockDirectionState::NEUTRAL;
+    if (s == "OUTBOUND")
+        return BlockDirectionState::OUTBOUND;
+    if (s == "INBOUND")
+        return BlockDirectionState::INBOUND;
+    throw std::runtime_error("topology_loader: unknown initialDirection '" + s + "'");
+}
+
+// ── Per-object loaders ────────────────────────────────────────────────────────
+// One function per JSON object kind.  Adding a new kind = one loader function
+// + one row in the registry tables below; load_scenario() never changes.
+
+void load_boundary_node(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    BoundaryNode bn;
+    bn.uid = require_uid_field(j, "uid", path);
+    bn.pid = j.at("pID").get<std::string>();
+    bn.station_uid = station_uid_from_object_uid(bn.uid);
+    bn.description = j.value("description", "");
+    state.insert_boundary_node(bn);
+}
+
+void load_track_section(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    TrackSection ts;
+    ts.uid = require_uid_field(j, "uid", path);
+    ts.pid = j.at("pID").get<std::string>();
+    ts.station_uid = station_uid_from_object_uid(ts.uid);
+    ts.side_a = parse_track_port(j.at("sideA"), path);
+    ts.side_b = parse_track_port(j.at("sideB"), path);
+    ts.length_m = j.value("lengthM", 0.0f);
+    ts.electrified = j.value("electrified", false);
+    ts.max_speed_kmh = j.value("maxSpeedKmh", 0);
+    ts.occupancy = j.value("occupied", false) ? TrackOccupancy::OCCUPIED : TrackOccupancy::FREE;
+    ts.station_section = j.value("station_section", true);
+    state.insert_track_section(ts);
+}
+
+void load_switch(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    Switch sw;
+    sw.uid = require_uid_field(j, "uid", path);
+    sw.pid = j.at("pID").get<std::string>();
+    sw.station_uid = station_uid_from_object_uid(sw.uid);
+    sw.type_id = j.value("typeID", "");
+    sw.trunk = parse_switch_leg(j.at("trunk"), path);
+    sw.straight = parse_switch_leg(j.at("straight"), path);
+    sw.divergent = parse_switch_leg(j.at("divergent"), path);
+    sw.length_m = j.value("lengthM", 0.0f);
+    sw.max_speed_straight_kmh = j.value("maxSpeedStraightKmh", 0);
+    sw.max_speed_divergent_kmh = j.value("maxSpeedDivergentKmh", 0);
+    state.insert_switch(sw);
+}
+
+void load_block_section(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    BlockSection bs;
+    bs.uid = require_uid_field(j, "uid", path);
+    bs.pid = j.at("pID").get<std::string>();
+    bs.type_id = j.value("type_id", "SHL-12");
+    bs.station_uid = station_uid_from_object_uid(bs.uid);
+    bs.neighbor_station_uid = require_uid_field(j, "neighborStationUID", path);
+    bs.line_number = j.value("lineNumber", 0);
+    bs.departure_signal_uid = require_uid_field(j, "departureSignalUID", path);
+    bs.entry_signal_uid = require_uid_field(j, "entrySignalUID", path);
+    // szlakSectionUIDs may reference sections of a neighbouring scenario that
+    // is not loaded — no cross-validation here (Model A graceful fallback).
+    for (const auto& s : j.value("szlakSectionUIDs", json::array()))
+        bs.szlak_section_uids.push_back(UID{s.get<std::uint64_t>()});
+    bs.state = parse_block_state(j.value("initialState", "CLOSED"));
+    bs.direction = parse_block_direction(j.value("initialDirection", "NEUTRAL"));
+    state.insert_block_section(bs);
+}
+
+void load_signal(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    Signal sig;
+    sig.uid = require_uid_field(j, "uid", path);
+    sig.pid = j.at("pID").get<std::string>();
+    sig.station_uid = station_uid_from_object_uid(sig.uid);
+    sig.type_id = j.value("typeID", "");
+    sig.type = parse_signal_type(j.at("type").get<std::string>());
+    sig.governs_section_uid = require_uid_field(j, "governs_section", path);
+    sig.current_aspect = parse_initial_aspect(j.value("initial_aspect", "STOP"));
+    state.insert_signal(sig);
+}
+
+void load_derailer(EngineState& state, const json& j, const std::filesystem::path& path)
+{
+    Derailer der;
+    der.uid = require_uid_field(j, "uid", path);
+    der.pid = j.at("pID").get<std::string>();
+    der.station_uid = station_uid_from_object_uid(der.uid);
+    der.type_id = j.value("typeID", "");
+    der.guards_section_uid = require_uid_field(j, "guards_section", path);
+    der.state = DerailerState::LOCKED;
+    state.insert_derailer(der);
+}
+
+// ── Object-kind registries ────────────────────────────────────────────────────
+
+using ObjectLoader = void (*)(EngineState&, const json&, const std::filesystem::path&);
+
+struct ObjectKind
+{
+    const char* json_key;
+    ObjectLoader load;
+};
+
+constexpr ObjectKind kTopologyKinds[] = {
+    {"boundary_nodes", load_boundary_node},
+    {"track_sections", load_track_section},
+    {"switches", load_switch},
+    {"block_sections", load_block_section},
+};
+
+constexpr ObjectKind kObjectsKinds[] = {
+    {"signals", load_signal},
+    {"derailers", load_derailer},
+};
+
+void load_object_arrays(EngineState& state, const json& doc, const std::filesystem::path& path,
+                        std::span<const ObjectKind> kinds)
+{
+    for (const auto& kind : kinds)
+        for (const auto& j : doc.value(kind.json_key, json::array()))
+            kind.load(state, j, path);
+}
+
 }  // anonymous namespace
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -136,82 +278,13 @@ ScenarioMeta load_scenario(EngineState& state, const std::filesystem::path& dir)
     state.set_session_id(result.station_sid);
 
     // ── topology.json ────────────────────────────────────────────────────────
-    const json topo = read_json(dir / "topology.json");
     const auto topo_path = dir / "topology.json";
-
-    for (const auto& j : topo.value("boundary_nodes", json::array()))
-    {
-        BoundaryNode bn;
-        bn.uid = require_uid_field(j, "uid", topo_path);
-        bn.pid = j.at("pID").get<std::string>();
-        bn.station_uid = station_uid_from_object_uid(bn.uid);
-        bn.description = j.value("description", "");
-        state.insert_boundary_node(bn);
-    }
-
-    for (const auto& j : topo.value("track_sections", json::array()))
-    {
-        TrackSection ts;
-        ts.uid = require_uid_field(j, "uid", topo_path);
-        ts.pid = j.at("pID").get<std::string>();
-        ts.station_uid = station_uid_from_object_uid(ts.uid);
-        ts.side_a = parse_track_port(j.at("sideA"), topo_path);
-        ts.side_b = parse_track_port(j.at("sideB"), topo_path);
-        ts.length_m = j.value("lengthM", 0.0f);
-        ts.electrified = j.value("electrified", false);
-        ts.max_speed_kmh = j.value("maxSpeedKmh", 0);
-        ts.occupancy = j.value("occupied", false) ? TrackOccupancy::OCCUPIED : TrackOccupancy::FREE;
-        ts.station_section = j.value("station_section", true);
-        state.insert_track_section(ts);
-    }
-
-    for (const auto& j : topo.value("switches", json::array()))
-    {
-        Switch sw;
-        sw.uid = require_uid_field(j, "uid", topo_path);
-        sw.pid = j.at("pID").get<std::string>();
-        sw.station_uid = station_uid_from_object_uid(sw.uid);
-        sw.type_id = j.value("typeID", "");
-        sw.trunk = parse_switch_leg(j.at("trunk"), topo_path);
-        sw.straight = parse_switch_leg(j.at("straight"), topo_path);
-        sw.divergent = parse_switch_leg(j.at("divergent"), topo_path);
-        sw.length_m = j.value("lengthM", 0.0f);
-        sw.max_speed_straight_kmh = j.value("maxSpeedStraightKmh", 0);
-        sw.max_speed_divergent_kmh = j.value("maxSpeedDivergentKmh", 0);
-        state.insert_switch(sw);
-    }
+    load_object_arrays(state, read_json(topo_path), topo_path, kTopologyKinds);
 
     // ── objects.json (optional) ──────────────────────────────────────────────
     const auto objects_path = dir / "objects.json";
     if (std::filesystem::exists(objects_path))
-    {
-        const json objs = read_json(objects_path);
-
-        for (const auto& j : objs.value("signals", json::array()))
-        {
-            Signal sig;
-            sig.uid = require_uid_field(j, "uid", objects_path);
-            sig.pid = j.at("pID").get<std::string>();
-            sig.station_uid = station_uid_from_object_uid(sig.uid);
-            sig.type_id = j.value("typeID", "");
-            sig.type = parse_signal_type(j.at("type").get<std::string>());
-            sig.governs_section_uid = require_uid_field(j, "governs_section", objects_path);
-            sig.current_aspect = parse_initial_aspect(j.value("initial_aspect", "STOP"));
-            state.insert_signal(sig);
-        }
-
-        for (const auto& j : objs.value("derailers", json::array()))
-        {
-            Derailer der;
-            der.uid = require_uid_field(j, "uid", objects_path);
-            der.pid = j.at("pID").get<std::string>();
-            der.station_uid = station_uid_from_object_uid(der.uid);
-            der.type_id = j.value("typeID", "");
-            der.guards_section_uid = require_uid_field(j, "guards_section", objects_path);
-            der.state = DerailerState::LOCKED;
-            state.insert_derailer(der);
-        }
-    }
+        load_object_arrays(state, read_json(objects_path), objects_path, kObjectsKinds);
 
     return result;
 }

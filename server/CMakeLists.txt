@@ -11,6 +11,15 @@ add_library(server_lib STATIC
     src/dispatch_channel.cpp
     src/edr_coordinator.cpp
     src/pip_writer.cpp
+    src/terminal/terminal_command.cpp
+    src/terminal/command_registry.cpp
+    src/terminal/user_store.cpp
+    src/terminal/terminal_session.cpp
+    src/terminal/stdin_terminal.cpp
+    src/terminal/lookup.cpp
+    src/terminal/spawn_command.cpp
+    src/terminal/despawn_command.cpp
+    src/terminal/trains_command.cpp
 )
 
 target_include_directories(server_lib PUBLIC

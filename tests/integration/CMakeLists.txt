@@ -4,6 +4,7 @@ add_executable(tests_integration_non_db
     test_world_loading.cpp
     test_unknown_uid_fallback.cpp
     test_cross_section_transit.cpp
+    test_spawn_despawn_transit.cpp
 )
 target_link_libraries(tests_integration_non_db PRIVATE engine GTest::gtest_main)
 target_compile_features(tests_integration_non_db PRIVATE cxx_std_20)

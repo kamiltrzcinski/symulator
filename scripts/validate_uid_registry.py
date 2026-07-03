@@ -318,11 +318,13 @@ def _validate_topology_obj(obj: dict, rel: str, seen_uids: dict[int, str]) -> No
             for j, ref in enumerate(port["signalUIDs"]):
                 validate_uid(ref, f"{port_key}.signalUIDs[{j}]", rel)
 
-    # Also handle any top-level UID fields (flat legacy format)
-    for key in ("neighborUID", "counterUID", "itUID", "izUID"):
+    # Also handle any top-level UID fields (flat legacy format + block sections)
+    for key in ("neighborUID", "counterUID", "itUID", "izUID", "neighborStationUID",
+                "departureSignalUID", "entrySignalUID"):
         if key in obj:
             validate_uid(obj[key], key, rel)
-    for key in ("signalUIDs", "szlak_section_uids", "section_uids", "switch_uids", "derailer_uids"):
+    for key in ("signalUIDs", "szlak_section_uids", "szlakSectionUIDs", "section_uids",
+                "switch_uids", "derailer_uids"):
         if key in obj and isinstance(obj[key], list):
             for j, ref in enumerate(obj[key]):
                 validate_uid(ref, f"{key}[{j}]", rel)
@@ -343,7 +345,7 @@ def validate_topology(topology_path: Path) -> None:
         objects: list = data
     elif isinstance(data, dict):
         objects = []
-        for key in ("boundary_nodes", "track_sections", "switches"):
+        for key in ("boundary_nodes", "track_sections", "switches", "block_sections"):
             section = data.get(key, [])
             if isinstance(section, list):
                 objects.extend(section)

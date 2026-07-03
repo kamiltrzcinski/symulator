@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <span>
+#include <unordered_map>
 #include <vector>
 
 namespace engine::core
@@ -89,6 +90,13 @@ std::vector<uint8_t> SnapshotService::serialize(const EngineSnapshot& snap)
     auto switches_vec = builder.CreateVector(switch_offsets);
 
     // ── Track sections ────────────────────────────────────────────────────────
+    // TrackSection does not store the occupying train; join with the trains
+    // list by section_uid to fill TrackSectionState.train_uid.
+    std::unordered_map<uint64_t, uint64_t> train_by_section;
+    train_by_section.reserve(snap.trains.size());
+    for (const auto& tr : snap.trains)
+        train_by_section.emplace(tr.section_uid.value, tr.uid.value);
+
     std::vector<flatbuffers::Offset<proto::TrackSectionState>> ts_offsets;
     ts_offsets.reserve(snap.track_sections.size());
     for (const auto& [uid, ts] : snap.track_sections)
@@ -97,6 +105,8 @@ std::vector<uint8_t> SnapshotService::serialize(const EngineSnapshot& snap)
         tb.add_uid(uid.value);
         tb.add_occupied(ts.occupancy == TrackOccupancy::OCCUPIED);
         tb.add_axle_count(ts.axle_count);
+        if (auto it = train_by_section.find(uid.value); it != train_by_section.end())
+            tb.add_train_uid(it->second);
         ts_offsets.push_back(tb.Finish());
     }
     auto ts_vec = builder.CreateVector(ts_offsets);
@@ -173,6 +183,28 @@ std::vector<uint8_t> SnapshotService::serialize(const EngineSnapshot& snap)
     }
     auto alarm_vec = builder.CreateVector(alarm_offsets);
 
+    // ── Trains ────────────────────────────────────────────────────────────────
+    std::vector<flatbuffers::Offset<proto::TrainState>> train_offsets;
+    train_offsets.reserve(snap.trains.size());
+    for (const auto& tr : snap.trains)
+    {
+        std::vector<uint64_t> veh_uids;
+        veh_uids.reserve(tr.vehicle_uids.size());
+        for (const auto& v : tr.vehicle_uids)
+            veh_uids.push_back(v.value);
+        auto veh_off = builder.CreateVector(veh_uids);
+
+        proto::TrainStateBuilder trb(builder);
+        trb.add_uid(tr.uid.value);
+        trb.add_vehicle_uids(veh_off);
+        trb.add_section_uid(tr.section_uid.value);
+        trb.add_speed_kmh(tr.speed_kmh);
+        trb.add_total_length_m(tr.total_length_m);
+        trb.add_total_axles(tr.total_axles);
+        train_offsets.push_back(trb.Finish());
+    }
+    auto train_vec = builder.CreateVector(train_offsets);
+
     // ── Session string ────────────────────────────────────────────────────────
     auto session_off = builder.CreateString(snap.session);
 
@@ -188,6 +220,7 @@ std::vector<uint8_t> SnapshotService::serialize(const EngineSnapshot& snap)
     sb.add_block_sections(bs_vec);
     sb.add_active_routes(route_vec);
     sb.add_active_alarms(alarm_vec);
+    sb.add_trains(train_vec);
 
     builder.Finish(sb.Finish());
 

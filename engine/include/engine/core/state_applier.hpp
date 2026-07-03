@@ -66,6 +66,13 @@ struct StateApplier
         state.apply_block_section_state(c.uid, c.new_state);
     }
 
+    void operator()(const TrackSectionOccupancyChange& c)
+    {
+        // Idempotent: TrainFleet has already applied this within the tick;
+        // re-applying writes the same values.  Kept so apply_all stays total.
+        state.apply_track_section_occupancy(c.uid, c.occupancy, c.axle_count);
+    }
+
     void operator()(const BlockDirectionChange& c)
     {
         state.apply_block_section_direction(c.uid, c.new_direction);

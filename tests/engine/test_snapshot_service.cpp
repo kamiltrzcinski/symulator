@@ -30,6 +30,7 @@ constexpr UID kBlOpen = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTI
 constexpr UID kRt1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ROUTE, 1, 1);
 constexpr UID kSigY = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::SIGNAL, 1, 2);
 constexpr UID kAlm1 = make_uid(UIDDomain::OPERATIONS, UIDKind::ALARM, 1, 1);
+constexpr UID kTrain1 = make_uid(UIDDomain::ROLLING_STOCK, UIDKind::TRAIN_CONSIST, 0, 1);
 
 EngineSnapshot make_snapshot()
 {
@@ -85,6 +86,16 @@ EngineSnapshot make_snapshot()
     al.message = "Switch disagreement";
     snap.alarms[al.uid] = al;
 
+    TrainSnapshot train;
+    train.uid = kTrain1;
+    train.section_uid = kOtZ;  // the occupied section — exercises the join
+    train.speed_kmh = 72.5f;
+    train.total_length_m = 130.0f;
+    train.total_axles = 16;
+    train.vehicle_uids = {make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 1),
+                          make_uid(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 2)};
+    snap.trains.push_back(train);
+
     return snap;
 }
 
@@ -120,6 +131,34 @@ TEST_F(SnapshotSerializationFixture, SessionAndTickRoundTrip)
     ASSERT_NE(parsed_->session_id(), nullptr);
     EXPECT_EQ(parsed_->session_id()->str(), "SVC_TEST");
     EXPECT_EQ(parsed_->seq_cursor(), 42u);
+}
+
+TEST_F(SnapshotSerializationFixture, TrainStateRoundTrip)
+{
+    ASSERT_NE(parsed_->trains(), nullptr);
+    ASSERT_EQ(parsed_->trains()->size(), 1u);
+
+    const auto* train = parsed_->trains()->Get(0);
+    EXPECT_EQ(train->uid(), kTrain1.value);
+    EXPECT_EQ(train->section_uid(), kOtZ.value);
+    EXPECT_FLOAT_EQ(train->speed_kmh(), 72.5f);
+    EXPECT_FLOAT_EQ(train->total_length_m(), 130.0f);
+    EXPECT_EQ(train->total_axles(), 16);
+    ASSERT_NE(train->vehicle_uids(), nullptr);
+    EXPECT_EQ(train->vehicle_uids()->size(), 2u);
+}
+
+TEST_F(SnapshotSerializationFixture, TrackSectionTrainUidJoinedFromTrains)
+{
+    ASSERT_NE(parsed_->track_sections(), nullptr);
+    ASSERT_EQ(parsed_->track_sections()->size(), 1u);
+
+    const auto* section = parsed_->track_sections()->Get(0);
+    EXPECT_EQ(section->uid(), kOtZ.value);
+    EXPECT_TRUE(section->occupied());
+    // TrackSection itself does not store the occupying train — the serializer
+    // joins with the trains list by section_uid.
+    EXPECT_EQ(section->train_uid(), kTrain1.value);
 }
 
 using SnapshotAssertion = void (*)(const proto::Snapshot* parsed);

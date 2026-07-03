@@ -74,6 +74,18 @@ struct BlockSectionStateChange
     BlockSectionState new_state;
 };
 
+// Produced by TrainFleet (not the interlocking) when a train enters or leaves
+// a track section.  Broadcast to clients as DOMAIN_EVENT 0x04; the occupancy
+// itself is already applied by TrainFleet within the same tick, so the
+// StateApplier arm for this change is idempotent.
+struct TrackSectionOccupancyChange
+{
+    UID uid;
+    TrackOccupancy occupancy;
+    int axle_count = 0;  // live counter reading after the change (0 ↔ FREE)
+    UID train_uid{};     // 0 when the section becomes free
+};
+
 struct BlockDirectionChange
 {
     UID uid;
@@ -126,9 +138,9 @@ struct AlarmCleared
 
 using DeviceStateChange =
     std::variant<SignalAspectChange, SwitchPositionChange, SwitchLocked, SwitchUnlocked,
-                 DerailerStateChange, BlockSectionStateChange, BlockDirectionChange,
-                 AxleCounterResetChange, OperatorCommandStateChange, Ml8CommandStateChange,
-                 RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared>;
+                 DerailerStateChange, BlockSectionStateChange, TrackSectionOccupancyChange,
+                 BlockDirectionChange, AxleCounterResetChange, OperatorCommandStateChange,
+                 Ml8CommandStateChange, RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared>;
 
 // ── InterlockingViolation ────────────────────────────────────────────────────
 // Returned by check_command when the command is rejected.

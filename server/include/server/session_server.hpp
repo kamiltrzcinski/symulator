@@ -24,6 +24,10 @@
 #include "server/edr_coordinator.hpp"
 #include "server/ownership_guard.hpp"
 #include "server/pip_writer.hpp"
+#include "server/terminal/command_registry.hpp"
+#include "server/terminal/stdin_terminal.hpp"
+#include "server/terminal/terminal_session.hpp"
+#include "server/terminal/user_store.hpp"
 #include "server/transport_gateway.hpp"
 
 #include "engine/core/control_system.hpp"
@@ -123,6 +127,15 @@ private:
     // before any of those members are destroyed.
 
     std::unique_ptr<engine::core::EngineLoop> engine_loop_;
+
+    // ── Built-in terminal ─────────────────────────────────────────────────────
+    // Declared after engine_loop_: SpawnCommand/DespawnCommand enqueue into the
+    // loop, so the terminal must be destroyed (and its thread joined) first.
+
+    std::unique_ptr<terminal::InMemoryUserStore> user_store_;
+    std::unique_ptr<terminal::CommandRegistry> command_registry_;
+    std::unique_ptr<terminal::TerminalSession> terminal_session_;
+    std::unique_ptr<terminal::StdinTerminal> terminal_;
 };
 
 }  // namespace server

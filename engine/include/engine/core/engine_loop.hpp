@@ -15,6 +15,8 @@
 #include "engine/core/control_system.hpp"
 #include "engine/core/engine_snapshot.hpp"
 #include "engine/core/engine_state.hpp"
+#include "engine/core/event_queue.hpp"
+#include "engine/core/fleet_command.hpp"
 #include "engine/core/priority_command_queue.hpp"
 #include "engine/core/train_fleet.hpp"
 
@@ -68,6 +70,12 @@ public:
     ///                 section — determines which direction is "ahead".
     void add_train(sim::TrainSimState initial, UID from_uid);
 
+    /// Request a runtime fleet mutation (spawn/despawn) from any thread.
+    /// The ENGINE thread drains the queue at the start of the next tick and
+    /// re-validates against the current world state; rejected requests are
+    /// logged to stderr.  This is the seam TrainScheduler (E5) plugs into.
+    void enqueue_fleet_command(FleetCommand cmd);
+
     /// Spawn the ENGINE thread and begin ticking.  No-op if already running.
     void start();
 
@@ -96,6 +104,7 @@ private:
     PipCallback pip_cb_;
 
     TrainFleet train_fleet_;
+    EventQueue<FleetCommand> fleet_commands_;
 
     std::atomic<bool> running_{false};
     std::condition_variable_any cv_;

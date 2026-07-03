@@ -38,6 +38,10 @@ constexpr UID kIz1s = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER,
 constexpr UID kIz1d = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::AXLE_COUNTER, 1, 5);
 // Station UID (derived: scope=1, instance=1)
 constexpr UID kSta = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 1, 1);
+// Block sections (scope=1) and the neighbouring station (scope=2)
+constexpr UID kBlk1 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 1);
+constexpr UID kBlk2 = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::BLOCK_SECTION, 1, 2);
+constexpr UID kNeighborSta = make_uid(UIDDomain::INFRASTRUCTURE, UIDKind::STATION, 2, 1);
 
 // Create a minimal test scenario directory with meta.json + topology.json + objects.json.
 std::filesystem::path make_test_scenario()
@@ -117,6 +121,45 @@ std::filesystem::path make_test_scenario()
                    "      \"divergent\": { \"neighborUID\": " +
                    std::to_string(kBndN.value) + ", \"izUID\": " + std::to_string(kIz1d.value) +
                    " }\n"
+                   "    }\n"
+                   "  ],\n"
+                   "  \"block_sections\": [\n"
+                   "    {\n"
+                   "      \"uid\": " +
+                   std::to_string(kBlk1.value) +
+                   ",\n"
+                   "      \"pID\": \"blk_full\",\n"
+                   "      \"type_id\": \"SHL-12\",\n"
+                   "      \"neighborStationUID\": " +
+                   std::to_string(kNeighborSta.value) +
+                   ",\n"
+                   "      \"lineNumber\": 202,\n"
+                   "      \"departureSignalUID\": " +
+                   std::to_string(kWw1.value) +
+                   ",\n"
+                   "      \"entrySignalUID\": " +
+                   std::to_string(kWp1.value) +
+                   ",\n"
+                   "      \"szlakSectionUIDs\": [" +
+                   std::to_string(kOtT2a.value) +
+                   "],\n"
+                   "      \"initialState\": \"OPEN\",\n"
+                   "      \"initialDirection\": \"OUTBOUND\"\n"
+                   "    },\n"
+                   "    {\n"
+                   "      \"uid\": " +
+                   std::to_string(kBlk2.value) +
+                   ",\n"
+                   "      \"pID\": \"blk_minimal\",\n"
+                   "      \"neighborStationUID\": " +
+                   std::to_string(kNeighborSta.value) +
+                   ",\n"
+                   "      \"departureSignalUID\": " +
+                   std::to_string(kWw1.value) +
+                   ",\n"
+                   "      \"entrySignalUID\": " +
+                   std::to_string(kWp1.value) +
+                   "\n"
                    "    }\n"
                    "  ]\n"
                    "}\n");
@@ -350,6 +393,85 @@ TEST(TopologyLoader, DepartureSignalType)
     const auto* sig = st.find_signal(kWw1);
     ASSERT_NE(sig, nullptr);
     EXPECT_EQ(sig->type, Signal::Type::DEPARTURE);
+}
+
+// ── Block sections ────────────────────────────────────────────────────────────
+
+TEST(TopologyLoader, BlockSectionFieldsCorrect)
+{
+    EngineState st;
+    load_scenario(st, make_test_scenario());
+
+    const auto* blk = st.find_block_section(kBlk1);
+    ASSERT_NE(blk, nullptr);
+    EXPECT_EQ(blk->pid, "blk_full");
+    EXPECT_EQ(blk->type_id, "SHL-12");
+    EXPECT_EQ(blk->station_uid, kSta);
+    EXPECT_EQ(blk->neighbor_station_uid, kNeighborSta);
+    EXPECT_EQ(blk->line_number, 202);
+    EXPECT_EQ(blk->departure_signal_uid, kWw1);
+    EXPECT_EQ(blk->entry_signal_uid, kWp1);
+    ASSERT_EQ(blk->szlak_section_uids.size(), 1u);
+    EXPECT_EQ(blk->szlak_section_uids[0], kOtT2a);
+    EXPECT_EQ(blk->state, BlockSectionState::OPEN);
+    EXPECT_EQ(blk->direction, BlockDirectionState::OUTBOUND);
+}
+
+TEST(TopologyLoader, BlockSectionDefaults)
+{
+    EngineState st;
+    load_scenario(st, make_test_scenario());
+
+    const auto* blk = st.find_block_section(kBlk2);
+    ASSERT_NE(blk, nullptr);
+    EXPECT_EQ(blk->type_id, "SHL-12");  // default when type_id is absent
+    EXPECT_EQ(blk->line_number, 0);
+    EXPECT_TRUE(blk->szlak_section_uids.empty());
+    EXPECT_EQ(blk->state, BlockSectionState::CLOSED);         // default initialState
+    EXPECT_EQ(blk->direction, BlockDirectionState::NEUTRAL);  // default initialDirection
+}
+
+TEST(TopologyLoader, BlockSectionThrowsOnMissingRequiredField)
+{
+    static tests::common::TemporaryDirectory tmp{"symulator_topo_blk_err_"};
+    const auto dir = tmp.path() / "scenario";
+    std::filesystem::create_directories(dir);
+
+    write_text(dir / "meta.json", R"json({
+  "station_sid": "GOr",
+  "control_system": "ebilock_x4",
+  "schema_version": 1
+})json");
+    // block section without neighborStationUID / signal UIDs
+    write_text(dir / "topology.json",
+               "{ \"block_sections\": [ { \"uid\": " + std::to_string(kBlk1.value) +
+                   ", \"pID\": \"blk_broken\" } ] }\n");
+
+    EngineState st;
+    EXPECT_THROW(load_scenario(st, dir), std::runtime_error);
+}
+
+TEST(TopologyLoader, BlockSectionThrowsOnUnknownInitialState)
+{
+    static tests::common::TemporaryDirectory tmp{"symulator_topo_blk_state_"};
+    const auto dir = tmp.path() / "scenario";
+    std::filesystem::create_directories(dir);
+
+    write_text(dir / "meta.json", R"json({
+  "station_sid": "GOr",
+  "control_system": "ebilock_x4",
+  "schema_version": 1
+})json");
+    write_text(dir / "topology.json",
+               "{ \"block_sections\": [ { \"uid\": " + std::to_string(kBlk1.value) +
+                   ", \"pID\": \"blk_bad_state\", \"neighborStationUID\": " +
+                   std::to_string(kNeighborSta.value) +
+                   ", \"departureSignalUID\": " + std::to_string(kWw1.value) +
+                   ", \"entrySignalUID\": " + std::to_string(kWp1.value) +
+                   ", \"initialState\": \"HALF_OPEN\" } ] }\n");
+
+    EngineState st;
+    EXPECT_THROW(load_scenario(st, dir), std::runtime_error);
 }
 
 // ── Error handling ────────────────────────────────────────────────────────────

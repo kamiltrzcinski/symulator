@@ -266,6 +266,27 @@ TEST(StateApplier, AlarmCleared_removesAlarm)
     EXPECT_EQ(st.find_alarm(kAlm1), nullptr);
 }
 
+// ── TrackSectionOccupancyChange ──────────────────────────────────────────────
+
+TEST(StateApplier, TrackSectionOccupancyChange_setsOccupancyAndAxles)
+{
+    auto st = make_state();
+    TrackSection ts;
+    ts.uid = kOtTor;
+    ts.pid = "tor1";
+    st.insert_track_section(ts);
+
+    apply(st, TrackSectionOccupancyChange{kOtTor, TrackOccupancy::OCCUPIED, 12, UID{42}});
+    EXPECT_EQ(st.find_track_section(kOtTor)->occupancy, TrackOccupancy::OCCUPIED);
+    EXPECT_EQ(st.find_track_section(kOtTor)->axle_count, 12);
+
+    // Idempotent: TrainFleet has already applied the change within the tick —
+    // re-applying must not alter the result.
+    apply(st, TrackSectionOccupancyChange{kOtTor, TrackOccupancy::OCCUPIED, 12, UID{42}});
+    EXPECT_EQ(st.find_track_section(kOtTor)->occupancy, TrackOccupancy::OCCUPIED);
+    EXPECT_EQ(st.find_track_section(kOtTor)->axle_count, 12);
+}
+
 // ── apply_all ────────────────────────────────────────────────────────────────
 
 TEST(StateApplier, ApplyAll_appliesChangesInOrder)

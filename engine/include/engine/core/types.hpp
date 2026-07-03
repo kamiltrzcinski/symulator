@@ -328,6 +328,18 @@ struct PipEvent
     bool lcs_boundary_crossing = false;
 };
 
+// Read-only view of one active train, deep-copied into EngineSnapshot every
+// tick and serialised as proto::TrainState for clients (snapshot + delta).
+struct TrainSnapshot
+{
+    UID uid;
+    UID section_uid;
+    float speed_kmh = 0.0f;
+    float total_length_m = 0.0f;
+    int total_axles = 0;
+    std::vector<UID> vehicle_uids;
+};
+
 }  // namespace engine::core
 
 // ── std::hash specialisations ────────────────────────────────────────────────

@@ -2,6 +2,9 @@
 
 #include "engine/core/train_fleet.hpp"
 
+#include <algorithm>
+#include <string>
+
 namespace engine::core
 {
 
@@ -25,6 +28,105 @@ const TrackPort& ahead_port(const TrackSection& section, UID from_uid)
 void TrainFleet::add_train(sim::TrainSimState initial, UID from_uid)
 {
     entries_.push_back(TrainEntry{sim::TrainSim{std::move(initial)}, from_uid});
+}
+
+// ── Runtime spawn / despawn ───────────────────────────────────────────────────
+
+namespace
+{
+
+TrainSlot make_train_slot(const UID& train_uid)
+{
+    TrainSlot slot;
+    // Use the lower 16 bits of the uid value as a short display number.
+    slot.number = std::to_string(uid_instance(train_uid));
+    slot.entry_side = EntrySide::LEFT;
+    return slot;
+}
+
+}  // namespace
+
+std::optional<std::string> TrainFleet::spawn(EngineState& state, sim::TrainSimState initial,
+                                             UID from_uid, std::vector<DeviceStateChange>& changes,
+                                             std::vector<PipEvent>& pip_events)
+{
+    const UID section_uid = initial.current_section_uid;
+    const TrackSection* section = state.find_track_section(section_uid);
+    if (!section)
+        return "initial section " + std::to_string(section_uid.value) + " not found";
+    if (section->occupancy != TrackOccupancy::FREE)
+        return "initial section " + section->pid + " is not free";
+
+    const UID train_uid = initial.train_uid;
+    const int axles = initial.total_axles;
+    entries_.push_back(TrainEntry{sim::TrainSim{std::move(initial)}, from_uid});
+
+    state.apply_track_section_occupancy(section_uid, TrackOccupancy::OCCUPIED, axles);
+    changes.push_back(TrackSectionOccupancyChange{
+        .uid = section_uid,
+        .occupancy = TrackOccupancy::OCCUPIED,
+        .axle_count = axles,
+        .train_uid = train_uid,
+    });
+    pip_events.push_back(PipEvent{
+        .section_uid = section_uid,
+        .station_uid = section->station_uid,
+        .occupancy = TrackOccupancy::OCCUPIED,
+        .slot = make_train_slot(train_uid),
+        .lcs_boundary_crossing = false,
+    });
+    return std::nullopt;
+}
+
+std::optional<std::string> TrainFleet::despawn(EngineState& state, UID train_uid,
+                                               std::vector<DeviceStateChange>& changes,
+                                               std::vector<PipEvent>& pip_events)
+{
+    auto it = std::find_if(entries_.begin(), entries_.end(), [&](const TrainEntry& e)
+                           { return e.sim.state().train_uid == train_uid; });
+    if (it == entries_.end())
+        return "train " + std::to_string(train_uid.value) + " not found";
+
+    const UID section_uid = it->sim.state().current_section_uid;
+    if (const TrackSection* section = state.find_track_section(section_uid))
+    {
+        state.apply_track_section_occupancy(section_uid, TrackOccupancy::FREE, 0);
+        changes.push_back(TrackSectionOccupancyChange{
+            .uid = section_uid,
+            .occupancy = TrackOccupancy::FREE,
+            .axle_count = 0,
+            .train_uid = {},
+        });
+        pip_events.push_back(PipEvent{
+            .section_uid = section_uid,
+            .station_uid = section->station_uid,
+            .occupancy = TrackOccupancy::FREE,
+            .slot = std::nullopt,
+            .lcs_boundary_crossing = false,
+        });
+    }
+
+    entries_.erase(it);
+    return std::nullopt;
+}
+
+std::vector<TrainSnapshot> TrainFleet::snapshot_trains() const
+{
+    std::vector<TrainSnapshot> result;
+    result.reserve(entries_.size());
+    for (const auto& entry : entries_)
+    {
+        const auto& s = entry.sim.state();
+        result.push_back(TrainSnapshot{
+            .uid = s.train_uid,
+            .section_uid = s.current_section_uid,
+            .speed_kmh = s.physics_state.velocity_ms * 3.6f,
+            .total_length_m = s.total_length_m,
+            .total_axles = s.total_axles,
+            .vehicle_uids = s.vehicle_uids,
+        });
+    }
+    return result;
 }
 
 // ── Static topology helpers ───────────────────────────────────────────────────
@@ -93,10 +195,12 @@ SignalAspect TrainFleet::ahead_signal_aspect(const IStateView& state, const Trac
 
 // ── tick_all ──────────────────────────────────────────────────────────────────
 
-void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallback& pip_cb)
+std::vector<DeviceStateChange> TrainFleet::tick_all(EngineState& state, uint64_t tick_num,
+                                                    const PipCallback& pip_cb)
 {
     (void)tick_num;  // available for logging/debug if needed
 
+    std::vector<DeviceStateChange> changes;
     std::vector<PipEvent> pip_events;
 
     for (auto& entry : entries_)
@@ -135,6 +239,12 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
             entry.sim.state().physics_state.position_m >= section->length_m - 0.001f)
         {
             state.apply_track_section_occupancy(current_uid, TrackOccupancy::FREE, 0);
+            changes.push_back(TrackSectionOccupancyChange{
+                .uid = current_uid,
+                .occupancy = TrackOccupancy::FREE,
+                .axle_count = 0,
+                .train_uid = {},
+            });
             pip_events.push_back(PipEvent{
                 .section_uid = current_uid,
                 .station_uid = section->station_uid,
@@ -150,11 +260,27 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
         {
             const auto& crossing = *output.crossing;
 
-            // Update occupancy in EngineState.
+            // Update occupancy in EngineState.  Axle-counter semantics: every
+            // axle that entered the from-section has now left it (counter back
+            // to zero → FREE); all of the consist's axles are on the to-section.
+            const int axles = entry.sim.state().total_axles;
             state.apply_track_section_occupancy(crossing.from_section_uid, TrackOccupancy::FREE, 0);
-            state.apply_track_section_occupancy(
-                crossing.to_section_uid, TrackOccupancy::OCCUPIED,
-                entry.sim.state().physics_params.total_mass_t > 0 ? 4 : 0);
+            state.apply_track_section_occupancy(crossing.to_section_uid, TrackOccupancy::OCCUPIED,
+                                                axles);
+
+            const UID& train_uid = entry.sim.state().train_uid;
+            changes.push_back(TrackSectionOccupancyChange{
+                .uid = crossing.from_section_uid,
+                .occupancy = TrackOccupancy::FREE,
+                .axle_count = 0,
+                .train_uid = {},
+            });
+            changes.push_back(TrackSectionOccupancyChange{
+                .uid = crossing.to_section_uid,
+                .occupancy = TrackOccupancy::OCCUPIED,
+                .axle_count = axles,
+                .train_uid = train_uid,
+            });
 
             // Emit PipEvents: old section free, new section occupied.
             const TrackSection* from_sec = state.find_track_section(crossing.from_section_uid);
@@ -173,17 +299,11 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
 
             if (to_sec)
             {
-                const UID& train_uid = entry.sim.state().train_uid;
-                TrainSlot slot;
-                // Use the lower 16 bits of the uid value as a short display number
-                slot.number = std::to_string(uid_instance(train_uid));
-                slot.entry_side = EntrySide::LEFT;
-
                 pip_events.push_back(PipEvent{
                     .section_uid = crossing.to_section_uid,
                     .station_uid = to_sec->station_uid,
                     .occupancy = TrackOccupancy::OCCUPIED,
-                    .slot = slot,
+                    .slot = make_train_slot(train_uid),
                     .lcs_boundary_crossing = false,
                 });
             }
@@ -202,6 +322,8 @@ void TrainFleet::tick_all(EngineState& state, uint64_t tick_num, const PipCallba
 
     if (pip_cb && !pip_events.empty())
         pip_cb(pip_events);
+
+    return changes;
 }
 
 }  // namespace engine::core

@@ -28,6 +28,13 @@ struct TrainSimState
     physics::DriverState driver_state = physics::DriverState::STOPPED;
 
     float max_brake_kn = 0.0f;
+
+    // Consist-derived static properties (set by make_train_sim_state).
+    // total_axles drives the per-section axle counters: a section reads FREE
+    // only when every axle that entered has also left (counter back to zero).
+    int total_axles = 0;
+    float total_length_m = 0.0f;
+    std::vector<core::UID> vehicle_uids;
 };
 
 struct TrainSimTickInput

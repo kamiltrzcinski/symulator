@@ -700,5 +700,27 @@
             "maxSpeedStraightKmh": 70,
             "maxSpeedDivergentKmh": 60
         }
+    ],
+    "block_sections": [
+        {
+            "uid": 2297807634433,
+            "pID": "blk_l202_sp_gor",
+            "type_id": "SHL-12",
+            "neighborStationUID": 2272037765121,
+            "lineNumber": 202,
+            "departureSignalUID": 2289217699845,
+            "entrySignalUID": 2289217699847,
+            "szlakSectionUIDs": [2280627765265, 2280627765266, 2280627765267]
+        },
+        {
+            "uid": 2297807634434,
+            "pID": "blk_l250_sp_gor",
+            "type_id": "SHL-12",
+            "neighborStationUID": 2272037765121,
+            "lineNumber": 250,
+            "departureSignalUID": 2289217699853,
+            "entrySignalUID": 2289217699855,
+            "szlakSectionUIDs": [2280627765268, 2280627765269, 2280627765270]
+        }
     ]
 }

@@ -11,6 +11,7 @@ add_library(engine STATIC
     src/topology_loader.cpp
     src/engine_loop.cpp
     src/snapshot_service.cpp
+    src/spawn_resolver.cpp
 )
 
 target_include_directories(engine PUBLIC

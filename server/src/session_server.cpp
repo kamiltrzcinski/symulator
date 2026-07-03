@@ -5,6 +5,9 @@
 #include "server/dispatch_coordinator.hpp"
 #include "server/pg_db_writer.hpp"
 #include "server/pip_writer.hpp"
+#include "server/terminal/despawn_command.hpp"
+#include "server/terminal/spawn_command.hpp"
+#include "server/terminal/trains_command.hpp"
 
 #include "engine/core/control_system_registry.hpp"
 #include "engine/core/topology_loader.hpp"
@@ -220,6 +223,23 @@ void SessionServer::start()
     gateway_->start(config_.port);
     engine_loop_->start();
 
+    // 7. Built-in terminal (stdin).  Commands enqueue into the running ENGINE
+    //    loop; permissions are enforced per logged-in user by TerminalSession.
+    user_store_ = std::make_unique<terminal::InMemoryUserStore>(
+        terminal::InMemoryUserStore::with_default_admin());
+    command_registry_ = std::make_unique<terminal::CommandRegistry>();
+    auto enqueue_fleet_cmd = [this](engine::core::FleetCommand cmd)
+    { engine_loop_->enqueue_fleet_command(std::move(cmd)); };
+    command_registry_->add(
+        std::make_unique<terminal::SpawnCommand>(fleet_, snapshot_, enqueue_fleet_cmd));
+    command_registry_->add(
+        std::make_unique<terminal::DespawnCommand>(fleet_, snapshot_, enqueue_fleet_cmd));
+    command_registry_->add(std::make_unique<terminal::TrainsCommand>(snapshot_));
+    terminal_session_ =
+        std::make_unique<terminal::TerminalSession>(*command_registry_, *user_store_);
+    terminal_ = std::make_unique<terminal::StdinTerminal>(*terminal_session_);
+    terminal_->start();
+
     std::cout << "[server] Listening on port " << config_.port << "\n";
 }
 
@@ -227,7 +247,17 @@ void SessionServer::start()
 
 void SessionServer::stop()
 {
-    // Reverse startup order: ENGINE → dispatch channel → IO → resources.
+    // Reverse startup order: terminal → ENGINE → dispatch channel → IO → resources.
+    // The terminal goes first — its commands enqueue into engine_loop_.
+    if (terminal_)
+    {
+        terminal_->stop();
+        terminal_.reset();
+    }
+    terminal_session_.reset();
+    command_registry_.reset();
+    user_store_.reset();
+
     if (engine_loop_)
     {
         engine_loop_->stop();
