@@ -53,7 +53,7 @@ symulator/
   docker/                  docker-compose + PostgreSQL init.sql
   client/                  operator desktop app                                  — STUB (3-line main.cpp)
   editor/                  scenario editor                                       — STUB (3-line main.cpp)
-  libtrackview/            shared track-rendering library                        — STUB (empty namespace)
+  libtrackview/            SOLID-separated track layout and Qt rendering library
 ```
 
 Fleet/vehicle data (`vehicle_types/`, `vehicles/`, `trains/`, `carriers/`,
@@ -644,6 +644,7 @@ scenarios/<station>/
   meta.json       station_sid, area, line_numbers, control_system, schema_version
   topology.json   boundary_nodes, track_sections, switches, block_sections
   objects.json    signals, derailers
+  layouts/*.json  versioned presentation geometry referencing infrastructure UIDs
 ```
 
 `meta.json → "control_system"` (`"ebilock_x4"` or `"estw_ml8"`) selects the
@@ -684,6 +685,14 @@ scenarios/<station>/
 `objects.json` holds `signals` (`uid`, `pID`, `typeID`, `type` —
 `ENTRY`/`DEPARTURE`/`BLOCK`/`SHUNTING`, `initial_aspect`,
 `governs_section`) and `derailers`.
+
+Track geometry is deliberately absent from `topology.json`. `layouts/*.json`
+stores logical-unit paths, named switch ports, signal attachments and labels, so
+one physical graph may have EbiScreen, technical and future control-panel
+presentations. The machine-readable contract is
+`schemas/track-layout.schema.json`; the module boundaries, SOLID guarantees and
+rendering test strategy are documented in
+[`22-track-layout-and-rendering.md`](22-track-layout-and-rendering.md).
 
 ### Cross-station connectivity ("Model A")
 
