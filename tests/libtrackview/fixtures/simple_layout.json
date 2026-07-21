@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "layout_id": "simple-ebiscreen",
+  "station_sid": "TEST",
+  "kind": "track_schematic",
+  "style_hint": "ebiscreen",
+  "canvas": { "width": 40, "height": 20 },
+  "elements": [
+    {
+      "topology_uid": 1001,
+      "kind": "track_section",
+      "path": [{ "x": 2, "y": 10 }, { "x": 20, "y": 10 }]
+    },
+    {
+      "topology_uid": 2001,
+      "kind": "switch",
+      "ports": {
+        "trunk": { "x": 20, "y": 10 },
+        "straight": { "x": 30, "y": 10 },
+        "divergent": { "x": 30, "y": 15 }
+      }
+    },
+    {
+      "object_uid": 3001,
+      "kind": "signal",
+      "attachment": {
+        "topology_uid": 1001,
+        "side": "A",
+        "offset": 0.25,
+        "lateral": -2
+      },
+      "facing": "towards_B"
+    }
+  ],
+  "labels": [{ "text": "TEST", "anchor": { "x": 16, "y": 2 } }]
+}

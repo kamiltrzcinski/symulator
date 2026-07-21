@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://symulator.invalid/schemas/track-layout.schema.json",
+  "title": "Track schematic layout",
+  "type": "object",
+  "required": ["schema_version", "layout_id", "station_sid", "kind", "canvas", "elements"],
+  "properties": {
+    "$comment": { "type": "string" },
+    "schema_version": { "const": 1 },
+    "layout_id": { "type": "string", "minLength": 1 },
+    "station_sid": { "type": "string", "minLength": 1 },
+    "kind": { "const": "track_schematic" },
+    "style_hint": { "type": "string", "minLength": 1 },
+    "canvas": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/trackSection" },
+          { "$ref": "#/$defs/switch" },
+          { "$ref": "#/$defs/signal" }
+        ]
+      }
+    },
+    "labels": { "type": "array", "items": { "$ref": "#/$defs/label" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "uid": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "point": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" } },
+      "additionalProperties": false
+    },
+    "trackSection": {
+      "type": "object",
+      "required": ["topology_uid", "kind", "path"],
+      "properties": {
+        "topology_uid": { "$ref": "#/$defs/uid" },
+        "kind": { "const": "track_section" },
+        "path": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/point" } }
+      },
+      "additionalProperties": false
+    },
+    "switch": {
+      "type": "object",
+      "required": ["topology_uid", "kind", "ports"],
+      "properties": {
+        "topology_uid": { "$ref": "#/$defs/uid" },
+        "kind": { "const": "switch" },
+        "ports": {
+          "type": "object",
+          "required": ["trunk", "straight", "divergent"],
+          "properties": {
+            "trunk": { "$ref": "#/$defs/point" },
+            "straight": { "$ref": "#/$defs/point" },
+            "divergent": { "$ref": "#/$defs/point" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "signal": {
+      "type": "object",
+      "required": ["object_uid", "kind", "attachment", "facing"],
+      "properties": {
+        "object_uid": { "$ref": "#/$defs/uid" },
+        "kind": { "const": "signal" },
+        "attachment": {
+          "type": "object",
+          "required": ["topology_uid", "side", "offset"],
+          "properties": {
+            "topology_uid": { "$ref": "#/$defs/uid" },
+            "side": { "enum": ["A", "B"] },
+            "offset": { "type": "number", "minimum": 0, "maximum": 1 },
+            "lateral": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "facing": { "enum": ["towards_A", "towards_B"] }
+      },
+      "additionalProperties": false
+    },
+    "label": {
+      "type": "object",
+      "required": ["text", "anchor"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "anchor": { "$ref": "#/$defs/point" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

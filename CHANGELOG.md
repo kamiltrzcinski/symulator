@@ -74,6 +74,8 @@ All notable changes are documented here.
   creation, Train consist composition and collision-safe Train saving
 - Shared tools library, Qt Test coverage, GPL-2.0-or-later notice and complete
   user documentation in `tools/docs/`
+- Versioned station layouts and a SOLID-separated track rendering pipeline with
+  engine adapters, replaceable Qt themes and offscreen integration coverage
 
 ### Changed
 - Developer tools are now optional CMake targets enabled with `BUILD_TOOLS=ON`

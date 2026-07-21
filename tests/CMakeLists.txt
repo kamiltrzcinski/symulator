@@ -22,6 +22,10 @@ add_subdirectory(integration)
 add_subdirectory(proto)
 add_subdirectory(libscenario_validation)
 
+if(TARGET trackview_core)
+    add_subdirectory(libtrackview)
+endif()
+
 if(TARGET Qt6::Core)
     add_subdirectory(qt6)
 endif()
