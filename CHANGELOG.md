@@ -57,6 +57,10 @@ All notable changes are documented here.
   `vcpkg-overlay-triplets/x64-windows.cmake` forces just `libpqxx` static on
   Windows, leaving Qt itself dynamic; wired via `--overlay-triplets` in
   `configure_ninja.py`
+- `symulator_set_qt_test_environment()` had no `TIMEOUT`, so a hung Qt test
+  (e.g. an unresolvable platform plugin, or a Windows Debug CRT
+  assert/uncaught-exception dialog nothing on headless CI can dismiss) would
+  block the whole CI job for hours instead of failing fast; now capped at 120s
 
 ## [0.5.12] - 2026-07-03
 

@@ -8,10 +8,19 @@
 # For ctest-driven binaries: set QT_PLUGIN_PATH (and QT_QPA_PLATFORM=offscreen,
 # since none of our test binaries need a real display) via test properties.
 # Call after add_test().
+#
+# TIMEOUT guards against silent multi-hour hangs instead of a fast, readable
+# failure — e.g. a platform plugin that fails to load without an explicit
+# error, or (Windows Debug CRT specifically) an assert()/uncaught exception
+# popping a modal "Abort/Retry/Ignore" dialog that nobody on a headless CI
+# runner can click. All tests using this helper are plain unit tests (no
+# sleeps/network/IO) that finish in well under a second locally, so 120s
+# leaves generous headroom for a slow/cold CI runner while still failing fast.
 function(symulator_set_qt_test_environment target)
     set_tests_properties(${target} PROPERTIES
         ENVIRONMENT_MODIFICATION
             "QT_QPA_PLATFORM=set:offscreen;QT_PLUGIN_PATH=set:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS};PATH=path_list_prepend:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}"
+        TIMEOUT 120
     )
 endfunction()
 
