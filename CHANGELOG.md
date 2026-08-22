@@ -69,6 +69,18 @@ All notable changes are documented here.
   `--output-on-failure` showed nothing) and `QT_DEBUG_PLUGINS=1` in
   `symulator_set_qt_test_environment()` (logs every platform-plugin candidate
   Qt inspects and why it's accepted/rejected)
+- Still zero output after the above, even with unbuffered stdout and
+  `QT_DEBUG_PLUGINS=1` — narrows the Windows hang to before Qt's plugin
+  factory logging even starts (during `QApplication` construction itself),
+  consistent with Qt being unable to load any platform plugin and blocking on
+  a native "failed to start" message box nothing on a headless runner can
+  dismiss (an interactive user would just see it as an instant crash after
+  clicking through it — this is a documented Qt/Windows behaviour, not new).
+  Added a one-time CMake `message(STATUS ...)` logging the resolved
+  `QT6_INSTALL_PREFIX`/`QT6_INSTALL_PLUGINS` path plus its actual
+  `platforms/` directory contents, and a Windows CI step that independently
+  lists every `*offscreen*` file under `vcpkg_installed`, to cross-check
+  what Qt was told against what's really on disk
 
 ## [0.5.12] - 2026-07-03
 

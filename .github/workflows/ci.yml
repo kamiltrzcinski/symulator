@@ -260,6 +260,20 @@ jobs:
       - name: Build
         run: cmake --build build/ninja-debug --parallel
 
+      # ── Diagnose Qt platform plugins ──────────────────────────────────────
+      # tests_libtrackview / tools_test_editor_persistence (the only two Qt
+      # tests that construct QApplication instead of QCoreApplication) hang
+      # until ctest's TIMEOUT with zero output, even with unbuffered stdout
+      # and QT_DEBUG_PLUGINS=1 — consistent with Qt being unable to find any
+      # platform plugin and blocking on a native "failed to start" message
+      # box that nothing on a headless runner can dismiss. Cross-check the
+      # "Configure" step's logged QT6_INSTALL_PLUGINS path against what's
+      # actually on disk before running the (currently timing-out) tests.
+      - name: Diagnose Qt platform plugins (Windows)
+        run: |
+          Get-ChildItem -Recurse -Filter "*offscreen*" -Path 3rdParty/vcpkg/installed | Select-Object FullName
+        shell: pwsh
+
       # ── Qt test suites ────────────────────────────────────────────────────
       - name: Qt test suites
         run: |

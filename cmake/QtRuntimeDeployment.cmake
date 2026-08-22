@@ -4,6 +4,23 @@
 # VCPKG_APPLOCAL_DEPS on Windows). Nothing in the vcpkg qtbase port installs a
 # qt.conf for consumer executables (only for Qt's own dev tools), so every Qt
 # GUI/test binary this project builds needs one of the two helpers below.
+#
+# Printed once at configure time (not per-target) so any CI "Configure" log
+# always shows the resolved values without needing a separate run to fail
+# first — useful when diagnosing "platform plugin not found"-class issues,
+# since QT6_INSTALL_PLUGINS's actual on-disk layout is asserted here, not
+# just assumed.
+message(STATUS "Qt6 runtime paths: prefix=${QT6_INSTALL_PREFIX} "
+    "plugins=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS} "
+    "bins=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}")
+if(EXISTS "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms")
+    file(GLOB _symulator_qt_platform_plugins
+        "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms/*")
+    message(STATUS "Qt6 platform plugins found: ${_symulator_qt_platform_plugins}")
+else()
+    message(WARNING "Qt6 platforms plugin directory does not exist: "
+        "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms")
+endif()
 
 # For ctest-driven binaries: set QT_PLUGIN_PATH (and QT_QPA_PLATFORM=offscreen,
 # since none of our test binaries need a real display) via test properties.
