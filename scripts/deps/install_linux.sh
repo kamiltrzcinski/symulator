@@ -35,6 +35,8 @@ install_cmd=(
     libxkbcommon-dev
     libxkbcommon-x11-dev
     libegl1-mesa-dev
+    libice-dev
+    libsm-dev
     libasio-dev
 )
 

@@ -28,9 +28,28 @@ endfunction()
 # nested layout ("Qt6/plugins") — silently breaking plugin discovery instead
 # of fixing it. Mirrors vcpkg's own tools/Qt6/bin/qt.conf, which sets the same
 # keys for Qt's dev tools (moc/uic/rcc).
+#
+# On Windows, qt_add_executable() funnels every GUI target's output into one
+# shared CMAKE_RUNTIME_OUTPUT_DIRECTORY (Qt needs same-directory DLL/plugin
+# placement there; Linux/macOS don't, since RPATH covers it, so each target
+# keeps its own output directory). Writing qt.conf per target would then mean
+# multiple file(GENERATE) calls targeting the exact same path, which CMake's
+# generate step rejects even when the content is identical. Detect the shared
+# case via CMAKE_RUNTIME_OUTPUT_DIRECTORY and write once for the whole build.
 function(symulator_deploy_qt_conf target)
+    if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+        get_property(_symulator_qt_conf_written GLOBAL PROPERTY _symulator_qt_conf_written)
+        if(_symulator_qt_conf_written)
+            return()
+        endif()
+        set_property(GLOBAL PROPERTY _symulator_qt_conf_written TRUE)
+        set(_qt_conf_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    else()
+        set(_qt_conf_dir "$<TARGET_FILE_DIR:${target}>")
+    endif()
+
     file(GENERATE
-        OUTPUT "$<TARGET_FILE_DIR:${target}>/qt.conf"
+        OUTPUT "${_qt_conf_dir}/qt.conf"
         CONTENT
 "[Paths]
 Prefix=${QT6_INSTALL_PREFIX}
