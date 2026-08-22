@@ -36,6 +36,9 @@ All notable changes are documented here.
   `QT_QPA_PLATFORM=offscreen` but the platform plugin was never resolvable
   under a statically-linked Qt; fixed as a consequence of the dynamic-linking
   switch above
+- `scripts/deps/install_linux.sh` / `install_system_deps.py` were missing
+  `libltdl-dev`, needed by vcpkg's `libxcrypt` build (a `dbus` dependency
+  pulled in by `qtbase[dbus]`) — surfaced by the new CI Qt job
 
 ## [0.5.12] - 2026-07-03
 

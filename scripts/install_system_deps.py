@@ -46,6 +46,7 @@ PRINT_ONLY_COMMANDS = {
             "autoconf-archive",
             "automake",
             "libtool",
+            "libltdl-dev",
             "^libxcb.*-dev",
             "libx11-xcb-dev",
             "libglu1-mesa-dev",
