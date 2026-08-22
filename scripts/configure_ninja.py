@@ -185,6 +185,7 @@ def install_third_party(
     vcpkg_executable: Path,
     dependencies: list[str],
     triplet: str,
+    overlay_triplets_dir: Path,
     env: dict[str, str],
     dry_run: bool,
 ) -> None:
@@ -198,6 +199,7 @@ def install_third_party(
             "--classic",
             *dependencies,
             f"--triplet={triplet}",
+            f"--overlay-triplets={overlay_triplets_dir}",
             "--clean-after-build",
         ],
         env=env,
@@ -435,6 +437,7 @@ def main() -> int:
                 vcpkg_executable=vcpkg_executable,
                 dependencies=dependencies,
                 triplet=triplet,
+                overlay_triplets_dir=repo_root / "vcpkg-overlay-triplets",
                 env=env,
                 dry_run=args.dry_run,
             )

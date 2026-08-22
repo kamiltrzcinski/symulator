@@ -47,6 +47,16 @@ All notable changes are documented here.
   funnels every GUI target into one shared `CMAKE_RUNTIME_OUTPUT_DIRECTORY`
   there (Linux/macOS keep per-target directories), so writing `qt.conf` once
   per target collided; now written once per shared output directory
+- `symulator-server.exe` failed to link on Windows with `LNK2005` duplicate
+  `std::basic_string_view` symbols: dynamic `libpqxx`'s `zview` (public
+  `std::string_view` subclass) is `PQXX_LIBEXPORT`, which becomes
+  `__declspec(dllimport)` once `PQXX_SHARED` propagates to consumers, and
+  MSVC re-emits inherited base-class members as imported symbols — a
+  Windows/MSVC-only failure mode (GCC/Clang use visibility attributes, no
+  such issue on the Linux/macOS `-dynamic` triplets). New
+  `vcpkg-overlay-triplets/x64-windows.cmake` forces just `libpqxx` static on
+  Windows, leaving Qt itself dynamic; wired via `--overlay-triplets` in
+  `configure_ninja.py`
 
 ## [0.5.12] - 2026-07-03
 
