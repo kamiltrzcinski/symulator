@@ -29,6 +29,11 @@ Stworzenie działającego, sieciowego symulatora SRK zawierającego:
 - współdzielone sesje wielooperatorskie,
 - bazę pod przyszłą automatyzację i AI.
 
+## Licencja
+
+Oprogramowanie własnościowe — patrz `LICENSE.md`. Komponenty firm trzecich
+(m.in. Qt6) są licencjonowane odrębnie — patrz `THIRD_PARTY_NOTICES.md`.
+
 ---
 
 ## ENGLISH
@@ -59,3 +64,8 @@ Build a working networked signaling simulator with:
 - timetable execution,
 - shared multi-operator sessions,
 - a base for future automation and AI.
+
+## License
+
+Proprietary software — see `LICENSE.md`. Third-party components (including
+Qt6) are licensed separately — see `THIRD_PARTY_NOTICES.md`.

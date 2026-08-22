@@ -20,6 +20,8 @@ GROUP_REGEX = {
     "integration-non-db": r"^group:integration-non-db$",
     "integration-db": r"^group:integration-db$",
     "unit-qt6": r"^group:unit-qt6$",
+    "unit-libtrackview": r"^group:unit-libtrackview$",
+    "tools": r"^tools$",
 }
 
 PROFILE_GROUPS = {
@@ -41,6 +43,7 @@ PROFILE_GROUPS = {
         "integration-non-db",
         "integration-db",
     ],
+    "qt": ["unit-qt6", "unit-libtrackview", "tools"],
 }
 
 

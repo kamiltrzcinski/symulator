@@ -45,17 +45,27 @@ def detect_third_party_root(repo_root: Path, system_name: str) -> Path:
     return third_party_root
 
 
-def detect_triplet(system_name: str, machine_name: str, override: str | None) -> str:
+def detect_triplet(system_name: str, machine_name: str, override: str | None, include_qt: bool) -> str:
     if override:
         return override
 
     machine = machine_name.lower()
+    is_arm = "arm" in machine or "aarch64" in machine
+
+    # Windows triplets are dynamic by default already — Qt (LGPLv3) has never
+    # needed a static/dynamic split there. Linux/macOS stock triplets are
+    # static by default, which is incompatible with distributing Qt in a
+    # closed-source app without shipping relinkable object code (LGPLv3 §4).
+    # When Qt is part of the build, switch those two platforms to vcpkg's
+    # ready-made "-dynamic" community triplets instead.
     if system_name == "Windows":
-        return "arm64-windows" if "arm" in machine else "x64-windows"
+        return "arm64-windows" if is_arm else "x64-windows"
     if system_name == "Darwin":
-        return "arm64-osx" if "arm" in machine else "x64-osx"
+        base = "arm64-osx" if is_arm else "x64-osx"
+        return f"{base}-dynamic" if include_qt else base
     if system_name == "Linux":
-        return "arm64-linux" if "arm" in machine or "aarch64" in machine else "x64-linux"
+        base = "arm64-linux" if is_arm else "x64-linux"
+        return f"{base}-dynamic" if include_qt else base
 
     raise RuntimeError(f"No default triplet mapping for OS: {system_name}")
 
@@ -296,10 +306,12 @@ def configure_ninja_build(
     build_type: str,
     generator: str,
     toolchain_file: Path | None,
+    triplet: str,
     env: dict[str, str],
     dry_run: bool,
     configure_only: bool,
     headless: bool,
+    build_tools: bool,
 ) -> None:
     command = [
         "cmake",
@@ -317,12 +329,23 @@ def configure_ninja_build(
         command.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}")
         # We pre-install dependencies in classic mode.
         command.append("-DVCPKG_MANIFEST_MODE=OFF")
+        # Without this, the vcpkg toolchain falls back to its own
+        # host-detected default triplet (e.g. plain "x64-linux") instead of
+        # the one we actually ran `vcpkg install --triplet=...` against —
+        # harmless while only one triplet is ever installed, but silently
+        # picks up a stale/incompatible triplet's packages (e.g. a static
+        # Qt6 left over from a headless build) once more than one triplet
+        # coexists under the same classic-mode installed/ tree.
+        command.append(f"-DVCPKG_TARGET_TRIPLET={triplet}")
 
     if headless:
         command.extend([
             "-DBUILD_CLIENT=OFF",
             "-DBUILD_EDITOR=OFF",
         ])
+
+    if build_tools:
+        command.append("-DBUILD_TOOLS=ON")
 
     run_command(command, env=env, dry_run=dry_run)
 
@@ -340,6 +363,7 @@ def main() -> int:
     parser.add_argument("--generator", default="Ninja", help="CMake generator (default: Ninja)")
     parser.add_argument("--headless", action="store_true", help="Configure server-only build (BUILD_CLIENT=OFF, BUILD_EDITOR=OFF)")
     parser.add_argument("--without-qt", action="store_true", help="Do not install qtbase via vcpkg")
+    parser.add_argument("--build-tools", action="store_true", help="Also configure BUILD_TOOLS=ON (Qt developer tools)")
     parser.add_argument("--no-third-party-install", action="store_true", help="Skip vcpkg install step")
     parser.add_argument("--no-toolchain", action="store_true", help="Configure without vcpkg toolchain")
     parser.add_argument(
@@ -364,8 +388,10 @@ def main() -> int:
     if args.host_system and args.host_system != actual_system and not args.dry_run:
         raise RuntimeError("--host-system different from current host is supported only with --dry-run")
 
+    include_qt = (not args.without_qt) and (not args.headless)
+
     third_party_root = detect_third_party_root(repo_root, system_name)
-    triplet = detect_triplet(system_name, platform.machine(), args.triplet)
+    triplet = detect_triplet(system_name, platform.machine(), args.triplet, include_qt)
 
     downloads_dir = third_party_root / "vcpkg-downloads"
     binary_cache_dir = third_party_root / "vcpkg-binary-cache"
@@ -389,7 +415,6 @@ def main() -> int:
         env["VCPKG_ROOT"] = str(vcpkg_root)
 
         if not args.no_third_party_install:
-            include_qt = (not args.without_qt) and (not args.headless)
             dependencies = read_manifest_dependencies(repo_root / "vcpkg.json", include_qt=include_qt)
             normalize_vcpkg_tools_layout(
                 vcpkg_root=vcpkg_root,
@@ -437,10 +462,12 @@ def main() -> int:
         build_type=args.build_type,
         generator=args.generator,
         toolchain_file=toolchain_file,
+        triplet=triplet,
         env=env,
         dry_run=args.dry_run,
         configure_only=args.configure_only,
         headless=args.headless,
+        build_tools=args.build_tools,
     )
 
     print("\nDone.")

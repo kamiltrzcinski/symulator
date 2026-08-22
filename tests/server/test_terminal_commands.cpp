@@ -188,7 +188,8 @@ TEST(SpawnCommand, AlreadyActiveTrainRejected)
 {
     CommandFixture f;
     auto snap = make_world_snapshot();
-    snap->trains.push_back(TrainSnapshot{.uid = kConsist, .section_uid = kSection});
+    snap->trains.push_back(
+        TrainSnapshot{.uid = kConsist, .section_uid = kSection, .vehicle_uids = {}});
     f.snapshot.publish(std::move(snap));
     SpawnCommand cmd(test_fleet(), f.snapshot, f.enqueue_fn());
 
@@ -202,7 +203,8 @@ TEST(DespawnCommand, DespawnsActiveTrainByPid)
 {
     CommandFixture f;
     auto snap = make_world_snapshot();
-    snap->trains.push_back(TrainSnapshot{.uid = kConsist, .section_uid = kSection});
+    snap->trains.push_back(
+        TrainSnapshot{.uid = kConsist, .section_uid = kSection, .vehicle_uids = {}});
     f.snapshot.publish(std::move(snap));
     DespawnCommand cmd(test_fleet(), f.snapshot, f.enqueue_fn());
 
@@ -238,8 +240,11 @@ TEST(TrainsCommand, ListsActiveTrains)
 {
     CommandFixture f;
     auto snap = make_world_snapshot();
-    snap->trains.push_back(TrainSnapshot{
-        .uid = kConsist, .section_uid = kSection, .speed_kmh = 55.0f, .total_axles = 16});
+    snap->trains.push_back(TrainSnapshot{.uid = kConsist,
+                                         .section_uid = kSection,
+                                         .speed_kmh = 55.0f,
+                                         .total_axles = 16,
+                                         .vehicle_uids = {}});
     f.snapshot.publish(std::move(snap));
     TrainsCommand cmd(f.snapshot);
 

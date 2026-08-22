@@ -3,11 +3,8 @@ function(add_vehicle_browser_test target source)
     target_link_libraries(${target} PRIVATE vehicle_browser_models tools_shared Qt6::Test)
     target_compile_features(${target} PRIVATE cxx_std_20)
     add_test(NAME ${target} COMMAND ${target})
-    set_tests_properties(${target} PROPERTIES
-        LABELS "tools"
-        ENVIRONMENT_MODIFICATION
-            "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
-    )
+    set_tests_properties(${target} PROPERTIES LABELS "tools")
+    symulator_set_qt_test_environment(${target})
 endfunction()
 
 add_vehicle_browser_test(tools_test_vehicle_type_model test_vehicle_type_model.cpp)
@@ -28,8 +25,5 @@ target_link_libraries(tools_test_editor_persistence PRIVATE
 )
 target_compile_features(tools_test_editor_persistence PRIVATE cxx_std_20)
 add_test(NAME tools_test_editor_persistence COMMAND tools_test_editor_persistence)
-set_tests_properties(tools_test_editor_persistence PROPERTIES
-    LABELS "tools"
-    ENVIRONMENT_MODIFICATION
-        "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
-)
+set_tests_properties(tools_test_editor_persistence PROPERTIES LABELS "tools")
+symulator_set_qt_test_environment(tools_test_editor_persistence)

@@ -2,6 +2,41 @@
 
 All notable changes are documented here.
 
+## [0.5.13] - 2026-08-22
+
+### Changed
+- Qt6 (`client`, `editor`, `libtrackview`, `tools`) is now linked dynamically
+  instead of statically, using vcpkg's `-dynamic` community triplets on
+  Linux/macOS (Windows was already dynamic) — required for LGPLv3 compliance
+  without a commercial Qt license in this closed-source project; see
+  `THIRD_PARTY_NOTICES.md`
+- `configure_ninja.py` now passes `-DVCPKG_TARGET_TRIPLET` explicitly to
+  CMake (previously relied on the vcpkg toolchain's own default, which could
+  silently resolve to a stale/incompatible triplet once more than one is
+  installed) and gained a `--build-tools` flag
+- New `cmake/QtRuntimeDeployment.cmake`: `symulator_set_qt_test_environment()`
+  sets `QT_PLUGIN_PATH`/`QT_QPA_PLATFORM=offscreen` for ctest-driven Qt
+  binaries; `symulator_deploy_qt_conf()` writes a `qt.conf` next to
+  interactively-run GUI binaries so Qt's plugin loader (platforms,
+  imageformats, ...) finds vcpkg's non-standard `Qt6/plugins` layout
+- `run_grouped_ctest.py` gained a `qt` profile (`unit-qt6`,
+  `unit-libtrackview`, `tools` groups)
+
+### Added
+- `THIRD_PARTY_NOTICES.md` documenting Qt6/LGPLv3 usage, cross-linked from
+  `LICENSE.md` and `README.md`
+- CI: `build-and-test-qt-ubuntu` and `build-and-test-qt-windows` jobs build
+  client/editor/libtrackview/tools with dynamic Qt and run the Qt test
+  suites; the existing headless job's vcpkg cache key now includes a
+  headless/qt differentiator to avoid cache collisions between the two
+  incompatible triplets
+
+### Fixed
+- `tests_libtrackview` (added in 0.5.12) could not start at all — it forced
+  `QT_QPA_PLATFORM=offscreen` but the platform plugin was never resolvable
+  under a statically-linked Qt; fixed as a consequence of the dynamic-linking
+  switch above
+
 ## [0.5.12] - 2026-07-03
 
 ### Added

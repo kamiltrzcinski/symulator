@@ -42,6 +42,9 @@ W celu uzyskania licencji lub zgody prosimy o kontakt:
 - kamil.trzcinski@gmail.com
 - tymonkochanski5@gmail.com
 
+Komponenty firm trzecich (m.in. Qt6) są licencjonowane odrębnie — patrz
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
 ---
 
 # ENGLISH
@@ -87,3 +90,6 @@ To request a license or permission, contact:
 
 - kamil.trzcinski@gmail.com
 - tymonkochanski5@gmail.com
+
+Third-party components (including Qt6) are licensed separately — see
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

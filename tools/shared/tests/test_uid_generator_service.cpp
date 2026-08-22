@@ -47,7 +47,7 @@ void UidGeneratorServiceTest::rejectsZeroInstance()
     const UidGeneratorService generator(validator);
 
     QVERIFY_EXCEPTION_THROWN(
-        generator.generate(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 0),
+        (void)generator.generate(UIDDomain::ROLLING_STOCK, UIDKind::VEHICLE, 0, 0),
         std::invalid_argument);
 }
 
@@ -64,9 +64,8 @@ void UidGeneratorServiceTest::throwsWhenScopeIsFull()
     const UidValidator validator(registry);
     const UidGeneratorService generator(validator);
 
-    QVERIFY_EXCEPTION_THROWN(
-        generator.generate(UIDDomain::OPERATIONS, UIDKind::ALARM, 9),
-        UidExhaustedException);
+    QVERIFY_EXCEPTION_THROWN((void)generator.generate(UIDDomain::OPERATIONS, UIDKind::ALARM, 9),
+                             UidExhaustedException);
 }
 
 }  // namespace symulator::tools

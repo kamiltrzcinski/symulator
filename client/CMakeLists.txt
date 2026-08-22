@@ -15,3 +15,5 @@ target_link_libraries(symulator-client PRIVATE
 )
 
 target_compile_features(symulator-client PRIVATE cxx_std_20)
+
+symulator_deploy_qt_conf(symulator-client)

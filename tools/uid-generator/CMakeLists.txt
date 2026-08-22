@@ -16,3 +16,5 @@ target_link_libraries(uid-generator PRIVATE
 )
 
 target_compile_features(uid-generator PRIVATE cxx_std_20)
+
+symulator_deploy_qt_conf(uid-generator)
