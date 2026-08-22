@@ -61,6 +61,14 @@ All notable changes are documented here.
   (e.g. an unresolvable platform plugin, or a Windows Debug CRT
   assert/uncaught-exception dialog nothing on headless CI can dismiss) would
   block the whole CI job for hours instead of failing fast; now capped at 120s
+- Every Windows Qt test that constructs `QApplication` (`tests_libtrackview`,
+  `tools_test_editor_persistence`) now hits that 120s timeout instead of
+  passing; added diagnostics to make the *next* CI run explain why instead of
+  timing out silently: unbuffered stdout in both test binaries (a killed
+  process loses any output still sitting in libc's stdio buffer, so
+  `--output-on-failure` showed nothing) and `QT_DEBUG_PLUGINS=1` in
+  `symulator_set_qt_test_environment()` (logs every platform-plugin candidate
+  Qt inspects and why it's accepted/rejected)
 
 ## [0.5.12] - 2026-07-03
 

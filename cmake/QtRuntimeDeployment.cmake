@@ -16,10 +16,16 @@
 # runner can click. All tests using this helper are plain unit tests (no
 # sleeps/network/IO) that finish in well under a second locally, so 120s
 # leaves generous headroom for a slow/cold CI runner while still failing fast.
+#
+# QT_DEBUG_PLUGINS=1 is a temporary diagnostic: on Windows CI, every test that
+# constructs a QApplication (needs the "offscreen" platform plugin) hangs
+# until TIMEOUT, while QCoreApplication-only tests pass — this makes Qt log
+# every plugin candidate it inspects and why it accepts/rejects it, so the
+# next hang is actually explainable instead of a silent timeout.
 function(symulator_set_qt_test_environment target)
     set_tests_properties(${target} PROPERTIES
         ENVIRONMENT_MODIFICATION
-            "QT_QPA_PLATFORM=set:offscreen;QT_PLUGIN_PATH=set:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS};PATH=path_list_prepend:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}"
+            "QT_QPA_PLATFORM=set:offscreen;QT_PLUGIN_PATH=set:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS};PATH=path_list_prepend:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS};QT_DEBUG_PLUGINS=set:1"
         TIMEOUT 120
     )
 endfunction()
