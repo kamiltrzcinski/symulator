@@ -126,7 +126,7 @@ def load_stations() -> None:
     if not stations_file.exists():
         print(f"WARNING: {stations_file} not found; skipping station-scope validation")
         return
-    with open(stations_file) as f:
+    with open(stations_file, "r", encoding="utf-8") as f:
         data = json.load(f)
     for entry in data:
         KNOWN_STATIONS[entry["instance"]] = entry["code"]
@@ -141,7 +141,7 @@ def validate_vehicle_types() -> None:
     seen_uids: dict[int, str] = {}
     count = 0
     for path in sorted(types_dir.rglob("*.json")):
-        with open(path) as f:
+        with open(path, "r", encoding="utf-8") as f:
             try:
                 obj = json.load(f)
             except json.JSONDecodeError as e:
@@ -178,7 +178,7 @@ def validate_vehicles() -> dict[int, str]:
     seen_uids: dict[int, str] = {}
     count = 0
     for path in sorted(vehicles_dir.rglob("vehicle.json")):
-        with open(path) as f:
+        with open(path, "r", encoding="utf-8") as f:
             try:
                 obj = json.load(f)
             except json.JSONDecodeError as e:
@@ -218,7 +218,7 @@ def validate_trains(vehicle_uids: dict[int, str]) -> None:
     for path in sorted(
         p for d in train_dirs if d.exists() for p in d.rglob("*.json")
     ):
-        with open(path) as f:
+        with open(path, "r", encoding="utf-8") as f:
             try:
                 obj = json.load(f)
             except json.JSONDecodeError as e:
@@ -256,7 +256,7 @@ def validate_carriers() -> None:
     if not carriers_file.exists():
         return
 
-    with open(carriers_file) as f:
+    with open(carriers_file, "r", encoding="utf-8") as f:
         try:
             obj = json.load(f)
         except json.JSONDecodeError as e:
@@ -331,7 +331,7 @@ def _validate_topology_obj(obj: dict, rel: str, seen_uids: dict[int, str]) -> No
 
 
 def validate_topology(topology_path: Path) -> None:
-    with open(topology_path) as f:
+    with open(topology_path, "r", encoding="utf-8") as f:
         try:
             data = json.load(f)
         except json.JSONDecodeError as e:
