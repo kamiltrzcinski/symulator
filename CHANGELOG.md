@@ -102,6 +102,12 @@ All notable changes are documented here.
   keeping both, since `/FORCE:MULTIPLE` silently permits *any* duplicate
   symbol project-wide (not just this one), masking future genuine ODR
   violations instead of catching them
+- CI's 3 JUnit-report `actions/upload-artifact` uploads had no
+  `retention-days`, defaulting to the repo's 90-day setting — with today's
+  many CI iterations, that filled the account's 0.5 GB Actions *storage*
+  quota (separate from, and much smaller than, the compute-minutes quota).
+  Capped at 7 days; doesn't need a self-hosted runner, since artifact
+  storage is billed the same regardless of where the job actually runs
 
 ## [0.5.12] - 2026-07-03
 

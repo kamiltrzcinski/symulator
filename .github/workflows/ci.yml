@@ -155,6 +155,7 @@ jobs:
           name: grouped-ctest-junit
           path: build/ninja-debug-headless/test-reports/*.xml
           if-no-files-found: warn
+          retention-days: 7
 
   build-and-test-qt-ubuntu:
     name: Build & Test (Qt, dynamic linking, Ubuntu)
@@ -216,6 +217,7 @@ jobs:
           name: grouped-ctest-junit-qt-ubuntu
           path: build/ninja-debug/test-reports/*.xml
           if-no-files-found: warn
+          retention-days: 7
 
   build-and-test-qt-windows:
     name: Build & Test (Qt, dynamic linking, Windows)
@@ -287,3 +289,4 @@ jobs:
           name: grouped-ctest-junit-qt-windows
           path: build/ninja-debug/test-reports/*.xml
           if-no-files-found: warn
+          retention-days: 7
