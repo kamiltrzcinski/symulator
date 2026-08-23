@@ -81,6 +81,20 @@ All notable changes are documented here.
   `platforms/` directory contents, and a Windows CI step that independently
   lists every `*offscreen*` file under `vcpkg_installed`, to cross-check
   what Qt was told against what's really on disk
+- Found it: on Windows the diagnostics above showed `QT_PLUGIN_PATH` pointing
+  at `.../x64-windows/Qt6/plugins/platforms/qoffscreen.dll` while the actual
+  Debug-build plugin vcpkg installs is `.../x64-windows/debug/Qt6/plugins/platforms/qoffscreend.dll`
+  — a different directory *and* filename. `QT6_INSTALL_PREFIX`/`_PLUGINS`/`_BINS`
+  (from Qt's own `QtInstallPaths.cmake`) only describe the Release layout;
+  vcpkg's Windows triplets additionally install a full Debug copy side by
+  side under `debug/`, a packaging convention Qt's own path variables have
+  no way to express. Loading a Release plugin into a Debug Qt/CRT process is
+  an ABI mismatch, which is what was actually hanging every `QApplication`
+  test until timeout. `symulator_set_qt_test_environment()` and
+  `symulator_deploy_qt_conf()` now resolve a `debug/`-prefixed path on
+  Windows Debug builds. Same `debug/` split exists in the Linux triplet too,
+  but is a no-op there — no separate debug CRT/ABI, so it was never a
+  problem locally, which is why this only ever surfaced on Windows CI
 
 ## [0.5.12] - 2026-07-03
 

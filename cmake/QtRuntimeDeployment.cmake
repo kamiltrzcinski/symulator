@@ -5,21 +5,43 @@
 # qt.conf for consumer executables (only for Qt's own dev tools), so every Qt
 # GUI/test binary this project builds needs one of the two helpers below.
 #
+# QT6_INSTALL_PREFIX/QT6_INSTALL_PLUGINS/QT6_INSTALL_BINS (from Qt's own
+# QtInstallPaths.cmake) only describe the Release-config layout. vcpkg's
+# Windows triplets additionally install a full Debug-config copy side by
+# side, under "<prefix>/debug/..." with a "d" suffix on debug binaries (e.g.
+# "Qt6/plugins/platforms/qoffscreend.dll" vs. the Release "qoffscreen.dll")
+# — vcpkg has no way to express "Debug plugins live here" in Qt's own
+# install-path variables, since that split is a vcpkg packaging convention,
+# not something Qt's build system models. On Windows/MSVC this isn't
+# cosmetic: loading a Release plugin into a Debug Qt/CRT process is an ABI
+# mismatch that QPluginLoader can't paper over, and confirmed via CI log
+# inspection to be exactly why every test constructing QApplication hung
+# until timeout (QT_PLUGIN_PATH pointed at the Release qoffscreen.dll while
+# the test binary itself is a Debug build). Linux/macOS have the same
+# debug/ split on disk but don't need this correction — no separate debug
+# CRT/ABI, so the Release .so loads into a Debug process without issue
+# (verified: local Linux Debug builds already worked before this fix).
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(_symulator_qt_runtime_prefix "${QT6_INSTALL_PREFIX}/debug")
+else()
+    set(_symulator_qt_runtime_prefix "${QT6_INSTALL_PREFIX}")
+endif()
+
 # Printed once at configure time (not per-target) so any CI "Configure" log
 # always shows the resolved values without needing a separate run to fail
 # first — useful when diagnosing "platform plugin not found"-class issues,
 # since QT6_INSTALL_PLUGINS's actual on-disk layout is asserted here, not
 # just assumed.
-message(STATUS "Qt6 runtime paths: prefix=${QT6_INSTALL_PREFIX} "
-    "plugins=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS} "
-    "bins=${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}")
-if(EXISTS "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms")
+message(STATUS "Qt6 runtime paths: prefix=${_symulator_qt_runtime_prefix} "
+    "plugins=${_symulator_qt_runtime_prefix}/${QT6_INSTALL_PLUGINS} "
+    "bins=${_symulator_qt_runtime_prefix}/${QT6_INSTALL_BINS}")
+if(EXISTS "${_symulator_qt_runtime_prefix}/${QT6_INSTALL_PLUGINS}/platforms")
     file(GLOB _symulator_qt_platform_plugins
-        "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms/*")
+        "${_symulator_qt_runtime_prefix}/${QT6_INSTALL_PLUGINS}/platforms/*")
     message(STATUS "Qt6 platform plugins found: ${_symulator_qt_platform_plugins}")
 else()
     message(WARNING "Qt6 platforms plugin directory does not exist: "
-        "${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS}/platforms")
+        "${_symulator_qt_runtime_prefix}/${QT6_INSTALL_PLUGINS}/platforms")
 endif()
 
 # For ctest-driven binaries: set QT_PLUGIN_PATH (and QT_QPA_PLATFORM=offscreen,
@@ -42,7 +64,7 @@ endif()
 function(symulator_set_qt_test_environment target)
     set_tests_properties(${target} PROPERTIES
         ENVIRONMENT_MODIFICATION
-            "QT_QPA_PLATFORM=set:offscreen;QT_PLUGIN_PATH=set:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_PLUGINS};PATH=path_list_prepend:${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS};QT_DEBUG_PLUGINS=set:1"
+            "QT_QPA_PLATFORM=set:offscreen;QT_PLUGIN_PATH=set:${_symulator_qt_runtime_prefix}/${QT6_INSTALL_PLUGINS};PATH=path_list_prepend:${_symulator_qt_runtime_prefix}/${QT6_INSTALL_BINS};QT_DEBUG_PLUGINS=set:1"
         TIMEOUT 120
     )
 endfunction()
@@ -84,7 +106,7 @@ function(symulator_deploy_qt_conf target)
         OUTPUT "${_qt_conf_dir}/qt.conf"
         CONTENT
 "[Paths]
-Prefix=${QT6_INSTALL_PREFIX}
+Prefix=${_symulator_qt_runtime_prefix}
 Binaries=${QT6_INSTALL_BINS}
 Libraries=${QT6_INSTALL_LIBS}
 Plugins=${QT6_INSTALL_PLUGINS}
