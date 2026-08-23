@@ -95,6 +95,13 @@ All notable changes are documented here.
   Windows Debug builds. Same `debug/` split exists in the Linux triplet too,
   but is a no-op there — no separate debug CRT/ABI, so it was never a
   problem locally, which is why this only ever surfaced on Windows CI
+- Merged `main`, which had independently picked up a global
+  `add_link_options(/FORCE:MULTIPLE)` for MSVC as a workaround for the same
+  `symulator-server.exe` LNK2005 this branch already root-caused and fixed
+  properly above (static `libpqxx`) — dropped it in the merge rather than
+  keeping both, since `/FORCE:MULTIPLE` silently permits *any* duplicate
+  symbol project-wide (not just this one), masking future genuine ODR
+  violations instead of catching them
 
 ## [0.5.12] - 2026-07-03
 
