@@ -2,7 +2,7 @@
 
 All notable changes are documented here.
 
-## [0.5.13] - 2026-08-22
+## [0.5.13] - 2026-08-24
 
 ### Changed
 - Qt6 (`client`, `editor`, `libtrackview`, `tools`) is now linked dynamically
@@ -108,6 +108,10 @@ All notable changes are documented here.
   quota (separate from, and much smaller than, the compute-minutes quota).
   Capped at 7 days; doesn't need a self-hosted runner, since artifact
   storage is billed the same regardless of where the job actually runs
+- `scripts/validate_uid_registry.py` now explicitly opens JSON files with
+  `encoding="utf-8"`, preventing `UnicodeDecodeError` crashes on Windows systems
+  with non-UTF-8 default locale (such as CP1250) when validating stations and
+  vehicles with Polish diacritics
 
 ## [0.5.12] - 2026-07-03
 
