@@ -26,6 +26,7 @@ install_cmd=(
     autoconf-archive
     automake
     libtool
+    libltdl-dev
     '^libxcb.*-dev'
     libx11-xcb-dev
     libglu1-mesa-dev
@@ -34,6 +35,8 @@ install_cmd=(
     libxkbcommon-dev
     libxkbcommon-x11-dev
     libegl1-mesa-dev
+    libice-dev
+    libsm-dev
     libasio-dev
 )
 

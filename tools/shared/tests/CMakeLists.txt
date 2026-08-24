@@ -3,11 +3,8 @@ function(add_tools_shared_test target source)
     target_link_libraries(${target} PRIVATE tools_shared Qt6::Test)
     target_compile_features(${target} PRIVATE cxx_std_20)
     add_test(NAME ${target} COMMAND ${target})
-    set_tests_properties(${target} PROPERTIES
-        LABELS "tools"
-        ENVIRONMENT_MODIFICATION
-            "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
-    )
+    set_tests_properties(${target} PROPERTIES LABELS "tools")
+    symulator_set_qt_test_environment(${target})
 endfunction()
 
 add_tools_shared_test(tools_test_uid_registry test_uid_registry.cpp)

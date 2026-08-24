@@ -14,3 +14,5 @@ target_link_libraries(symulator-editor PRIVATE
 )
 
 target_compile_features(symulator-editor PRIVATE cxx_std_20)
+
+symulator_deploy_qt_conf(symulator-editor)

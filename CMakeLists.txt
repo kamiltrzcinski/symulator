@@ -44,11 +44,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ── Compiler warnings & link options ─────────────────────────────────────────
+# ── Compiler warnings ───────────────────────────────────────────────────────
 # -Wno-unused-parameter: virtual overrides routinely ignore some parameters.
 if(MSVC)
     add_compile_options(/W4 /permissive-)
-    add_link_options(/FORCE:MULTIPLE)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
@@ -178,6 +177,7 @@ elseif(BUILD_TOOLS)
 endif()
 if(BUILD_CLIENT OR BUILD_EDITOR OR BUILD_TOOLS)
     qt_standard_project_setup()
+    include(cmake/QtRuntimeDeployment.cmake)
 endif()
 if(BUILD_EDITOR)
     find_package(Qt6 REQUIRED COMPONENTS Sql)

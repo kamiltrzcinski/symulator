@@ -2,6 +2,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -122,6 +123,9 @@ void EditorPersistenceTest::trainEditPreservesUidAndUnknownFields()
 
 int main(int argc, char* argv[])
 {
+    // Unbuffered so CI captures progress even if the process is later killed
+    // (e.g. by ctest's TIMEOUT) before libc would otherwise flush on exit.
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
     QApplication application(argc, argv);
     symulator::tools::vehicle_browser::EditorPersistenceTest test;
     try

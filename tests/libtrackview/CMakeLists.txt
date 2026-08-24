@@ -29,5 +29,5 @@ endif()
 add_test(NAME tests_libtrackview COMMAND tests_libtrackview)
 set_tests_properties(tests_libtrackview PROPERTIES
     LABELS "group:unit-libtrackview"
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;PATH=${CMAKE_PREFIX_PATH}/debug/bin\;${CMAKE_PREFIX_PATH}/bin\;$ENV{PATH}"
 )
+symulator_set_qt_test_environment(tests_libtrackview)

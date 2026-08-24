@@ -38,4 +38,6 @@ target_link_libraries(vehicle-browser PRIVATE
 
 target_compile_features(vehicle-browser PRIVATE cxx_std_20)
 
+symulator_deploy_qt_conf(vehicle-browser)
+
 add_subdirectory(tests)
