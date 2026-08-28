@@ -171,7 +171,7 @@ option(BUILD_EDITOR    "Build scenario editor"  ON)
 option(BUILD_TOOLS     "Build Qt developer tools" OFF)
 
 if(BUILD_CLIENT OR BUILD_EDITOR)
-    find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Network)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Network Multimedia)
 elseif(BUILD_TOOLS)
     find_package(Qt6 REQUIRED COMPONENTS Widgets)
 endif()

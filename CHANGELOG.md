@@ -2,6 +2,11 @@
 
 All notable changes are documented here.
 
+## [0.5.14] - 2026-08-28
+
+### Added
+- `client`: Implemented `AudioService` using `Qt6::Multimedia` (`QSoundEffect` and `QMediaPlayer`) and embedded UI/hardware audio assets (`dgt_e.wav`, `dgt_p.wav`, `ebi_pip.wav`) via the Qt Resource System (`audio.qrc`).
+
 ## [0.5.13] - 2026-08-24
 
 ### Changed

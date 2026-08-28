@@ -1,5 +1,7 @@
 qt_add_executable(symulator-client
     src/main.cpp
+    src/audio/audio_service.cpp
+    resources/audio.qrc
 )
 
 target_include_directories(symulator-client PRIVATE
@@ -11,6 +13,7 @@ target_link_libraries(symulator-client PRIVATE
     symulator_proto
     Qt6::Widgets
     Qt6::Network
+    Qt6::Multimedia
     flatbuffers::flatbuffers
 )
 

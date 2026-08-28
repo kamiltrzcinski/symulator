@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+    <file>audio/dgt_e.wav</file>
+    <file>audio/dgt_p.wav</file>
+    <file>audio/ebi_pip.wav</file>
+</qresource>
+</RCC>
