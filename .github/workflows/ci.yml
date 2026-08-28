@@ -71,7 +71,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             cmake ninja-build pkg-config \
             curl zip unzip tar \
-            postgresql-client
+            postgresql-client \
+            autoconf automake libtool nasm
 
       # ── vcpkg bootstrap ───────────────────────────────────────────────────────
       - name: Bootstrap vcpkg

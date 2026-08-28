@@ -42,6 +42,7 @@ install_cmd=(
     libpulse-dev
     libgstreamer1.0-dev
     libgstreamer-plugins-base1.0-dev
+    nasm
 )
 
 if [[ "${print_only}" == true ]]; then

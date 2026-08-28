@@ -9,7 +9,7 @@ All notable changes are documented here.
 
 ### Fixed
 - `client`: Added missing `qtmultimedia` dependency to `vcpkg.json` to fix CI build failure.
-- `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, and `libgstreamer-plugins-base1.0-dev` to Linux dependency scripts so `qtmultimedia` can compile on headless and Qt Ubuntu CI jobs.
+- `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`, and `nasm` to Linux dependency scripts so `qtmultimedia` and `ffmpeg` can compile on Ubuntu. Also added `autoconf`, `automake`, `libtool`, and `nasm` to the Headless job's `apt-get` list.
 
 ## [0.5.13] - 2026-08-24
 
