@@ -10,7 +10,24 @@
         "gtest",
         "openssl",
         "qtbase",
-        "qtmultimedia"
+        {
+            "name": "qtmultimedia",
+            "default-features": false,
+            "features": [
+                "widgets"
+            ],
+            "platform": "windows"
+        },
+        {
+            "name": "qtmultimedia",
+            "default-features": false,
+            "features": [
+                "widgets",
+                "ffmpeg",
+                "pulseaudio"
+            ],
+            "platform": "!windows"
+        }
     ],
     "overrides": [],
     "builtin-baseline": "99a97de2cb371449d4fb9dc970f2ac562d689ec2"

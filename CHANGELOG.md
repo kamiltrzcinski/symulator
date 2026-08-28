@@ -8,8 +8,8 @@ All notable changes are documented here.
 - `client`: Implemented `AudioService` using `Qt6::Multimedia` (`QSoundEffect` and `QMediaPlayer`) and embedded UI/hardware audio assets (`dgt_e.wav`, `dgt_p.wav`, `ebi_pip.wav`) via the Qt Resource System (`audio.qrc`).
 
 ### Fixed
-- `client`: Added missing `qtmultimedia` dependency to `vcpkg.json` to fix CI build failure.
-- `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`, and `nasm` to Linux dependency scripts so `qtmultimedia` and `ffmpeg` can compile on Ubuntu. Also added `autoconf`, `autoconf-archive`, `automake`, `libtool`, and `nasm` to the Headless job's `apt-get` list.
+- `client`: Optimized `vcpkg.json` by disabling `ffmpeg` for `qtmultimedia` on Windows (using native WMF instead) to avoid compiling `qtdeclarative` and save ~1 hour of build time.
+- `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`, and `nasm` to Linux dependency scripts. Also added `autoconf`, `autoconf-archive`, `automake`, `libtool`, `libltdl-dev`, and `nasm` to the Headless job's `apt-get` list.
 
 ## [0.5.13] - 2026-08-24
 

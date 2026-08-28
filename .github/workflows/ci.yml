@@ -72,7 +72,7 @@ jobs:
             cmake ninja-build pkg-config \
             curl zip unzip tar \
             postgresql-client \
-            autoconf autoconf-archive automake libtool nasm
+            autoconf autoconf-archive automake libtool libltdl-dev nasm
 
       # ── vcpkg bootstrap ───────────────────────────────────────────────────────
       - name: Bootstrap vcpkg
