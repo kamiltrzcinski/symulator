@@ -6,6 +6,10 @@ All notable changes are documented here.
 
 ### Added
 - `client`: Implemented `AudioService` using `Qt6::Multimedia` (`QSoundEffect` and `QMediaPlayer`) and embedded UI/hardware audio assets (`dgt_e.wav`, `dgt_p.wav`, `ebi_pip.wav`) via the Qt Resource System (`audio.qrc`).
+- `docs`: Added comprehensive UI specifications for dispatch workstations, EDR, telephone communications, radiotelephones, RBC/TSR, additional devices, and SAZ under `docs/ui_spec/`.
+
+### Changed
+- `3rdParty/vcpkg`: Updated vcpkg submodule.
 
 ### Fixed
 - `client`: Optimized `vcpkg.json` by disabling `ffmpeg` for `qtmultimedia` on Windows (using native WMF instead) to avoid compiling `qtdeclarative` and save ~1 hour of build time.
