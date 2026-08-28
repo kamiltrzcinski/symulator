@@ -58,6 +58,10 @@ PRINT_ONLY_COMMANDS = {
             "libice-dev",
             "libsm-dev",
             "libasio-dev",
+            "libasound2-dev",
+            "libpulse-dev",
+            "libgstreamer1.0-dev",
+            "libgstreamer-plugins-base1.0-dev",
         ],
     ],
     "Darwin": [
