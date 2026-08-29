@@ -70,20 +70,54 @@ def detect_triplet(system_name: str, machine_name: str, override: str | None, in
     raise RuntimeError(f"No default triplet mapping for OS: {system_name}")
 
 
-def read_manifest_dependencies(vcpkg_manifest: Path, include_qt: bool) -> list[str]:
+def read_manifest_dependencies(vcpkg_manifest: Path, include_qt: bool, system_name: str) -> list[str]:
     data = json.loads(vcpkg_manifest.read_text(encoding="utf-8"))
     dependencies: list[str] = []
 
-    for item in data.get("dependencies", []):
-        if isinstance(item, str):
-            dependencies.append(item)
-        elif isinstance(item, dict) and isinstance(item.get("name"), str):
-            dependencies.append(item["name"])
+    is_windows = system_name == "Windows"
+    is_linux = system_name == "Linux"
 
-    if include_qt and "qtbase" not in dependencies:
+    for item in data.get("dependencies", []):
+        name = ""
+        features = []
+        default_features = True
+        platform_filter = ""
+
+        if isinstance(item, str):
+            name = item
+        elif isinstance(item, dict) and isinstance(item.get("name"), str):
+            name = item["name"]
+            features = item.get("features", [])
+            default_features = item.get("default-features", True)
+            platform_filter = item.get("platform", "")
+
+        if not name:
+            continue
+
+        # Evaluate platform filters
+        if platform_filter:
+            if platform_filter == "windows" and not is_windows:
+                continue
+            if platform_filter == "!windows" and is_windows:
+                continue
+            if platform_filter == "linux" and not is_linux:
+                continue
+            if platform_filter == "!linux" and is_linux:
+                continue
+
+        # Format package for classic mode
+        if not default_features:
+            all_features = ["core"] + features
+            dependencies.append(f"{name}[{','.join(all_features)}]")
+        elif features:
+            dependencies.append(f"{name}[{','.join(features)}]")
+        else:
+            dependencies.append(name)
+
+    if include_qt and "qtbase" not in [d.split("[")[0] for d in dependencies]:
         dependencies.append("qtbase")
     if not include_qt:
-        dependencies = [dep for dep in dependencies if dep != "qtbase"]
+        dependencies = [dep for dep in dependencies if dep.split("[")[0] not in ("qtbase", "qtmultimedia")]
 
     # Preserve order while removing duplicates.
     deduplicated: list[str] = []
@@ -417,7 +451,7 @@ def main() -> int:
         env["VCPKG_ROOT"] = str(vcpkg_root)
 
         if not args.no_third_party_install:
-            dependencies = read_manifest_dependencies(repo_root / "vcpkg.json", include_qt=include_qt)
+            dependencies = read_manifest_dependencies(repo_root / "vcpkg.json", include_qt=include_qt, system_name=system_name)
             normalize_vcpkg_tools_layout(
                 vcpkg_root=vcpkg_root,
                 triplet=triplet,

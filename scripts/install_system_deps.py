@@ -62,6 +62,7 @@ PRINT_ONLY_COMMANDS = {
             "libpulse-dev",
             "libgstreamer1.0-dev",
             "libgstreamer-plugins-base1.0-dev",
+            "libxrandr-dev",
             "nasm",
         ],
     ],
