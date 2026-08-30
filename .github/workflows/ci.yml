@@ -169,6 +169,18 @@ jobs:
         with:
           submodules: recursive
 
+      # ── Free up disk space (for huge Qt source builds) ───────────────────────
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       # ── System tools + Qt6 build dependencies (X11/xcb/EGL headers) ──────────
       - name: Install system dependencies
         run: bash scripts/deps/install_linux.sh
