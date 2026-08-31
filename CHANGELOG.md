@@ -12,6 +12,7 @@ All notable changes are documented here.
 - `3rdParty/vcpkg`: Updated vcpkg submodule.
 
 ### Fixed
+- `ci`: Replaced `ffmpeg` with `gstreamer` for `qtmultimedia` on Linux to bypass `qtdeclarative` build, resolving out-of-disk-space CI failures on Ubuntu runners.
 - `client`: Optimized `vcpkg.json` by disabling `ffmpeg` for `qtmultimedia` on Windows (using native WMF instead) to avoid compiling `qtdeclarative` and save ~1 hour of build time. Updated `configure_ninja.py` to properly parse platform filters and feature flags when building the `vcpkg install` command-line for classic mode.
 - `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`, `libxrandr-dev`, and `nasm` to Linux dependency scripts. Also added `autoconf`, `autoconf-archive`, `automake`, `libtool`, `libltdl-dev`, and `nasm` to the Headless job's `apt-get` list, and filtered out Qt packages completely from headless vcpkg dependencies.
 

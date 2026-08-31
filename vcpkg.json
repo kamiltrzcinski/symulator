@@ -23,7 +23,7 @@
             "default-features": false,
             "features": [
                 "widgets",
-                "ffmpeg",
+                "gstreamer",
                 "pulseaudio"
             ],
             "platform": "!windows"
