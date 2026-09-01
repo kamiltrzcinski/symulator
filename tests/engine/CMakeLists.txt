@@ -12,6 +12,7 @@ add_executable(tests_engine_foundation
     test_placeholder.cpp
     test_uid_codec.cpp
     test_types.cpp
+    test_timetable_catalog.cpp
 )
 symulator_configure_engine_unit_target(tests_engine_foundation)
 symulator_discover_gtest(tests_engine_foundation
