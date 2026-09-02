@@ -17,7 +17,7 @@ REPO = "kamiltrzcinski/symulator-data"
 PACKAGES_DIR = Path(__file__).parent.parent / "packages"
 API_URL = f"https://api.github.com/repos/{REPO}/releases/latest"
 
-KNOWN_PACKAGES = ["trains", "vehicles", "vehicle-types", "schedules", "carriers"]
+KNOWN_PACKAGES = ["trains", "vehicles", "vehicle-types", "schedules", "carriers", "timetable-points", "timetable-connections"]
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 

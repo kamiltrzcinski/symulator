@@ -5,6 +5,7 @@ All notable changes are documented here.
 ## [0.5.15] - 2026-09-01
 
 ### Added
+- `scripts`: Added `timetable-points` and `timetable-connections` to the `KNOWN_PACKAGES` list in `fetch_packages.py`.
 - `engine`: Implemented `TimetableCatalogLoader` integrating the new canonical operations domain (0x03) topology points (0x24) and connections (0x25) via `nlohmann_json`.
 - `engine`: Extended `TrainScheduler` to validate scheduled routes against the generated physical timetable points and network connections.
 - `tests`: Added comprehensive unit tests for `TimetableCatalog` and `TimetableCatalogLoader` using `GTest`.
