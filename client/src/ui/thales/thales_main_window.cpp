@@ -1,133 +1,84 @@
-#include "ui/thales/thales_main_window.hpp"
+#include "thales_main_window.hpp"
+#include "i_thales_command_processor.hpp"
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QKeyEvent>
-#include <QDebug>
+#include <QWidget>
 
-namespace symulator::client::ui::thales {
-
-ThalesMainWindow::ThalesMainWindow(QWidget* parent)
+ThalesMainWindow::ThalesMainWindow(IThalesCommandProcessor* processor, QWidget* parent)
     : QMainWindow(parent),
-      awaitingSpec_(false)
-{
+      m_processor(processor) {
+    
     setupUi();
 
-    specTimer_ = new QTimer(this);
-    specTimer_->setSingleShot(true);
-    connect(specTimer_, &QTimer::timeout, this, &ThalesMainWindow::handleSpecTimeout);
+    if (m_processor) {
+        // Zapewnienie komunikacji między kontrolerem (procesorem) a widokiem za pomocą sygnałów
+        connect(m_processor, &IThalesCommandProcessor::commandAccepted, this, &ThalesMainWindow::onCommandAccepted);
+        connect(m_processor, &IThalesCommandProcessor::commandRejected, this, &ThalesMainWindow::onCommandRejected);
+        connect(m_processor, &IThalesCommandProcessor::authorizationRequired, this, &ThalesMainWindow::onAuthorizationRequired);
+        connect(m_processor, &IThalesCommandProcessor::authorizationTimeout, this, &ThalesMainWindow::onAuthorizationTimeout);
+    }
 }
-
-ThalesMainWindow::~ThalesMainWindow() = default;
 
 void ThalesMainWindow::setupUi() {
-    this->setWindowTitle("Thales ESTW L90 5 - Command 900");
-    this->resize(1280, 800);
-    this->setStyleSheet("QMainWindow { background-color: #1E1E1E; color: #FFFFFF; }");
-
     auto* centralWidget = new QWidget(this);
-    auto* mainLayout = new QVBoxLayout(centralWidget);
+    auto* layout = new QVBoxLayout(centralWidget);
 
-    // Top Bar (Command Input & Status)
-    auto* topLayout = new QHBoxLayout();
-    
-    inputLine_ = new QLineEdit(this);
-    inputLine_->setPlaceholderText("Linia danych wejściowych...");
-    inputLine_->setStyleSheet("QLineEdit { background-color: #2D2D2D; color: white; border: 1px solid gray; padding: 5px; font-size: 16px; }");
-    
-    statusLine_ = new QLabel("OK", this);
-    statusLine_->setStyleSheet("QLabel { color: #00FF00; font-weight: bold; padding: 5px; }");
+    m_displayArea = new QTextEdit(this);
+    m_displayArea->setReadOnly(true);
+    m_displayArea->setObjectName("displayArea"); // Identyfikator dla QSS
 
-    btnProcess_ = new QPushButton("P", this);
-    btnProcess_->setFixedSize(40, 40);
-    btnProcess_->setStyleSheet("QPushButton { background-color: #0055A4; color: white; font-weight: bold; border-radius: 5px; }");
-    connect(btnProcess_, &QPushButton::clicked, this, &ThalesMainWindow::handleProcessCommand);
+    m_inputField = new QLineEdit(this);
+    m_inputField->setObjectName("inputField");
 
-    btnSpec_ = new QPushButton("SPEC", this);
-    btnSpec_->setFixedSize(60, 40);
-    btnSpec_->setStyleSheet("QPushButton { background-color: gray; color: white; font-weight: bold; border-radius: 5px; }");
-    btnSpec_->setEnabled(false);
-    connect(btnSpec_, &QPushButton::clicked, this, &ThalesMainWindow::handleSpecCommand);
+    m_specButton = new QPushButton("SPEC", this);
+    m_specButton->setObjectName("specButton");
+    m_specButton->setEnabled(false); // Domyślnie wyłączony, włączany przez sygnał z procesora
 
-    topLayout->addWidget(inputLine_);
-    topLayout->addWidget(statusLine_);
-    topLayout->addWidget(btnProcess_);
-    topLayout->addWidget(btnSpec_);
+    layout->addWidget(m_displayArea);
+    layout->addWidget(m_inputField);
+    layout->addWidget(m_specButton);
 
-    mainLayout->addLayout(topLayout);
+    setCentralWidget(centralWidget);
+    setWindowTitle("Thales ML8 Client");
+    resize(600, 400);
 
-    // Map View
-    mapScene_ = new QGraphicsScene(this);
-    mapScene_->setBackgroundBrush(QColor("#000000")); // Thales uses black background for tracking
-    
-    mapView_ = new QGraphicsView(mapScene_, this);
-    mapView_->setRenderHint(QPainter::Antialiasing);
-    mainLayout->addWidget(mapView_);
-
-    this->setCentralWidget(centralWidget);
+    connect(m_inputField, &QLineEdit::returnPressed, this, &ThalesMainWindow::onInputReturnPressed);
+    connect(m_specButton, &QPushButton::clicked, this, &ThalesMainWindow::onSpecButtonClicked);
 }
 
-void ThalesMainWindow::keyPressEvent(QKeyEvent* event) {
-    if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
-        handleProcessCommand();
-    } else if (event->key() == Qt::Key_A && (event->modifiers() & Qt::ControlModifier)) {
-        if (awaitingSpec_) {
-            handleSpecCommand();
-        }
-    } else if (event->key() == Qt::Key_Escape) {
-        inputLine_->clear();
-        statusLine_->setText("Anulowano wprowadzanie");
-        statusLine_->setStyleSheet("QLabel { color: orange; }");
-    } else {
-        QMainWindow::keyPressEvent(event);
+void ThalesMainWindow::onInputReturnPressed() {
+    QString input = m_inputField->text();
+    if (input.isEmpty()) return;
+
+    m_displayArea->append("> " + input);
+    m_inputField->clear();
+    
+    if (m_processor) {
+        m_processor->processInput(input); // Przekazanie logiki domenowej do procesora (SRP)
     }
 }
 
-void ThalesMainWindow::handleProcessCommand() {
-    QString cmd = inputLine_->text().trimmed().toUpper();
-    if (cmd.isEmpty()) return;
-
-    // Simulate basic parsing logic
-    if (cmd.contains("DPZ") || cmd.contains("ZEROLO") || cmd.contains("KSR")) {
-        // Spec command detected
-        pendingSpecCommand_ = cmd;
-        awaitingSpec_ = true;
-        btnSpec_->setEnabled(true);
-        btnSpec_->setStyleSheet("QPushButton { background-color: red; color: white; font-weight: bold; border-radius: 5px; }");
-        statusLine_->setText("Polecenie specjalne. Zatwierdź SPEC (20s).");
-        statusLine_->setStyleSheet("QLabel { color: orange; }");
-        specTimer_->start(20000); // 20 seconds
-    } else {
-        processCommand(cmd);
+void ThalesMainWindow::onSpecButtonClicked() {
+    m_specButton->setEnabled(false);
+    
+    if (m_processor) {
+        m_processor->confirmAuthorization();
     }
 }
 
-void ThalesMainWindow::handleSpecCommand() {
-    if (!awaitingSpec_) return;
-    
-    specTimer_->stop();
-    awaitingSpec_ = false;
-    btnSpec_->setEnabled(false);
-    btnSpec_->setStyleSheet("QPushButton { background-color: gray; color: white; font-weight: bold; border-radius: 5px; }");
-    
-    processCommand(pendingSpecCommand_);
-    pendingSpecCommand_.clear();
+void ThalesMainWindow::onCommandAccepted() {
+    m_displayArea->append("-> Sukces: Komenda wykonana.");
 }
 
-void ThalesMainWindow::handleSpecTimeout() {
-    awaitingSpec_ = false;
-    btnSpec_->setEnabled(false);
-    btnSpec_->setStyleSheet("QPushButton { background-color: gray; color: white; font-weight: bold; border-radius: 5px; }");
-    statusLine_->setText("Odrzucono (Timeout SPEC)");
-    statusLine_->setStyleSheet("QLabel { color: red; }");
-    pendingSpecCommand_.clear();
+void ThalesMainWindow::onCommandRejected(const QString& reason) {
+    m_displayArea->append("-> Błąd: " + reason);
 }
 
-void ThalesMainWindow::processCommand(const QString& cmd) {
-    qDebug() << "Executing Thales Command:" << cmd;
-    inputLine_->clear();
-    statusLine_->setText(QString("Polecenie %1 zaakceptowane").arg(cmd));
-    statusLine_->setStyleSheet("QLabel { color: #00FF00; }");
+void ThalesMainWindow::onAuthorizationRequired() {
+    m_specButton->setEnabled(true);
+    m_displayArea->append("-> Wymagana autoryzacja (SPEC). Masz 20 sekund.");
 }
 
-} // namespace symulator::client::ui::thales
+void ThalesMainWindow::onAuthorizationTimeout() {
+    m_specButton->setEnabled(false);
+    m_displayArea->append("-> Czas na autoryzację SPEC minął.");
+}

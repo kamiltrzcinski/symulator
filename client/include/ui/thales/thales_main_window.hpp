@@ -1,48 +1,35 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QGraphicsView>
-#include <QGraphicsScene>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QLabel>
-#include <QString>
-#include <QTimer>
+#include <QTextEdit>
+#include <QVBoxLayout>
 
-namespace symulator::client::ui::thales {
+class IThalesCommandProcessor;
 
 class ThalesMainWindow : public QMainWindow {
     Q_OBJECT
-
 public:
-    explicit ThalesMainWindow(QWidget* parent = nullptr);
-    ~ThalesMainWindow() override;
-
-protected:
-    void keyPressEvent(QKeyEvent* event) override;
+    explicit ThalesMainWindow(IThalesCommandProcessor* processor, QWidget* parent = nullptr);
+    ~ThalesMainWindow() override = default;
 
 private slots:
-    void handleProcessCommand();
-    void handleSpecCommand();
-    void handleSpecTimeout();
+    void onInputReturnPressed();
+    void onSpecButtonClicked();
+    
+    // Sloty obsługujące sygnały z procesora komend
+    void onCommandAccepted();
+    void onCommandRejected(const QString& reason);
+    void onAuthorizationRequired();
+    void onAuthorizationTimeout();
 
 private:
     void setupUi();
-    void processCommand(const QString& cmd);
 
-    QGraphicsView* mapView_;
-    QGraphicsScene* mapScene_;
-    
-    // UI Elements for Command 900
-    QLineEdit* inputLine_;
-    QLabel* statusLine_;
-    QPushButton* btnProcess_; // "P" button
-    QPushButton* btnSpec_;    // "SPEC" button
+    IThalesCommandProcessor* m_processor;
 
-    // Spec authorization timer
-    QTimer* specTimer_;
-    bool awaitingSpec_;
-    QString pendingSpecCommand_;
+    QLineEdit* m_inputField;
+    QPushButton* m_specButton;
+    QTextEdit* m_displayArea;
 };
-
-} // namespace symulator::client::ui::thales

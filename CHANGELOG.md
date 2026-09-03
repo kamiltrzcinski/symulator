@@ -2,6 +2,17 @@
 
 All notable changes are documented here.
 
+## [Unreleased]
+
+### Refactored
+- **UI**: Wdrożono zasady SOLID dla interfejsu klienta Thales ML8.
+- **UI**: Wydzielono logikę biznesową z `ThalesMainWindow` do nowej klasy `ThalesCommandProcessor` i interfejsu `IThalesCommandProcessor` (SRP, DIP).
+- **UI**: Zmieniono sposób komunikacji na mechanizm Qt Signals & Slots, rozdzielając widok od logiki.
+- **UI**: Przeniesiono timer autoryzacji (QTimer) do procesora poleceń i zamieniono magiczną wartość na stałą `kSpecTimeoutMs`.
+- **UI**: Poprawiono parsowanie komend zgodnie z OCP, porzucając `.contains()` na rzecz ścisłego sprawdzania i weryfikacji prefiksu.
+- **UI**: Usunięto zhardkodowane style z C++, wprowadzając zewnętrzny plik `thales.qss`.
+- **UI**: Dodano plik `main.cpp` ładujący style QSS i inicjujący aplikację.
+
 ## [0.5.15] - 2026-09-01
 
 ### Added
