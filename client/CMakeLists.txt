@@ -1,5 +1,7 @@
 qt_add_executable(symulator-client
     src/main.cpp
+    include/ui/thales/thales_main_window.hpp
+    src/ui/thales/thales_main_window.cpp
     include/audio/audio_service.hpp
     src/audio/audio_service.cpp
     resources/audio.qrc
