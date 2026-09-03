@@ -1,3 +1,11 @@
-// Placeholder — operator client entry point.
-// See docs/ARCHITECTURE.md for component responsibilities.
-int main() { return 0; }
+#include <QApplication>
+#include "ui/thales/thales_main_window.hpp"
+
+int main(int argc, char* argv[]) {
+    QApplication app(argc, argv);
+
+    symulator::client::ui::thales::ThalesMainWindow window;
+    window.show();
+
+    return app.exec();
+}

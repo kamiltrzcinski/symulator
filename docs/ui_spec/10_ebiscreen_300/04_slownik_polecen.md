@@ -79,3 +79,11 @@ Poniższa tabela zawiera zestawienie wszystkich poleceń nastawczych i techniczn
 | **ZWO** | Odwołanie zastopowania zwrotnicy | `zwrotnica` | Odwołanie indywidualnego stopowania zwrotnicy (ZWS). |
 | **ZWP** | Przestawienie zwrotnicy do położenia "+" | `zwrotnica` | Zasadnicze przestawienie zwrotnicy/wykolejnicy do położenia "+". |
 | **ZWS** | Zastopowanie zwrotnicy | `zwrotnica` | Indywidualne zastopowanie zwrotnicy (odłączenie napięcia nastawczego). |
+| **DOZP** | Doraźne odwołanie zgody | `blok Dz` | Skutkuje odebraniem zgody, uniemożliwia nastawienie przebiegu lub wygasza sygnał zezwalający. |
+| **DWS** | Doraźne wygaszenie semafora | `blok Dz` | Natychmiastowe wygaszenie sygnału zezwalającego na semaforze wyjazdowym z sąsiedniego okręgu. |
+| **DZ** | Danie zgody | `blok Dz` | Danie zgody dla bloku blokady stacyjnej. |
+| **OZZ** | Odwołanie żądania zgody | `blok Oz` | Umożliwia wycofanie się z żądania zgody wydanego dla bloku Oz blokady stacyjnej. |
+| **PSN** | Przywrócenie stanu neutralnego - inicj. | `blok PSN` | Pierwszy etap procesu wyjścia ze stanu bezpiecznego bloków blokady stacyjnej. |
+| **PSNP** | Przywrócenie stanu neutralnego - potw. | `blok PSN` | Zasadnicze przywrócenie stanu neutralnego blokady stacyjnej (zwrot zgody). |
+| **ZOZ** | Zwrot otrzymanej zgody (niewykorzystanej) | `blok Oz` | Zwrot niewykorzystanej zgody po wysłaniu do bloku Oz blokady stacyjnej. |
+| **ZZ** | Żądanie zgody | `blok Oz` | Żądanie zgody od sąsiedniego okręgu nastawczego na blokadzie stacyjnej. |
