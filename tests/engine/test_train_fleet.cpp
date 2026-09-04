@@ -469,3 +469,82 @@ TEST(TrainFleet_TickAll, BoundaryNodeRemovesTrain_AndEmitsPipEvent)
                                                 });
     EXPECT_TRUE(has_boundary_event);
 }
+
+// ── Trailing switch (TRAILED_DAMAGED) tests ───────────────────────────────────
+//
+// Scenario: train is on OT-B and moves toward ZWR-1 (trunk).
+// Switch is set to DIVERGENT (toward OT-C), so the straight leg OT-B is the
+// "wrong" leg — entering via the straight leg when switch is divergent constitutes
+// a trailing collision.
+
+TEST(TrainFleet_TrailedSwitch, ResolveNextSection_PopulatesTrailedUid_WhenWrongLeg)
+{
+    // Switch is DIVERGENT — a train approaching from the straight leg (OT-B)
+    // is on the wrong leg.
+    EngineState state = make_topology(SwitchPosition::DIVERGENT);
+
+    const NextSectionInfo info =
+        TrainFleet::resolve_next_section(state, kOtB, kZwr1);
+
+    // The section beyond the switch (the trunk OT-A) must still be returned.
+    ASSERT_TRUE(info.section_uid.has_value());
+    EXPECT_EQ(info.section_uid->value, kOtA.value);
+
+    // A trailing collision must have been detected: trailed_switch_uid is set.
+    ASSERT_TRUE(info.trailed_switch_uid.has_value())
+        << "Expected trailed_switch_uid to be set when switch position conflicts with direction of travel";
+    EXPECT_EQ(info.trailed_switch_uid->value, kZwr1.value);
+}
+
+TEST(TrainFleet_TrailedSwitch, ResolveNextSection_NoTrailedUid_WhenCorrectLeg)
+{
+    // Switch is STRAIGHT — a train approaching from the straight leg (OT-B) is
+    // on the correct leg; no trailing collision expected.
+    EngineState state = make_topology(SwitchPosition::STRAIGHT);
+
+    const NextSectionInfo info =
+        TrainFleet::resolve_next_section(state, kOtB, kZwr1);
+
+    ASSERT_TRUE(info.section_uid.has_value());
+    EXPECT_EQ(info.section_uid->value, kOtA.value);
+
+    // No trailing collision expected.
+    EXPECT_FALSE(info.trailed_switch_uid.has_value())
+        << "trailed_switch_uid must not be set when switch position matches direction of travel";
+}
+
+TEST(TrainFleet_TrailedSwitch, TickAll_EmitsTrailedDamaged_OnSectionCrossing)
+{
+    // Train on OT-B is about to cross into ZWR-1 (trunk → OT-A).
+    // Switch is DIVERGENT → trailing collision on the straight leg.
+    EngineState state = make_topology(SwitchPosition::DIVERGENT);
+    state.apply_track_section_occupancy(kOtB, TrackOccupancy::OCCUPIED, 4);
+
+    TrainFleet fleet;
+    // Train starts near the end of OT-B, moving toward ZWR-1.
+    fleet.add_train(make_fast_train(kOtB), kZwr1);
+
+    std::vector<DeviceStateChange> all_changes;
+    const TrainFleet::PipCallback cb = [](const std::vector<PipEvent>&) {};
+
+    // Run up to 10 ticks; the train should cross the section boundary quickly.
+    for (int i = 0; i < 10 && !fleet.empty(); ++i)
+    {
+        auto tick_changes = fleet.tick_all(state, static_cast<uint64_t>(i), cb);
+        all_changes.insert(all_changes.end(), tick_changes.begin(), tick_changes.end());
+    }
+
+    // Find a SwitchPositionChange with TRAILED_DAMAGED for ZWR-1.
+    const bool has_damaged_event = std::any_of(
+        all_changes.begin(), all_changes.end(),
+        [](const DeviceStateChange& c)
+        {
+            const auto* sw = std::get_if<SwitchPositionChange>(&c);
+            return sw && sw->uid == kZwr1 &&
+                   sw->position == SwitchPosition::TRAILED_DAMAGED;
+        });
+
+    EXPECT_TRUE(has_damaged_event)
+        << "Expected SwitchPositionChange{TRAILED_DAMAGED} to be emitted for ZWR-1 "
+           "when a train trails through a switch set to the wrong position";
+}

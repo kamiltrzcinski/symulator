@@ -6,6 +6,12 @@ All notable changes are documented here.
 
 ### Added
 - `engine`: Implemented Phase 1, 2, 3, 4 (Flank protection, overlap delay, trailing collisions, frontend interactivity flags, pytest regressions).
+- `server/pg_db_writer`: Real SHA-256 audit hash via OpenSSL EVP stored to `session.events.audit_hash`.
+- `tests/engine/test_train_fleet`: Three unit tests for trailing switch detection (`TrainFleet_TrailedSwitch`).
+
+### Changed
+- `docker/init.sql`: Added `audit_hash TEXT NOT NULL` column to `session.events`.
+- `tests/integration/test_trailing_collision.py`: Removed placeholder `assert True` file.
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures, command dictionaries, and detailed specifications for all EbiLock (EbiScreen 300) workstations.
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures and complete specs for Thales ML8 (ESTW L90 5) workstations.
 
