@@ -66,6 +66,8 @@ enum class UIDKind : std::uint8_t
     ROUTE = 0x21,
     ALARM = 0x22,
     DISPATCH_EXCHANGE = 0x23,
+    TIMETABLE_POINT = 0x24,
+    TIMETABLE_CONNECTION = 0x25,
 };
 
 constexpr std::uint64_t UID_MAX_SAFE_JSON_INTEGER = (1ULL << 53) - 1ULL;

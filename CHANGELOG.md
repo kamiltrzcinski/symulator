@@ -2,6 +2,40 @@
 
 All notable changes are documented here.
 
+## [Unreleased]
+
+### Added
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all EbiLock (EbiScreen 300) commands.
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all Thales ML8 commands.
+
+### Changed
+- `ui`: Reverted the base Thales ML8 client UI and entry point implementation to rethink the architecture based on the new `ui_spec`.
+
+### Fixed
+- `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
+
+## [0.5.15] - 2026-09-01
+
+### Added
+- `scripts`: Added `timetable-points` and `timetable-connections` to the `KNOWN_PACKAGES` list in `fetch_packages.py`.
+- `engine`: Implemented `TimetableCatalogLoader` integrating the new canonical operations domain (0x03) topology points (0x24) and connections (0x25) via `nlohmann_json`.
+- `engine`: Extended `TrainScheduler` to validate scheduled routes against the generated physical timetable points and network connections.
+- `tests`: Added comprehensive unit tests for `TimetableCatalog` and `TimetableCatalogLoader` using `GTest`.
+
+## [0.5.14] - 2026-08-28
+
+### Added
+- `client`: Implemented `AudioService` using `Qt6::Multimedia` (`QSoundEffect` and `QMediaPlayer`) and embedded UI/hardware audio assets (`dgt_e.wav`, `dgt_p.wav`, `ebi_pip.wav`) via the Qt Resource System (`audio.qrc`).
+- `docs`: Added comprehensive UI specifications for dispatch workstations, EDR, telephone communications, radiotelephones, RBC/TSR, additional devices, and SAZ under `docs/ui_spec/`.
+
+### Changed
+- `3rdParty/vcpkg`: Updated vcpkg submodule.
+
+### Fixed
+- `ci`: Replaced `ffmpeg` with `gstreamer` for `qtmultimedia` on Linux to bypass `qtdeclarative` build, resolving out-of-disk-space CI failures on Ubuntu runners.
+- `client`: Optimized `vcpkg.json` by disabling `ffmpeg` for `qtmultimedia` on Windows (using native WMF instead) to avoid compiling `qtdeclarative` and save ~1 hour of build time. Updated `configure_ninja.py` to properly parse platform filters and feature flags when building the `vcpkg install` command-line for classic mode.
+- `ci`: Added `libasound2-dev`, `libpulse-dev`, `libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`, `libxrandr-dev`, and `nasm` to Linux dependency scripts. Also added `autoconf`, `autoconf-archive`, `automake`, `libtool`, `libltdl-dev`, and `nasm` to the Headless job's `apt-get` list, and filtered out Qt packages completely from headless vcpkg dependencies.
+
 ## [0.5.13] - 2026-08-24
 
 ### Changed

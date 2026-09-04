@@ -12,6 +12,7 @@ add_library(engine STATIC
     src/engine_loop.cpp
     src/snapshot_service.cpp
     src/spawn_resolver.cpp
+    src/timetable/timetable_catalog_loader.cpp
 )
 
 target_include_directories(engine PUBLIC

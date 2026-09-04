@@ -38,6 +38,12 @@ install_cmd=(
     libice-dev
     libsm-dev
     libasio-dev
+    libasound2-dev
+    libpulse-dev
+    libgstreamer1.0-dev
+    libgstreamer-plugins-base1.0-dev
+    libxrandr-dev
+    nasm
 )
 
 if [[ "${print_only}" == true ]]; then
