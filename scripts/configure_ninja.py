@@ -389,6 +389,50 @@ def configure_ninja_build(
         run_command(["cmake", "--build", str(build_dir)], env=env, dry_run=dry_run)
 
 
+def setup_msvc_environment(env: dict[str, str], dry_run: bool) -> None:
+    if platform.system() != "Windows":
+        return
+    
+    # Check if compiler is already in PATH
+    if shutil.which("cl.exe"):
+        return
+        
+    vswhere = os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe")
+    if not os.path.exists(vswhere):
+        return
+        
+    try:
+        res = subprocess.run(
+            [vswhere, "-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationPath"],
+            capture_output=True, text=True, check=True
+        )
+        install_path = res.stdout.strip()
+        if not install_path:
+            return
+            
+        vcvars = os.path.join(install_path, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+        if not os.path.exists(vcvars):
+            return
+            
+        if dry_run:
+            print(f"[run] setup MSVC environment using {vcvars}")
+            return
+            
+        cmd = f'"{vcvars}" x64 >nul 2>&1 && set'
+        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
+        
+        for line in res.stdout.splitlines():
+            if "=" in line:
+                key, val = line.split("=", 1)
+                key_upper = key.upper()
+                if key_upper in ("PATH", "INCLUDE", "LIB", "LIBPATH"):
+                    env[key_upper] = val
+                    
+        print(f"[msvc] environment initialized from {install_path}")
+    except Exception as e:
+        print(f"[msvc] failed to initialize environment: {e}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Configure a Ninja build and optionally bootstrap third-party dependencies.",
@@ -438,6 +482,8 @@ def main() -> int:
     env["VCPKG_DOWNLOADS"] = str(downloads_dir)
     env["VCPKG_DEFAULT_BINARY_CACHE"] = str(binary_cache_dir)
     env["VCPKG_DISABLE_METRICS"] = "1"
+
+    setup_msvc_environment(env, args.dry_run)
 
     toolchain_file: Path | None = None
 

@@ -2,6 +2,11 @@
 
 All notable changes are documented here.
 
+## [Unreleased]
+
+### Fixed
+- `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
+
 ## [0.5.15] - 2026-09-01
 
 ### Added
