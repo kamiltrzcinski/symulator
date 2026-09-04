@@ -291,6 +291,8 @@ jobs:
 
       # ── Qt test suites ────────────────────────────────────────────────────
       - name: Qt test suites
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           python scripts/run_grouped_ctest.py --test-dir build/ninja-debug --reports-dir build/ninja-debug/test-reports --profile qt
 
