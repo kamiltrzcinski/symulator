@@ -5,8 +5,8 @@ All notable changes are documented here.
 ## [Unreleased]
 
 ### Added
-- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all EbiLock (EbiScreen 300) commands.
-- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all Thales ML8 commands.
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures, command dictionaries, and detailed specifications for all EbiLock (EbiScreen 300) workstations.
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures and complete specs for Thales ML8 (ESTW L90 5) workstations.
 
 ### Changed
 - `ui`: Reverted the base Thales ML8 client UI and entry point implementation to rethink the architecture based on the new `ui_spec`.
