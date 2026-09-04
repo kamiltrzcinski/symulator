@@ -136,6 +136,7 @@ enum class SwitchPosition : std::uint8_t
     STRAIGHT,
     DIVERGENT,
     MOVING,  // Transitional — switch machine is operating
+    TRAILED_DAMAGED, // Hardware damaged due to run-through
 };
 
 // ── Signal aspects ────────────────────────────────────────────────────────────

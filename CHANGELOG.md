@@ -5,6 +5,7 @@ All notable changes are documented here.
 ## [Unreleased]
 
 ### Added
+- `engine`: Implemented Phase 1, 2, 3, 4 (Flank protection, overlap delay, trailing collisions, frontend interactivity flags, pytest regressions).
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures, command dictionaries, and detailed specifications for all EbiLock (EbiScreen 300) workstations.
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures and complete specs for Thales ML8 (ESTW L90 5) workstations.
 

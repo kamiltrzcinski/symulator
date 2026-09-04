@@ -33,6 +33,7 @@ public:
     explicit QtSceneRenderer(const ITrackTheme& theme) : theme_(theme) {}
 
     void render(const RenderModel& model, QGraphicsScene& scene) const override;
+    void render(const RenderModel& model, QGraphicsScene& scene, bool interactive) const;
 
 private:
     const ITrackTheme& theme_;

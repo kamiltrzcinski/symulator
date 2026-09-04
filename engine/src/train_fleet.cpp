@@ -155,6 +155,8 @@ NextSectionInfo TrainFleet::resolve_next_section(const IStateView& state, UID cu
 
         // Determine the exit leg based on which leg connects back to current_uid.
         UID exit_uid{};
+        std::optional<UID> trailed_uid = std::nullopt;
+
         if (sw->trunk.neighbor_uid == current_uid)
         {
             // Entering from the trunk (pień) — exit through the selected leg.
@@ -164,6 +166,12 @@ NextSectionInfo TrainFleet::resolve_next_section(const IStateView& state, UID cu
         else
         {
             // Entering from either the straight or divergent leg — always exit via trunk.
+            if ((sw->straight.neighbor_uid == current_uid && sw->position != SwitchPosition::STRAIGHT) ||
+                (sw->divergent.neighbor_uid == current_uid && sw->position != SwitchPosition::DIVERGENT))
+            {
+                // ROZPRUCIE (Trailing collision)!
+                trailed_uid = sw->uid;
+            }
             exit_uid = sw->trunk.neighbor_uid;
         }
 
@@ -172,7 +180,7 @@ NextSectionInfo TrainFleet::resolve_next_section(const IStateView& state, UID cu
 
         // from_uid for the next section is the switch UID, because the next
         // TrackSection has side_X.neighbor_uid == switch, not the previous section.
-        return {exit_uid, next_uid, false};
+        return {exit_uid, next_uid, false, trailed_uid};
     }
 
     // ── Boundary node, or an unknown neighbour (e.g. a section cross-referenced
@@ -259,6 +267,17 @@ std::vector<DeviceStateChange> TrainFleet::tick_all(EngineState& state, uint64_t
         if (output.crossing.has_value())
         {
             const auto& crossing = *output.crossing;
+            
+            if (info.trailed_switch_uid.has_value())
+            {
+                // Emit trailing damage. The rule engine will catch this and drop signals.
+                changes.push_back(SwitchPositionChange{
+                    *info.trailed_switch_uid, 
+                    SwitchPosition::TRAILED_DAMAGED, 
+                    ChangeCause::AUTO, 
+                    0
+                });
+            }
 
             // Update occupancy in EngineState.  Axle-counter semantics: every
             // axle that entered the from-section has now left it (counter back
