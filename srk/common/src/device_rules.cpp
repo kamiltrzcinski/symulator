@@ -364,6 +364,10 @@ std::vector<DeviceStateChange> execute_cancel_route(const IStateView& state,
     }
 
     const std::string reason = cmd.force ? "FORCE" : "OPERATOR_CANCEL";
+    if (cmd.force)
+    {
+        changes.push_back(EmergencyRouteReleaseExecuted{cmd.route_uid});
+    }
     changes.push_back(RouteRemoved{cmd.route_uid, reason});
 
     return changes;
@@ -803,7 +807,7 @@ std::vector<DeviceStateChange> tick_switch_machines(
     return changes;
 }
 
-std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
+std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, uint64_t current_tick)
 {
     std::vector<DeviceStateChange> changes;
 
@@ -826,6 +830,16 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
             }
             if (!all_free)
                 return;
+
+            if (!route.overlap_release_tick.has_value())
+            {
+                // Start overlap timer for 1200 ticks (60s at 20Hz)
+                changes.push_back(RouteOverlapTimerStarted{route.uid, current_tick + 1200});
+                return;
+            }
+
+            if (current_tick < *route.overlap_release_tick)
+                return; // Still waiting for overlap release
 
             // Reset entry signal to STOP.
             changes.push_back(SignalAspectChange{route.from_signal_uid, SignalAspect::S1_STOP,

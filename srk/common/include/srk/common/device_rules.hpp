@@ -138,6 +138,6 @@ std::vector<DeviceStateChange> tick_switch_machines(
     std::unordered_map<UID, SwitchPosition, std::hash<UID>>& pending_targets);
 
 // Auto-release routes whose trains have fully cleared.
-std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state);
+std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, uint64_t current_tick);
 
 }  // namespace srk::common

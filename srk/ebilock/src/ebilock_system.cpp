@@ -148,10 +148,10 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
 
 // ── on_tick ───────────────────────────────────────────────────────────────────
 
-std::vector<DeviceStateChange> EbiLockSystem::on_tick(const IStateView& state, uint64_t /*tick*/)
+std::vector<DeviceStateChange> EbiLockSystem::on_tick(const IStateView& state, uint64_t tick_num)
 {
     auto changes = srk::common::tick_switch_machines(state, pending_targets_);
-    auto routes = srk::common::tick_route_auto_release(state);
+    auto routes = srk::common::tick_route_auto_release(state, tick_num);
     changes.insert(changes.end(), std::make_move_iterator(routes.begin()),
                    std::make_move_iterator(routes.end()));
     return changes;

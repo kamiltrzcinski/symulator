@@ -97,6 +97,18 @@ struct StateApplier
 
     void operator()(const RouteRemoved& c) { state.remove_route(c.route_uid); }
 
+    void operator()(const RouteOverlapTimerStarted& c)
+    {
+        if (auto* route = state.find_route_mut(c.route_uid))
+            route->overlap_release_tick = c.release_tick;
+    }
+
+    void operator()(const EmergencyRouteReleaseExecuted& c)
+    {
+        // Audit log trigger via event dispatcher (no state mutation needed here)
+        (void)c;
+    }
+
     void operator()(const AlarmRaised& c) { state.add_alarm(c.alarm); }
 
     void operator()(const AlarmCleared& c) { state.remove_alarm(c.alarm_uid); }

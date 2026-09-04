@@ -136,11 +136,17 @@ struct AlarmCleared
     UID alarm_uid;
 };
 
+struct RouteOverlapTimerStarted
+{
+    UID route_uid;
+    uint64_t release_tick;
+};
+
 using DeviceStateChange =
     std::variant<SignalAspectChange, SwitchPositionChange, SwitchLocked, SwitchUnlocked,
                  DerailerStateChange, BlockSectionStateChange, TrackSectionOccupancyChange,
                  BlockDirectionChange, AxleCounterResetChange, OperatorCommandStateChange,
-                 Ml8CommandStateChange, RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared>;
+                 Ml8CommandStateChange, RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared, RouteOverlapTimerStarted, EmergencyRouteReleaseExecuted>;
 
 // ── InterlockingViolation ────────────────────────────────────────────────────
 // Returned by check_command when the command is rejected.

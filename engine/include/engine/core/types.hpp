@@ -158,6 +158,8 @@ enum class SignalAspect : std::uint8_t
     S11_PROCEED_40_EXPECT_40,
     S12_PROCEED_60,
     S13_PROCEED_60_EXPECT_60,
+    SZ_PROCEED,            // Sygnał zastępczy (Sz)
+    SZN_PROCEED_W24,       // Sygnał zastępczy + W24 (na tor niewłaściwy)
     MS1_STOP,              // Shunting signal — stop (Ms1)
     MS2_SHUNTING_ALLOWED,  // Shunting signal — manoeuvre allowed (Ms2)
 };
@@ -215,6 +217,19 @@ enum class DispatchFormType : std::uint8_t
     S56,  // Line-clear reply for dangerous-goods trains (replaces S24)
     S76,  // Free-form dispatch message / remarks
 };
+
+struct RouteOverlapTimerStarted
+{
+    UID uid;
+    uint64_t release_tick;
+};
+
+struct EmergencyRouteReleaseExecuted
+{
+    UID route_uid;
+};
+
+
 
 enum class TelegramDirection : std::uint8_t
 {

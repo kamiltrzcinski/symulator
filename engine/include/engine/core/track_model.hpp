@@ -34,6 +34,7 @@ struct OperatorCommandRuntimeState
     bool special_active = false;
     bool axle_reset_initialized = false;
     std::optional<Ml8CommandCode> active_ml8_command;  // nullopt = no active ML8 command
+    std::optional<uint64_t> active_command_timeout_tick; // Used for timeouts on the backend
 };
 
 // ── Connection port on the end of a track section ────────────────────────────
@@ -183,6 +184,7 @@ struct RouteState
     std::vector<UID> derailer_uids;
     uint64_t created_tick = 0;
     bool train_entered = false;  // true once axle counter detects entry; triggers automatic release
+    std::optional<uint64_t> overlap_release_tick = std::nullopt; // When the overlap is set to release
 };
 
 // ── Active alarm ─────────────────────────────────────────────────────────────
