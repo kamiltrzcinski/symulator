@@ -194,7 +194,8 @@ Headers live in `engine/include/engine/core/`, implementation in `engine/src/`.
 | `fleet_command.hpp` | `FleetCommand = std::variant<SpawnRequest, DespawnRequest>` |
 | `snapshot_service.hpp` / `engine/src/snapshot_service.cpp` | `EngineSnapshot` → FlatBuffers `Snapshot` table |
 | `engine_loop.hpp/.cpp` | The 20 Hz tick scheduler (§5) |
-| `train_scheduler.hpp` | Header-only skeleton for timetable-driven spawning — **not wired up** (see §14) |
+| `timetable_catalog_loader.hpp/.cpp` | Loads timetable points and connections (`data/timetable_points`, `data/timetable_connections`) |
+| `train_scheduler.hpp/.cpp` | Validates and schedules timetable-driven spawning |
 
 ### `IStateView`
 
@@ -813,10 +814,12 @@ station loaded.
 ---
 
 ## 13. Build, test, and contribute
-
+    
 Full setup instructions (OS-specific installers, SSH keys, etc.) are not
 repeated here — run `python3 scripts/install_system_deps.py` (or the Windows
 `py` equivalent) once, then:
+
+> **Windows Note**: `scripts/configure_ninja.py` automatically detects and sets up the MSVC environment using `vswhere`. There's no need to manually launch the 'x64 Native Tools Command Prompt'.
 
 ```bash
 # Full build (Qt6 client+editor):
@@ -894,13 +897,7 @@ Kept as one list so it's easy to check before assuming something exists:
 - **`session.snapshots`, `session.chat_log`,
   `session.operating_point_assignments`, `fleet.timetable_templates`** — DDL
   exists in `docker/init.sql`; nothing in the codebase writes to them yet.
-- **`TrainScheduler` (timetable-driven spawning, "E5")** — header-only
-  skeleton (`engine/include/engine/core/train_scheduler.hpp`), not
-  instantiated anywhere. Blocked on deciding the on-disk timetable format
-  (needs `boundary_node_uid`/`tick_time`/`consist_uid`/`direction` fields not
-  yet present in any `packages/schedules/` data).
-  `EngineLoop::enqueue_fleet_command()` is the seam it will use once built.
-  The terminal's `spawn`/`despawn` commands are the only current producer.
+
 - **Password hashing / DB-backed user store** — terminal auth is a single
   hardcoded plaintext account today (§12).
 - **AI Dispatch Module** — post-MVP by design; no code, and the engine has no

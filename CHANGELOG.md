@@ -4,6 +4,13 @@ All notable changes are documented here.
 
 ## [Unreleased]
 
+### Added
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all EbiLock (EbiScreen 300) commands.
+- `docs(ui_spec)`: Added comprehensive step-by-step procedures for all Thales ML8 commands.
+
+### Changed
+- `ui`: Reverted the base Thales ML8 client UI and entry point implementation to rethink the architecture based on the new `ui_spec`.
+
 ### Fixed
 - `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
 
