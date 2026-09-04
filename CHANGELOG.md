@@ -12,6 +12,7 @@ All notable changes are documented here.
 - `ui`: Reverted the base Thales ML8 client UI and entry point implementation to rethink the architecture based on the new `ui_spec`.
 
 ### Fixed
+- `ci`: Set `QT_QPA_PLATFORM=offscreen` environment variable in the Windows Qt test suite job (`.github/workflows/ci.yml`) to prevent test runner hangs.
 - `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
 
 ## [0.5.15] - 2026-09-01
