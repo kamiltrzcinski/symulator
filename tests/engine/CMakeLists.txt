@@ -1,7 +1,7 @@
 set(ENGINE_TEST_SCENARIO_DIR "${CMAKE_SOURCE_DIR}/scenarios/gdynia_orlowo")
 
 function(symulator_configure_engine_unit_target target)
-    target_link_libraries(${target} PRIVATE engine tests_common GTest::gtest_main)
+    target_link_libraries(${target} PRIVATE engine srk_common tests_common GTest::gtest_main)
     target_compile_features(${target} PRIVATE cxx_std_20)
     target_compile_definitions(${target} PRIVATE
         SCENARIO_DIR="${ENGINE_TEST_SCENARIO_DIR}"
@@ -62,6 +62,9 @@ add_executable(tests_engine_simulation
     test_train_fleet.cpp
     test_engine_loop.cpp
     test_spawn_resolver.cpp
+    test_level_crossing.cpp
+    test_axle_counter_reset.cpp
+    test_block_direction.cpp
 )
 symulator_configure_engine_unit_target(tests_engine_simulation)
 symulator_discover_gtest(tests_engine_simulation

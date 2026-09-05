@@ -749,6 +749,11 @@ std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& 
     if (bs->direction != BlockDirectionState::RESET_PENDING)
         return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
                          cmd.block_section_uid);
+                         
+    if (!bs->reset_init_tick.has_value() || (state.current_tick() < *bs->reset_init_tick + 1200))
+        return violation(NAK_SAFETY_BLOCK, "SLK requires 60s delay after SLI",
+                         cmd.block_section_uid);
+                         
     return std::nullopt;
 }
 
@@ -850,6 +855,26 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, 
                 changes.push_back(SwitchUnlocked{swuid, route.uid});
 
             changes.push_back(RouteRemoved{route.uid, "TRAIN_CLEARED"});
+        });
+
+    return changes;
+}
+
+std::vector<DeviceStateChange> tick_level_crossings(const IStateView& state, uint64_t current_tick)
+{
+    std::vector<DeviceStateChange> changes;
+
+    state.for_each_level_crossing(
+        [&](const LevelCrossing& lx)
+        {
+            if (lx.status == LevelCrossingStatus::WARNING && lx.warning_start_tick.has_value())
+            {
+                if (current_tick >= *lx.warning_start_tick + lx.warning_duration_ticks)
+                {
+                    // Warning time elapsed, close the crossing
+                    changes.push_back(LevelCrossingStateChange{lx.uid, LevelCrossingStatus::CLOSED});
+                }
+            }
         });
 
     return changes;

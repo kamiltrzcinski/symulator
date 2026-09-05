@@ -41,6 +41,12 @@ const BlockSection* EngineState::find_block_section(UID uid) const noexcept
     return it != block_sections_.end() ? &it->second : nullptr;
 }
 
+const LevelCrossing* EngineState::find_level_crossing(UID uid) const noexcept
+{
+    auto it = level_crossings_.find(uid);
+    return it != level_crossings_.end() ? &it->second : nullptr;
+}
+
 const RouteState* EngineState::find_route(UID route_uid) const noexcept
 {
     auto it = routes_.find(route_uid);
@@ -103,6 +109,12 @@ void EngineState::for_each_boundary_node(std::function<void(const BoundaryNode&)
         fn(v);
 }
 
+void EngineState::for_each_level_crossing(std::function<void(const LevelCrossing&)> fn) const
+{
+    for (auto& [_, v] : level_crossings_)
+        fn(v);
+}
+
 // ── Topology insertion ────────────────────────────────────────────────────────
 
 void EngineState::insert_boundary_node(BoundaryNode n)
@@ -130,7 +142,12 @@ void EngineState::insert_block_section(BlockSection b)
     block_sections_.emplace(b.uid, std::move(b));
 }
 
-// ── Runtime state mutators ────────────────────────────────────────────────────
+void EngineState::insert_level_crossing(LevelCrossing lx)
+{
+    level_crossings_.emplace(lx.uid, std::move(lx));
+}
+
+// ── Queries ───────────────────────────────────────────────────────────────────
 
 void EngineState::apply_track_section_occupancy(UID uid, TrackOccupancy occ, int axle_count)
 {
@@ -141,12 +158,32 @@ void EngineState::apply_track_section_occupancy(UID uid, TrackOccupancy occ, int
     }
 }
 
+void EngineState::apply_level_crossing_status(UID uid, LevelCrossingStatus status)
+{
+    if (auto it = level_crossings_.find(uid); it != level_crossings_.end())
+    {
+        it->second.status = status;
+        if (status == LevelCrossingStatus::WARNING)
+            it->second.warning_start_tick = current_tick_;
+        else
+            it->second.warning_start_tick = std::nullopt;
+    }
+}
+
 void EngineState::apply_switch_position(UID uid, SwitchPosition pos, int moving_ticks)
 {
     if (auto it = switches_.find(uid); it != switches_.end())
     {
         it->second.position = pos;
         it->second.moving_ticks_remaining = moving_ticks;
+    }
+}
+
+void EngineState::apply_switch_control(UID uid, bool control_lost)
+{
+    if (auto it = switches_.find(uid); it != switches_.end())
+    {
+        it->second.control_lost = control_lost;
     }
 }
 
@@ -198,7 +235,13 @@ void EngineState::apply_block_section_state(UID uid, BlockSectionState state)
 void EngineState::apply_block_section_direction(UID uid, BlockDirectionState dir)
 {
     if (auto it = block_sections_.find(uid); it != block_sections_.end())
+    {
         it->second.direction = dir;
+        if (dir == BlockDirectionState::RESET_PENDING)
+            it->second.reset_init_tick = current_tick_;
+        else
+            it->second.reset_init_tick = std::nullopt;
+    }
 }
 
 void EngineState::apply_block_section_axle_count(UID uid, int axle_count)

@@ -39,6 +39,11 @@ struct StateApplier
         state.apply_switch_position(c.uid, c.new_position, c.moving_ticks_remaining);
     }
 
+    void operator()(const SwitchControlStateChange& c)
+    {
+        state.apply_switch_control(c.switch_uid, c.control_lost);
+    }
+
     void operator()(const SwitchLocked& c) { state.apply_switch_lock(c.switch_uid, c.route_uid); }
 
     void operator()(const SwitchUnlocked& c)
@@ -96,6 +101,14 @@ struct StateApplier
     void operator()(const RouteAdded& c) { state.add_route(c.route); }
 
     void operator()(const RouteRemoved& c) { state.remove_route(c.route_uid); }
+
+    void operator()(const LevelCrossingStateChange& c)
+    {
+        // For simplicity, we assume EngineState provides apply_level_crossing_state or we just modify the map if accessible.
+        // But since state is an EngineState reference, wait, is there an apply_level_crossing_status? Let's add it or use direct access.
+        // I will add apply_level_crossing_status to EngineState.
+        state.apply_level_crossing_status(c.crossing_uid, c.status);
+    }
 
     void operator()(const RouteOverlapTimerStarted& c)
     {

@@ -99,6 +99,7 @@ struct Switch
 
     // ── Runtime ──
     SwitchPosition position = SwitchPosition::STRAIGHT;
+    bool control_lost = false; // Set to true if switch points detection is lost (e.g. trailed/damaged)
     TrackOccupancy occupancy = TrackOccupancy::FREE;
     int axle_count = 0;
     std::optional<UID> locked_by_route_uid;  // non-empty when a route locks this switch
@@ -169,6 +170,7 @@ struct BlockSection
     BlockDirectionState direction = BlockDirectionState::NEUTRAL;
     int axle_count = 0;  // aggregate axle counter for the whole block
     OperatorCommandRuntimeState operator_state;
+    std::optional<uint64_t> reset_init_tick; // tick when InitAxleCounterReset was executed
 };
 
 // ── Route (droga przebiegu) ──────────────────────────────────────────────────
@@ -197,8 +199,20 @@ struct AlarmState
     uint64_t timestamp_us = 0;
 };
 
-// ── Boundary node (węzeł graniczny) ─────────────────────────────────────────
-// Terminal node in the topology — represents the edge of the local LCS area.
+// ── Level Crossing ────────────────────────────────────────────────────────────
+// Represents a level crossing (Kategoria A, B, C) on the infrastructure.
+
+struct LevelCrossing
+{
+    UID uid;
+    std::string pid;
+    UID station_uid;
+    LevelCrossingStatus status = LevelCrossingStatus::OPEN;
+    std::optional<uint64_t> warning_start_tick;
+    uint32_t warning_duration_ticks = 160; // Default 8s at 20Hz
+};
+
+// ── Boundary Node ────────────────────────────────────────────────────────────
 // A TrackSection or Switch leg that crosses into the neighbouring LCS references
 // a BoundaryNode as its neighbor.
 struct BoundaryNode

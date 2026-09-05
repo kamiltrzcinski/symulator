@@ -139,5 +139,6 @@ std::vector<DeviceStateChange> tick_switch_machines(
 
 // Auto-release routes whose trains have fully cleared.
 std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, uint64_t current_tick);
+std::vector<DeviceStateChange> tick_level_crossings(const IStateView& state, uint64_t current_tick);
 
 }  // namespace srk::common

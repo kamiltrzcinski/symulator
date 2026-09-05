@@ -271,6 +271,7 @@ std::vector<DeviceStateChange> TrainFleet::tick_all(EngineState& state, uint64_t
             if (info.trailed_switch_uid.has_value())
             {
                 // Emit trailing damage. The rule engine will catch this and drop signals.
+                changes.push_back(SwitchControlStateChange{*info.trailed_switch_uid, true});
                 changes.push_back(SwitchPositionChange{
                     *info.trailed_switch_uid, 
                     SwitchPosition::TRAILED_DAMAGED, 

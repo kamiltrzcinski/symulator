@@ -139,6 +139,28 @@ enum class SwitchPosition : std::uint8_t
     TRAILED_DAMAGED, // Hardware damaged due to run-through
 };
 
+struct SwitchControlStateChange
+{
+    UID switch_uid;
+    bool control_lost;
+};
+
+// ── Level Crossing State ───────────────────────────────────────────────────────
+
+enum class LevelCrossingStatus : std::uint8_t
+{
+    OPEN,
+    WARNING,            // Warning signals active, barriers lowering
+    CLOSED,             // Completely closed, safe for trains
+    FAULT_NO_CONTROL,   // Hardware malfunction (power loss, barrier broken)
+};
+
+struct LevelCrossingStateChange
+{
+    UID crossing_uid;
+    LevelCrossingStatus status;
+};
+
 // ── Signal aspects ────────────────────────────────────────────────────────────
 // Canonical list matching data/device_types/semafor.json (DVT-GLB-SEM-0000001).
 // Individual semaphore type definitions will reference a subset of these values.

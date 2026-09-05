@@ -55,22 +55,27 @@ std::optional<DispatchCoordinator::DispatchOutcome> DispatchCoordinator::handle_
     const auto outcome =
         exchanges_.submit_telegram(src_area, dst_area, form, direction, train_number);
 
-    if (outcome.result != TelegramResult::ACCEPTED)
-        return std::nullopt;
-
-    // 2. Persist the telegram row.
     TelegramRow row;
     row.form_type = form_type_str(form);
-    row.exchange_id = outcome.exchange_id;
+    row.exchange_id = outcome.exchange_id.value_or("");
     row.train_number = train_number;
     row.from_uid = std::stoull(src_area);
     row.to_uid = std::stoull(dst_area);
     row.direction = (direction == engine::core::TelegramDirection::SENT) ? "SENT" : "RECEIVED";
-    row.status = "ACCEPTED";
     row.track_number = track_number;
     row.km_markers = km_markers;
-    row.body = "";  // snapshot JSON — optional, left empty for now
+    row.body = "";
     row.timestamp_us = timestamp_us;
+
+    if (outcome.result != TelegramResult::ACCEPTED)
+    {
+        row.status = "REJECTED_STRICT_POLICY";
+        db_writer_.write_dispatch_telegram(session_id_, row);
+        return std::nullopt;
+    }
+
+    // 2. Persist the telegram row.
+    row.status = "ACCEPTED";
 
     db_writer_.write_dispatch_telegram(session_id_, row);
 

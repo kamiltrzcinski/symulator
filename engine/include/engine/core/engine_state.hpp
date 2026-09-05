@@ -42,6 +42,7 @@ public:
     void for_each_route(std::function<void(const RouteState&)> fn) const override;
     void for_each_alarm(std::function<void(const AlarmState&)> fn) const override;
     void for_each_boundary_node(std::function<void(const BoundaryNode&)> fn) const override;
+    void for_each_level_crossing(std::function<void(const LevelCrossing&)> fn) const override;
 
     const std::string& session_id() const noexcept override { return session_id_; }
     uint64_t current_tick() const noexcept override { return current_tick_; }
@@ -59,12 +60,15 @@ public:
     void insert_signal(Signal sig);
     void insert_derailer(Derailer d);
     void insert_block_section(BlockSection b);
+    void insert_level_crossing(LevelCrossing lx);
 
     // Apply runtime state changes (called by StateApplier during ENGINE tick)
     void apply_track_section_occupancy(UID uid, TrackOccupancy occ, int axle_count);
     void apply_switch_position(UID uid, SwitchPosition pos, int moving_ticks);
+    void apply_switch_control(UID uid, bool control_lost);
     void apply_switch_lock(UID uid, std::optional<UID> route_uid);
     void apply_switch_occupancy(UID uid, TrackOccupancy occ, int axle_count);
+    void apply_level_crossing_status(UID uid, LevelCrossingStatus status);
     void apply_signal_aspect(UID uid, SignalAspect aspect);
     void apply_signal_lock(UID uid, std::optional<UID> route_uid);
     void apply_derailer_state(UID uid, DerailerState state);
@@ -113,6 +117,7 @@ private:
     std::unordered_map<UID, BlockSection, std::hash<UID>> block_sections_;
     std::unordered_map<UID, RouteState, std::hash<UID>> routes_;
     std::unordered_map<UID, AlarmState, std::hash<UID>> alarms_;
+    std::unordered_map<UID, LevelCrossing, std::hash<UID>> level_crossings_;
 };
 
 }  // namespace engine::core

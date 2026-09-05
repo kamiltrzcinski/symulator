@@ -146,7 +146,7 @@ using DeviceStateChange =
     std::variant<SignalAspectChange, SwitchPositionChange, SwitchLocked, SwitchUnlocked,
                  DerailerStateChange, BlockSectionStateChange, TrackSectionOccupancyChange,
                  BlockDirectionChange, AxleCounterResetChange, OperatorCommandStateChange,
-                 Ml8CommandStateChange, RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared, RouteOverlapTimerStarted, EmergencyRouteReleaseExecuted>;
+                 Ml8CommandStateChange, RouteAdded, RouteRemoved, AlarmRaised, AlarmCleared, RouteOverlapTimerStarted, EmergencyRouteReleaseExecuted, LevelCrossingStateChange, SwitchControlStateChange>;
 
 // ── InterlockingViolation ────────────────────────────────────────────────────
 // Returned by check_command when the command is rejected.
