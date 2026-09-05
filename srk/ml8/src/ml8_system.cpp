@@ -45,24 +45,30 @@ std::vector<std::string> Ml8System::supported_command_types() const
 
 // ── check_command ─────────────────────────────────────────────────────────────
 
+static const srk::common::FlankProtectionPolicy kFlankPolicy{};
+static const std::vector<const srk::common::IRoutePathPolicy*> kPolicies = {&kFlankPolicy};
+
 std::optional<InterlockingViolation> Ml8System::check_command(const IStateView& state,
                                                               const Command& cmd) const
 {
     return std::visit(
-        [&](const auto& c) -> std::optional<InterlockingViolation>
-        {
+        [&](auto&& c) -> std::optional<InterlockingViolation> {
             using T = std::decay_t<decltype(c)>;
 
             if constexpr (std::is_same_v<T, SetSwitchPositionCmd>)
                 return srk::common::check_set_switch_position(state, c);
+
             else if constexpr (std::is_same_v<T, SetSignalAspectCmd>)
                 return srk::common::check_set_signal_aspect(state, c);
+
             else if constexpr (std::is_same_v<T, SetDerailerPositionCmd>)
                 return srk::common::check_set_derailer_position(state, c);
+
             else if constexpr (std::is_same_v<T, SetBlockSectionCmd>)
                 return srk::common::check_set_block_section(state, c);
+
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::check_request_route(state, c);
+                return srk::common::check_request_route(state, c, kPolicies);
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::check_cancel_route(state, c);
             else if constexpr (std::is_same_v<T, AcknowledgeAlarmCmd>)
@@ -108,7 +114,7 @@ std::vector<DeviceStateChange> Ml8System::execute_command(const IStateView& stat
             else if constexpr (std::is_same_v<T, SetBlockSectionCmd>)
                 return srk::common::execute_set_block_section(state, c);
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::execute_request_route(state, c, state.current_tick());
+                return srk::common::execute_request_route(state, c, state.current_tick(), kPolicies);
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::execute_cancel_route(state, c);
             else if constexpr (std::is_same_v<T, AcknowledgeAlarmCmd>)

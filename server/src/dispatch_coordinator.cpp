@@ -67,17 +67,11 @@ std::optional<DispatchCoordinator::DispatchOutcome> DispatchCoordinator::handle_
     row.body = "";
     row.timestamp_us = timestamp_us;
 
-    if (outcome.result != TelegramResult::ACCEPTED)
-    {
-        row.status = "REJECTED_STRICT_POLICY";
-        db_writer_.write_dispatch_telegram(session_id_, row);
-        return std::nullopt;
-    }
-
-    // 2. Persist the telegram row.
-    row.status = "ACCEPTED";
-
+    row.status = (outcome.result != TelegramResult::ACCEPTED) ? "REJECTED_STRICT_POLICY" : "ACCEPTED";
     db_writer_.write_dispatch_telegram(session_id_, row);
+
+    if (outcome.result != TelegramResult::ACCEPTED)
+        return std::nullopt;
 
     // 3. S24/S56 — update EDR track_clear_time.
     if (form == engine::core::DispatchFormType::S24 || form == engine::core::DispatchFormType::S56)

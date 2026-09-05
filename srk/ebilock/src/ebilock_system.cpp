@@ -44,6 +44,9 @@ std::vector<std::string> EbiLockSystem::supported_command_types() const
 
 // ── check_command ─────────────────────────────────────────────────────────────
 
+static const srk::common::FlankProtectionPolicy kFlankPolicy{};
+static const std::vector<const srk::common::IRoutePathPolicy*> kPolicies = {&kFlankPolicy};
+
 std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateView& state,
                                                                   const Command& cmd) const
 {
@@ -65,7 +68,7 @@ std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateVi
                 return srk::common::check_set_block_section(state, c);
 
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::check_request_route(state, c);
+                return srk::common::check_request_route(state, c, kPolicies);
 
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::check_cancel_route(state, c);
@@ -120,7 +123,7 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
                 return srk::common::execute_set_block_section(state, c);
 
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::execute_request_route(state, c, state.current_tick());
+                return srk::common::execute_request_route(state, c, state.current_tick(), kPolicies);
 
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::execute_cancel_route(state, c);

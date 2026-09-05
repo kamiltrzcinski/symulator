@@ -34,11 +34,14 @@ static std::string sha256_hex(std::string_view session_id,
 
     // Feed: session_id || '|' || event_id || '|' || timestamp_us || '|' || payload bytes
     const char sep = '|';
+    std::string event_id_str = std::to_string(event_id);
+    std::string timestamp_str = std::to_string(timestamp_us);
+
     EVP_DigestUpdate(ctx, session_id.data(), session_id.size());
     EVP_DigestUpdate(ctx, &sep, 1);
-    EVP_DigestUpdate(ctx, &event_id, sizeof(event_id));
+    EVP_DigestUpdate(ctx, event_id_str.data(), event_id_str.size());
     EVP_DigestUpdate(ctx, &sep, 1);
-    EVP_DigestUpdate(ctx, &timestamp_us, sizeof(timestamp_us));
+    EVP_DigestUpdate(ctx, timestamp_str.data(), timestamp_str.size());
     EVP_DigestUpdate(ctx, &sep, 1);
     EVP_DigestUpdate(ctx, payload.data(), payload.size());
 

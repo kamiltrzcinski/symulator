@@ -25,6 +25,12 @@ namespace srk::common
 
 using namespace engine::core;
 
+class FlankProtectionPolicy : public IRoutePathPolicy
+{
+public:
+    bool apply(const engine::core::IStateView& state, RoutePath& path) const override;
+};
+
 // ── R1: SetSwitchPosition ────────────────────────────────────────────────────
 // Rejects if: switch occupied | switch in MOVING | switch route-locked |
 //             target position == current position.
@@ -70,10 +76,12 @@ std::vector<DeviceStateChange> execute_set_block_section(const IStateView& state
 // CancelRoute: unlocks all devices; resets entry signal to STOP.
 
 std::optional<InterlockingViolation> check_request_route(const IStateView& state,
-                                                         const RequestRouteCmd& cmd);
+                                                         const RequestRouteCmd& cmd,
+                                                         const std::vector<const IRoutePathPolicy*>& policies = {});
 
 std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
-                                                     const RequestRouteCmd& cmd, uint64_t tick);
+                                                     const RequestRouteCmd& cmd, uint64_t tick,
+                                                     const std::vector<const IRoutePathPolicy*>& policies = {});
 
 std::optional<InterlockingViolation> check_cancel_route(const IStateView& state,
                                                         const CancelRouteCmd& cmd);

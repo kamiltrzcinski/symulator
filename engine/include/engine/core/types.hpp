@@ -14,6 +14,10 @@
 namespace engine::core
 {
 
+// ── Global Constants ────────────────────────────────────────────────────────
+// The core simulation engine updates state at a fixed rate of 20 ticks per second.
+constexpr std::uint64_t ENGINE_TICKS_PER_SECOND = 20;
+
 // ── Universal UID ────────────────────────────────────────────────────────────
 // 48-bit structured integer; bits 63-48 reserved (must be 0).
 // Layout: DOMAIN[47:40] | KIND[39:32] | SCOPE[31:16] | INSTANCE[15:0]

@@ -158,27 +158,26 @@ std::vector<DeviceStateChange> execute_set_block_section(const IStateView& /*sta
 
 // ── R5: RequestRoute ─────────────────────────────────────────────────────────
 
-class FlankProtectionPolicy : public IRoutePathPolicy
+bool FlankProtectionPolicy::apply(const IStateView& state, RoutePath& path) const
 {
-public:
-    bool apply(const IStateView& state, RoutePath& path) const override
+    for (std::size_t i = 0; i < path.nodes.size(); ++i)
     {
-        for (std::size_t i = 0; i < path.nodes.size(); ++i)
-        {
-            if (path.nodes[i].kind != RoutePathNode::Kind::SWITCH) continue;
-            const Switch* sw = state.find_switch(path.nodes[i].uid);
-            if (!sw) continue;
+        if (path.nodes[i].kind != RoutePathNode::Kind::SWITCH) continue;
+        const Switch* sw = state.find_switch(path.nodes[i].uid);
+        if (!sw) continue;
 
-            UID unused_leg = (path.nodes[i].required_position == SwitchPosition::STRAIGHT) 
-                ? sw->divergent.neighbor_uid 
-                : sw->straight.neighbor_uid;
-            
-            if (const Switch* flank_sw = state.find_switch(unused_leg))
-            {
-                SwitchPosition deflect_pos = SwitchPosition::STRAIGHT;
-                if (flank_sw->trunk.neighbor_uid == sw->uid) {
-                    deflect_pos = SwitchPosition::DIVERGENT; // basic deflection rule
-                } else if (flank_sw->straight.neighbor_uid == sw->uid) {
+        UID unused_leg = (path.nodes[i].required_position == SwitchPosition::STRAIGHT) 
+            ? sw->divergent.neighbor_uid 
+            : sw->straight.neighbor_uid;
+        
+        if (const Switch* flank_sw = state.find_switch(unused_leg))
+        {
+            SwitchPosition deflect_pos = SwitchPosition::STRAIGHT;
+            if (flank_sw->trunk.neighbor_uid == sw->uid) {
+                // TODO: Read safe deflection positions from interlocking control tables (Tablice Zależności).
+                // Assuming DIVERGENT is safe is a heuristic that might lead to main tracks.
+                deflect_pos = SwitchPosition::DIVERGENT; 
+            } else if (flank_sw->straight.neighbor_uid == sw->uid) {
                     deflect_pos = SwitchPosition::DIVERGENT;
                 } else if (flank_sw->divergent.neighbor_uid == sw->uid) {
                     deflect_pos = SwitchPosition::STRAIGHT;
@@ -186,12 +185,13 @@ public:
                 path.flank_switches.push_back({RoutePathNode::Kind::SWITCH, flank_sw->uid, deflect_pos});
             }
         }
-        return true;
     }
-};
+    return true;
+}
 
 std::optional<InterlockingViolation> check_request_route(const IStateView& state,
-                                                         const RequestRouteCmd& cmd)
+                                                         const RequestRouteCmd& cmd,
+                                                         const std::vector<const IRoutePathPolicy*>& policies)
 {
     const Signal* entry = state.find_signal(cmd.from_signal_uid);
     if (!entry)
@@ -209,8 +209,7 @@ std::optional<InterlockingViolation> check_request_route(const IStateView& state
                          "Entry signal already route-locked: " + uid_str(cmd.from_signal_uid),
                          cmd.from_signal_uid);
 
-    FlankProtectionPolicy flank_policy;
-    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, {&flank_policy});
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, policies);
     if (!path)
         return violation(NAK_NO_PATH, "No topology path from " + uid_str(cmd.from_signal_uid) +
                                           " to " + uid_str(cmd.to_signal_uid));
@@ -249,10 +248,10 @@ std::optional<InterlockingViolation> check_request_route(const IStateView& state
 }
 
 std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
-                                                     const RequestRouteCmd& cmd, uint64_t tick)
+                                                     const RequestRouteCmd& cmd, uint64_t tick,
+                                                     const std::vector<const IRoutePathPolicy*>& policies)
 {
-    FlankProtectionPolicy flank_policy;
-    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, {&flank_policy});
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, policies);
     if (!path)
         return {};
 
@@ -750,7 +749,7 @@ std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& 
         return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
                          cmd.block_section_uid);
                          
-    if (!bs->reset_init_tick.has_value() || (state.current_tick() < *bs->reset_init_tick + 1200))
+    if (!bs->reset_init_tick.has_value() || (state.current_tick() < *bs->reset_init_tick + 60 * engine::core::ENGINE_TICKS_PER_SECOND))
         return violation(NAK_SAFETY_BLOCK, "SLK requires 60s delay after SLI",
                          cmd.block_section_uid);
                          
@@ -838,8 +837,8 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, 
 
             if (!route.overlap_release_tick.has_value())
             {
-                // Start overlap timer for 1200 ticks (60s at 20Hz)
-                changes.push_back(RouteOverlapTimerStarted{route.uid, current_tick + 1200});
+                // Start overlap timer for 60s
+                changes.push_back(RouteOverlapTimerStarted{route.uid, current_tick + 60 * engine::core::ENGINE_TICKS_PER_SECOND});
                 return;
             }
 
