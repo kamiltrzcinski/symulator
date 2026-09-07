@@ -33,6 +33,7 @@ public:
     const BlockSection* find_block_section(UID uid) const noexcept override;
     const RouteState* find_route(UID route_uid) const noexcept override;
     const AlarmState* find_alarm(UID alarm_uid) const noexcept override;
+    const LevelCrossing* find_level_crossing(UID uid) const noexcept override;
 
     void for_each_track_section(std::function<void(const TrackSection&)> fn) const override;
     void for_each_switch(std::function<void(const Switch&)> fn) const override;

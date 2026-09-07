@@ -244,12 +244,6 @@ enum class DispatchFormType : std::uint8_t
     S76,  // Free-form dispatch message / remarks
 };
 
-struct RouteOverlapTimerStarted
-{
-    UID uid;
-    uint64_t release_tick;
-};
-
 struct EmergencyRouteReleaseExecuted
 {
     UID route_uid;
