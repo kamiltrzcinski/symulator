@@ -117,7 +117,11 @@ def read_manifest_dependencies(vcpkg_manifest: Path, include_qt: bool, system_na
     if include_qt and "qtbase" not in [d.split("[")[0] for d in dependencies]:
         dependencies.append("qtbase")
     if not include_qt:
-        dependencies = [dep for dep in dependencies if dep.split("[")[0] not in ("qtbase", "qtmultimedia")]
+        filtered = []
+        for dep in dependencies:
+            if dep.split("[")[0] not in ("qtbase", "qtmultimedia"):
+                filtered.append(dep)
+        dependencies = filtered
 
     # Preserve order while removing duplicates.
     deduplicated: list[str] = []
