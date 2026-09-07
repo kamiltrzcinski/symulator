@@ -7,6 +7,7 @@ qt_add_executable(symulator-client
 
 target_include_directories(symulator-client PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/audio
 )
 
 target_link_libraries(symulator-client PRIVATE

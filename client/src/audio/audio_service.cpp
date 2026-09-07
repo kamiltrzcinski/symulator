@@ -41,3 +41,5 @@ void AudioService::stopAll() {
 }
 
 } // namespace symulator::client::audio
+
+#include "moc_audio_service.cpp"
