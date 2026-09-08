@@ -3,6 +3,7 @@
 #include <engine/core/command.hpp>
 #include <engine/core/control_system.hpp>
 #include <engine/core/state_view.hpp>
+#include <srk/common/route_graph.hpp>
 
 #include <optional>
 #include <string>
@@ -24,6 +25,12 @@ namespace srk::common
 {
 
 using namespace engine::core;
+
+class FlankProtectionPolicy : public IRoutePathPolicy
+{
+public:
+    bool apply(const engine::core::IStateView& state, RoutePath& path) const override;
+};
 
 // ── R1: SetSwitchPosition ────────────────────────────────────────────────────
 // Rejects if: switch occupied | switch in MOVING | switch route-locked |
@@ -70,10 +77,12 @@ std::vector<DeviceStateChange> execute_set_block_section(const IStateView& state
 // CancelRoute: unlocks all devices; resets entry signal to STOP.
 
 std::optional<InterlockingViolation> check_request_route(const IStateView& state,
-                                                         const RequestRouteCmd& cmd);
+                                                         const RequestRouteCmd& cmd,
+                                                         const std::vector<const IRoutePathPolicy*>& policies = {});
 
 std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
-                                                     const RequestRouteCmd& cmd, uint64_t tick);
+                                                     const RequestRouteCmd& cmd, uint64_t tick,
+                                                     const std::vector<const IRoutePathPolicy*>& policies = {});
 
 std::optional<InterlockingViolation> check_cancel_route(const IStateView& state,
                                                         const CancelRouteCmd& cmd);
@@ -138,6 +147,7 @@ std::vector<DeviceStateChange> tick_switch_machines(
     std::unordered_map<UID, SwitchPosition, std::hash<UID>>& pending_targets);
 
 // Auto-release routes whose trains have fully cleared.
-std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state);
+std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, uint64_t current_tick);
+std::vector<DeviceStateChange> tick_level_crossings(const IStateView& state, uint64_t current_tick);
 
 }  // namespace srk::common

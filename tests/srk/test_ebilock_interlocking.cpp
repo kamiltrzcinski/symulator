@@ -405,6 +405,7 @@ TEST(EbiLockShl12, SLIAndSLKResetAxleCounterProcedure)
     EXPECT_EQ(init_dir->new_direction, BlockDirectionState::RESET_PENDING);
 
     st.apply_block_section_direction(BL1, BlockDirectionState::RESET_PENDING);
+    st.set_current_tick(120000);
 
     Command reset = ResetAxleCounterCmd{BL1};
     EXPECT_FALSE(sys.check_command(st, reset).has_value());

@@ -35,6 +35,11 @@ void attach_id(QGraphicsItem& item, InfrastructureId id)
 
 void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene) const
 {
+    render(model, scene, true);
+}
+
+void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene, bool interactive) const
+{
     scene.clear();
     scene.setSceneRect(0.0, 0.0, model.canvas.width, model.canvas.height);
     scene.setBackgroundBrush(theme_.background());
@@ -44,6 +49,7 @@ void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene) co
         auto* item = scene.addPath(to_qt_path(track.path),
                                    theme_.track_pen(track.state.occupancy));
         attach_id(*item, track.id);
+        item->setFlag(QGraphicsItem::ItemIsSelectable, interactive);
     }
 
     for (const auto& switch_item : model.switches)
@@ -62,6 +68,8 @@ void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene) co
             theme_.switch_pen(switch_item.state.occupancy, divergent_active));
         attach_id(*straight, switch_item.id);
         attach_id(*divergent, switch_item.id);
+        straight->setFlag(QGraphicsItem::ItemIsSelectable, interactive);
+        divergent->setFlag(QGraphicsItem::ItemIsSelectable, interactive);
     }
 
     for (const auto& signal_item : model.signal_items)
@@ -70,6 +78,7 @@ void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene) co
             signal_item.position.x - 1.1, signal_item.position.y - 1.1, 2.2, 2.2,
             QPen(Qt::black, 0.4), theme_.signal_brush(signal_item.state.indication));
         attach_id(*item, signal_item.id);
+        item->setFlag(QGraphicsItem::ItemIsSelectable, interactive);
     }
 
     for (const auto& label : model.labels)
@@ -78,6 +87,7 @@ void QtSceneRenderer::render(const RenderModel& model, QGraphicsScene& scene) co
         item->setDefaultTextColor(theme_.label_colour());
         item->setScale(0.12);
         item->setPos(label.anchor.x, label.anchor.y);
+        item->setFlag(QGraphicsItem::ItemIsSelectable, false);
     }
 }
 

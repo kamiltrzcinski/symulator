@@ -22,8 +22,10 @@ enum Aspect : byte {
     S11_PROCEED_40_EXPECT_40   = 10,   // S11 — Jazda 40, oczekuj 40
     S12_PROCEED_60             = 11,   // S12 — Jazda 60 km/h
     S13_PROCEED_60_EXPECT_60   = 12,   // S13 — Jazda 60, oczekuj 60
-    MS1_STOP                   = 13,   // Ms1 — Tarcza: stój (shunting stop)
-    MS2_SHUNTING_ALLOWED       = 14,   // Ms2 — Tarcza: jazda manewrowa
+    SZ_PROCEED                 = 13,   // Sygnal zastepczy (Sz)
+    SZN_PROCEED_W24            = 14,   // Sygnal zastepczy + W24
+    MS1_STOP                   = 15,   // Ms1 — Tarcza: stój (shunting stop)
+    MS2_SHUNTING_ALLOWED       = 16,   // Ms2 — Tarcza: jazda manewrowa
 }
 
 /// Switch (zwrotnica) position.

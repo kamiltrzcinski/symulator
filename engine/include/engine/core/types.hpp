@@ -14,6 +14,10 @@
 namespace engine::core
 {
 
+// ── Global Constants ────────────────────────────────────────────────────────
+// The core simulation engine updates state at a fixed rate of 20 ticks per second.
+constexpr std::uint64_t ENGINE_TICKS_PER_SECOND = 20;
+
 // ── Universal UID ────────────────────────────────────────────────────────────
 // 48-bit structured integer; bits 63-48 reserved (must be 0).
 // Layout: DOMAIN[47:40] | KIND[39:32] | SCOPE[31:16] | INSTANCE[15:0]
@@ -136,6 +140,29 @@ enum class SwitchPosition : std::uint8_t
     STRAIGHT,
     DIVERGENT,
     MOVING,  // Transitional — switch machine is operating
+    TRAILED_DAMAGED, // Hardware damaged due to run-through
+};
+
+struct SwitchControlStateChange
+{
+    UID switch_uid;
+    bool control_lost;
+};
+
+// ── Level Crossing State ───────────────────────────────────────────────────────
+
+enum class LevelCrossingStatus : std::uint8_t
+{
+    OPEN,
+    WARNING,            // Warning signals active, barriers lowering
+    CLOSED,             // Completely closed, safe for trains
+    FAULT_NO_CONTROL,   // Hardware malfunction (power loss, barrier broken)
+};
+
+struct LevelCrossingStateChange
+{
+    UID crossing_uid;
+    LevelCrossingStatus status;
 };
 
 // ── Signal aspects ────────────────────────────────────────────────────────────
@@ -157,6 +184,8 @@ enum class SignalAspect : std::uint8_t
     S11_PROCEED_40_EXPECT_40,
     S12_PROCEED_60,
     S13_PROCEED_60_EXPECT_60,
+    SZ_PROCEED,            // Sygnał zastępczy (Sz)
+    SZN_PROCEED_W24,       // Sygnał zastępczy + W24 (na tor niewłaściwy)
     MS1_STOP,              // Shunting signal — stop (Ms1)
     MS2_SHUNTING_ALLOWED,  // Shunting signal — manoeuvre allowed (Ms2)
 };
@@ -214,6 +243,13 @@ enum class DispatchFormType : std::uint8_t
     S56,  // Line-clear reply for dangerous-goods trains (replaces S24)
     S76,  // Free-form dispatch message / remarks
 };
+
+struct EmergencyRouteReleaseExecuted
+{
+    UID route_uid;
+};
+
+
 
 enum class TelegramDirection : std::uint8_t
 {

@@ -147,12 +147,13 @@ TEST_F(DispatchChannelFixture, S55_S56_Accepted_WritesEdrUpdate)
     EXPECT_EQ(db.written_telegrams[1].form_type, "S56");
 }
 
-TEST_F(DispatchChannelFixture, RejectedTelegram_NoDbWrite)
+TEST_F(DispatchChannelFixture, RejectedTelegram_WritesRejectedStatusToDb)
 {
     send(make_dispatch_form(kSrcAreaUid, kDstAreaUid, proto::DispatchFormType_S24,
                             proto::TelegramDirection_RECEIVED, kTrain));
 
-    EXPECT_TRUE(db.written_telegrams.empty());
+    ASSERT_EQ(db.written_telegrams.size(), 1u);
+    EXPECT_EQ(db.written_telegrams[0].status, "REJECTED_STRICT_POLICY");
     EXPECT_TRUE(db.edr_updates.empty());
 }
 

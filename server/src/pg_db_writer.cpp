@@ -2,11 +2,60 @@
 
 #include "server/pg_db_writer.hpp"
 
+#include <openssl/evp.h>
+
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
 namespace server
 {
+
+// Compute SHA-256 of the concatenation of inputs and return as a lowercase hex string.
+// Uses the OpenSSL EVP high-level API which handles context allocation safely.
+static std::string sha256_hex(std::string_view session_id,
+                              int64_t event_id,
+                              int64_t timestamp_us,
+                              const std::vector<uint8_t>& payload)
+{
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (!ctx)
+        throw std::runtime_error("[PgDbWriter] EVP_MD_CTX_new failed");
+
+    struct CtxGuard
+    {
+        EVP_MD_CTX* p;
+        ~CtxGuard() { EVP_MD_CTX_free(p); }
+    } guard{ctx};
+
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1)
+        throw std::runtime_error("[PgDbWriter] EVP_DigestInit_ex failed");
+
+    // Feed: session_id || '|' || event_id || '|' || timestamp_us || '|' || payload bytes
+    const char sep = '|';
+    std::string event_id_str = std::to_string(event_id);
+    std::string timestamp_str = std::to_string(timestamp_us);
+
+    EVP_DigestUpdate(ctx, session_id.data(), session_id.size());
+    EVP_DigestUpdate(ctx, &sep, 1);
+    EVP_DigestUpdate(ctx, event_id_str.data(), event_id_str.size());
+    EVP_DigestUpdate(ctx, &sep, 1);
+    EVP_DigestUpdate(ctx, timestamp_str.data(), timestamp_str.size());
+    EVP_DigestUpdate(ctx, &sep, 1);
+    EVP_DigestUpdate(ctx, payload.data(), payload.size());
+
+    unsigned char digest[EVP_MAX_MD_SIZE];
+    unsigned int digest_len = 0;
+    if (EVP_DigestFinal_ex(ctx, digest, &digest_len) != 1)
+        throw std::runtime_error("[PgDbWriter] EVP_DigestFinal_ex failed");
+
+    std::ostringstream oss;
+    oss << std::hex << std::setfill('0');
+    for (unsigned int i = 0; i < digest_len; ++i)
+        oss << std::setw(2) << static_cast<unsigned>(digest[i]);
+    return oss.str();
+}
 
 static std::string pg_smallint_array_literal(const std::vector<int>& values)
 {
@@ -64,19 +113,27 @@ void PgDbWriter::write_domain_event(const std::string& /*session_id*/, DomainEve
 {
     const pqxx::bytes_view payload_bv{reinterpret_cast<const std::byte*>(row.payload.data()),
                                       row.payload.size()};
-    std::lock_guard<std::mutex> lock{mu_};
-    pqxx::work tx{conn_};
     // object_uid is optional<uint64_t>; pass as optional<int64_t> for pqxx
     std::optional<int64_t> obj_uid_param;
     if (row.object_uid.has_value())
         obj_uid_param = static_cast<int64_t>(*row.object_uid);
+
+    // Compute SHA-256 audit hash before acquiring the mutex (CPU work outside lock).
+    const std::string audit_hash = sha256_hex(
+        session_uuid_,
+        static_cast<int64_t>(row.event_id),
+        static_cast<int64_t>(row.timestamp_us),
+        row.payload);
+
+    std::lock_guard<std::mutex> lock{mu_};
+    pqxx::work tx{conn_};
     tx.exec(
         "INSERT INTO session.events "
-        "  (session_id, event_type, event_id, timestamp_us, object_uid, payload) "
-        "VALUES ($1::uuid, $2, $3, $4, $5, $6)",
+        "  (session_id, event_type, event_id, timestamp_us, object_uid, payload, audit_hash) "
+        "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7)",
         pqxx::params{session_uuid_, static_cast<int>(row.event_type),
                      static_cast<int64_t>(row.event_id), static_cast<int64_t>(row.timestamp_us),
-                     obj_uid_param, payload_bv});
+                     obj_uid_param, payload_bv, audit_hash});
     tx.commit();
 }
 

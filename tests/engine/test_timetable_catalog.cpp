@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 #include "engine/timetable/timetable_catalog.hpp"
 
 using namespace engine::core;

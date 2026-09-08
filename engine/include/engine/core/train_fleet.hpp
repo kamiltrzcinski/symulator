@@ -52,6 +52,7 @@ struct NextSectionInfo
                                         ///< UID so that ahead_port() works on the next section.
     bool is_boundary_crossing = false;  ///< True when the ahead neighbor is a BoundaryNode;
                                         ///< the train will be removed after this tick.
+    std::optional<UID> trailed_switch_uid; ///< UID of the switch trailed through (rozprucie).
 };
 
 // ── TrainFleet ────────────────────────────────────────────────────────────────

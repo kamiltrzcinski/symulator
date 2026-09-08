@@ -158,8 +158,39 @@ std::vector<DeviceStateChange> execute_set_block_section(const IStateView& /*sta
 
 // ── R5: RequestRoute ─────────────────────────────────────────────────────────
 
+bool FlankProtectionPolicy::apply(const IStateView& state, RoutePath& path) const
+{
+    for (std::size_t i = 0; i < path.nodes.size(); ++i)
+    {
+        if (path.nodes[i].kind != RoutePathNode::Kind::SWITCH) continue;
+        const Switch* sw = state.find_switch(path.nodes[i].uid);
+        if (!sw) continue;
+
+        UID unused_leg = (path.nodes[i].required_position == SwitchPosition::STRAIGHT) 
+            ? sw->divergent.neighbor_uid 
+            : sw->straight.neighbor_uid;
+        
+        if (const Switch* flank_sw = state.find_switch(unused_leg))
+        {
+            SwitchPosition deflect_pos = SwitchPosition::STRAIGHT;
+            if (flank_sw->trunk.neighbor_uid == sw->uid) {
+                // TODO: Read safe deflection positions from interlocking control tables (Tablice Zależności).
+                // Assuming DIVERGENT is safe is a heuristic that might lead to main tracks.
+                deflect_pos = SwitchPosition::DIVERGENT; 
+            } else if (flank_sw->straight.neighbor_uid == sw->uid) {
+                deflect_pos = SwitchPosition::DIVERGENT;
+            } else if (flank_sw->divergent.neighbor_uid == sw->uid) {
+                deflect_pos = SwitchPosition::STRAIGHT;
+            }
+            path.flank_switches.push_back({RoutePathNode::Kind::SWITCH, flank_sw->uid, deflect_pos});
+        }
+    }
+    return true;
+}
+
 std::optional<InterlockingViolation> check_request_route(const IStateView& state,
-                                                         const RequestRouteCmd& cmd)
+                                                         const RequestRouteCmd& cmd,
+                                                         const std::vector<const IRoutePathPolicy*>& policies)
 {
     const Signal* entry = state.find_signal(cmd.from_signal_uid);
     if (!entry)
@@ -177,7 +208,7 @@ std::optional<InterlockingViolation> check_request_route(const IStateView& state
                          "Entry signal already route-locked: " + uid_str(cmd.from_signal_uid),
                          cmd.from_signal_uid);
 
-    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid);
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, policies);
     if (!path)
         return violation(NAK_NO_PATH, "No topology path from " + uid_str(cmd.from_signal_uid) +
                                           " to " + uid_str(cmd.to_signal_uid));
@@ -216,9 +247,10 @@ std::optional<InterlockingViolation> check_request_route(const IStateView& state
 }
 
 std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
-                                                     const RequestRouteCmd& cmd, uint64_t tick)
+                                                     const RequestRouteCmd& cmd, uint64_t tick,
+                                                     const std::vector<const IRoutePathPolicy*>& policies)
 {
-    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid);
+    auto path = find_route_path(state, cmd.from_signal_uid, cmd.to_signal_uid, policies);
     if (!path)
         return {};
 
@@ -240,6 +272,20 @@ std::vector<DeviceStateChange> execute_request_route(const IStateView& state,
                 SwitchPositionChange{node.uid, node.required_position, ChangeCause::AUTO, 0});
         }
         changes.push_back(SwitchLocked{node.uid, route_uid});
+    }
+
+    // Lock flank switches.
+    for (const auto& fnode : path->flank_switches)
+    {
+        const Switch* sw = state.find_switch(fnode.uid);
+        if (!sw) continue;
+        if (sw->position != fnode.required_position)
+        {
+            changes.push_back(
+                SwitchPositionChange{fnode.uid, fnode.required_position, ChangeCause::AUTO, 0});
+        }
+        changes.push_back(SwitchLocked{fnode.uid, route_uid});
+        path->switch_uids.push_back(fnode.uid); // Add to RouteState for later unlocking
     }
 
     // Lock derailers (unlock them so the route path is clear, then lock to route).
@@ -316,6 +362,10 @@ std::vector<DeviceStateChange> execute_cancel_route(const IStateView& state,
     }
 
     const std::string reason = cmd.force ? "FORCE" : "OPERATOR_CANCEL";
+    if (cmd.force)
+    {
+        changes.push_back(EmergencyRouteReleaseExecuted{cmd.route_uid});
+    }
     changes.push_back(RouteRemoved{cmd.route_uid, reason});
 
     return changes;
@@ -697,6 +747,11 @@ std::optional<InterlockingViolation> check_reset_axle_counter(const IStateView& 
     if (bs->direction != BlockDirectionState::RESET_PENDING)
         return violation(NAK_INVALID_STATE, "SLK requires RESET_PENDING state",
                          cmd.block_section_uid);
+                         
+    if (!bs->reset_init_tick.has_value() || (state.current_tick() < *bs->reset_init_tick + 60 * engine::core::ENGINE_TICKS_PER_SECOND))
+        return violation(NAK_SAFETY_BLOCK, "SLK requires 60s delay after SLI",
+                         cmd.block_section_uid);
+                         
     return std::nullopt;
 }
 
@@ -755,7 +810,7 @@ std::vector<DeviceStateChange> tick_switch_machines(
     return changes;
 }
 
-std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
+std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state, uint64_t current_tick)
 {
     std::vector<DeviceStateChange> changes;
 
@@ -779,6 +834,16 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
             if (!all_free)
                 return;
 
+            if (!route.overlap_release_tick.has_value())
+            {
+                // Start overlap timer for 60s
+                changes.push_back(RouteOverlapTimerStarted{route.uid, current_tick + 60 * engine::core::ENGINE_TICKS_PER_SECOND});
+                return;
+            }
+
+            if (current_tick < *route.overlap_release_tick)
+                return; // Still waiting for overlap release
+
             // Reset entry signal to STOP.
             changes.push_back(SignalAspectChange{route.from_signal_uid, SignalAspect::S1_STOP,
                                                  ChangeCause::AUTO, route.uid});
@@ -788,6 +853,26 @@ std::vector<DeviceStateChange> tick_route_auto_release(const IStateView& state)
                 changes.push_back(SwitchUnlocked{swuid, route.uid});
 
             changes.push_back(RouteRemoved{route.uid, "TRAIN_CLEARED"});
+        });
+
+    return changes;
+}
+
+std::vector<DeviceStateChange> tick_level_crossings(const IStateView& state, uint64_t current_tick)
+{
+    std::vector<DeviceStateChange> changes;
+
+    state.for_each_level_crossing(
+        [&](const LevelCrossing& lx)
+        {
+            if (lx.status == LevelCrossingStatus::WARNING && lx.warning_start_tick.has_value())
+            {
+                if (current_tick >= *lx.warning_start_tick + lx.warning_duration_ticks)
+                {
+                    // Warning time elapsed, close the crossing
+                    changes.push_back(LevelCrossingStateChange{lx.uid, LevelCrossingStatus::CLOSED});
+                }
+            }
         });
 
     return changes;

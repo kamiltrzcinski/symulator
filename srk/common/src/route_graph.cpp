@@ -122,7 +122,8 @@ static SwitchPosition required_switch_position(const Switch& sw, UID came_from, 
 // ── Public API ────────────────────────────────────────────────────────────────
 
 std::optional<RoutePath> find_route_path(const IStateView& state, UID from_signal_uid,
-                                         UID to_signal_uid)
+                                         UID to_signal_uid,
+                                         const std::vector<const IRoutePathPolicy*>& policies)
 {
     const Signal* entry = state.find_signal(from_signal_uid);
     const Signal* exit = state.find_signal(to_signal_uid);
@@ -147,6 +148,12 @@ std::optional<RoutePath> find_route_path(const IStateView& state, UID from_signa
                 if (d.guards_section_uid == start)
                     rp.derailer_uids.push_back(d.uid);
             });
+        
+        for (const auto* policy : policies)
+        {
+            if (!policy->apply(state, rp))
+                return std::nullopt;
+        }
         return rp;
     }
 
@@ -187,6 +194,12 @@ std::optional<RoutePath> find_route_path(const IStateView& state, UID from_signa
                 rp.derailer_uids.push_back(d.uid);
             }
         });
+
+    for (const auto* policy : policies)
+    {
+        if (!policy->apply(state, rp))
+            return std::nullopt;
+    }
 
     return rp;
 }

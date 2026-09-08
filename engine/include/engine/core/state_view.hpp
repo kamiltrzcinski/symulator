@@ -29,10 +29,11 @@ public:
     virtual const TrackSection* find_track_section(UID uid) const noexcept = 0;
     virtual const Switch* find_switch(UID uid) const noexcept = 0;
     virtual const Signal* find_signal(UID uid) const noexcept = 0;
-    virtual const Derailer* find_derailer(UID uid) const noexcept = 0;
-    virtual const BlockSection* find_block_section(UID uid) const noexcept = 0;
-    virtual const RouteState* find_route(UID route_uid) const noexcept = 0;
-    virtual const AlarmState* find_alarm(UID alarm_uid) const noexcept = 0;
+    [[nodiscard]] virtual const Derailer* find_derailer(UID uid) const noexcept = 0;
+    [[nodiscard]] virtual const BlockSection* find_block_section(UID uid) const noexcept = 0;
+    [[nodiscard]] virtual const RouteState* find_route(UID route_uid) const noexcept = 0;
+    [[nodiscard]] virtual const AlarmState* find_alarm(UID alarm_uid) const noexcept = 0;
+    [[nodiscard]] virtual const LevelCrossing* find_level_crossing(UID uid) const noexcept = 0;
 
     // ── Iteration (needed for BFS and full-snapshot copy) ────────────────────
     virtual void for_each_track_section(std::function<void(const TrackSection&)> fn) const = 0;
@@ -43,6 +44,7 @@ public:
     virtual void for_each_route(std::function<void(const RouteState&)> fn) const = 0;
     virtual void for_each_alarm(std::function<void(const AlarmState&)> fn) const = 0;
     virtual void for_each_boundary_node(std::function<void(const BoundaryNode&)> fn) const = 0;
+    virtual void for_each_level_crossing(std::function<void(const LevelCrossing&)> fn) const = 0;
 
     // ── Session metadata ──────────────────────────────────────────────────────
     virtual const std::string& session_id() const noexcept = 0;

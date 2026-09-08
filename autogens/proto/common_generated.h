@@ -31,13 +31,15 @@ enum Aspect : int8_t {
   Aspect_S11_PROCEED_40_EXPECT_40 = 10,
   Aspect_S12_PROCEED_60 = 11,
   Aspect_S13_PROCEED_60_EXPECT_60 = 12,
-  Aspect_MS1_STOP = 13,
-  Aspect_MS2_SHUNTING_ALLOWED = 14,
+  Aspect_SZ_PROCEED = 13,
+  Aspect_SZN_PROCEED_W24 = 14,
+  Aspect_MS1_STOP = 15,
+  Aspect_MS2_SHUNTING_ALLOWED = 16,
   Aspect_MIN = Aspect_S1_STOP,
   Aspect_MAX = Aspect_MS2_SHUNTING_ALLOWED
 };
 
-inline const Aspect (&EnumValuesAspect())[15] {
+inline const Aspect (&EnumValuesAspect())[17] {
   static const Aspect values[] = {
     Aspect_S1_STOP,
     Aspect_S2_PROCEED,
@@ -52,6 +54,8 @@ inline const Aspect (&EnumValuesAspect())[15] {
     Aspect_S11_PROCEED_40_EXPECT_40,
     Aspect_S12_PROCEED_60,
     Aspect_S13_PROCEED_60_EXPECT_60,
+    Aspect_SZ_PROCEED,
+    Aspect_SZN_PROCEED_W24,
     Aspect_MS1_STOP,
     Aspect_MS2_SHUNTING_ALLOWED
   };
@@ -59,7 +63,7 @@ inline const Aspect (&EnumValuesAspect())[15] {
 }
 
 inline const char * const *EnumNamesAspect() {
-  static const char * const names[16] = {
+  static const char * const names[18] = {
     "S1_STOP",
     "S2_PROCEED",
     "S3_PROCEED_40",
@@ -73,6 +77,8 @@ inline const char * const *EnumNamesAspect() {
     "S11_PROCEED_40_EXPECT_40",
     "S12_PROCEED_60",
     "S13_PROCEED_60_EXPECT_60",
+    "SZ_PROCEED",
+    "SZN_PROCEED_W24",
     "MS1_STOP",
     "MS2_SHUNTING_ALLOWED",
     nullptr

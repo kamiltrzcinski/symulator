@@ -44,6 +44,9 @@ std::vector<std::string> EbiLockSystem::supported_command_types() const
 
 // ── check_command ─────────────────────────────────────────────────────────────
 
+static const srk::common::FlankProtectionPolicy kFlankPolicy{};
+static const std::vector<const srk::common::IRoutePathPolicy*> kPolicies = {&kFlankPolicy};
+
 std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateView& state,
                                                                   const Command& cmd) const
 {
@@ -65,7 +68,7 @@ std::optional<InterlockingViolation> EbiLockSystem::check_command(const IStateVi
                 return srk::common::check_set_block_section(state, c);
 
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::check_request_route(state, c);
+                return srk::common::check_request_route(state, c, kPolicies);
 
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::check_cancel_route(state, c);
@@ -120,7 +123,7 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
                 return srk::common::execute_set_block_section(state, c);
 
             else if constexpr (std::is_same_v<T, RequestRouteCmd>)
-                return srk::common::execute_request_route(state, c, state.current_tick());
+                return srk::common::execute_request_route(state, c, state.current_tick(), kPolicies);
 
             else if constexpr (std::is_same_v<T, CancelRouteCmd>)
                 return srk::common::execute_cancel_route(state, c);
@@ -148,10 +151,10 @@ std::vector<DeviceStateChange> EbiLockSystem::execute_command(const IStateView& 
 
 // ── on_tick ───────────────────────────────────────────────────────────────────
 
-std::vector<DeviceStateChange> EbiLockSystem::on_tick(const IStateView& state, uint64_t /*tick*/)
+std::vector<DeviceStateChange> EbiLockSystem::on_tick(const IStateView& state, uint64_t tick_num)
 {
     auto changes = srk::common::tick_switch_machines(state, pending_targets_);
-    auto routes = srk::common::tick_route_auto_release(state);
+    auto routes = srk::common::tick_route_auto_release(state, tick_num);
     changes.insert(changes.end(), std::make_move_iterator(routes.begin()),
                    std::make_move_iterator(routes.end()));
     return changes;

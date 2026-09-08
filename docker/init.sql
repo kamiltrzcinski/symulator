@@ -111,7 +111,8 @@ CREATE TABLE IF NOT EXISTS session.events (
     event_id     BIGINT    NOT NULL,   -- server monotonic counter
     timestamp_us BIGINT    NOT NULL,   -- microseconds since session epoch
     object_uid   BIGINT,               -- NULL for session-level events; INFRASTRUCTURE/OPERATIONS UID
-    payload      BYTEA     NOT NULL    -- FlatBuffers-serialized body
+    payload      BYTEA     NOT NULL,   -- FlatBuffers-serialized body
+    audit_hash   TEXT      NOT NULL    -- SHA-256 hex-digest of (session_id || event_id || timestamp_us || payload)
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_session_event
