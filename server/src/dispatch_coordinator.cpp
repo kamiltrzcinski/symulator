@@ -57,7 +57,7 @@ std::optional<DispatchCoordinator::DispatchOutcome> DispatchCoordinator::handle_
 
     TelegramRow row;
     row.form_type = form_type_str(form);
-    row.exchange_id = outcome.exchange_id.value_or("");
+    row.exchange_id = outcome.exchange_id;
     row.train_number = train_number;
     row.from_uid = std::stoull(src_area);
     row.to_uid = std::stoull(dst_area);
