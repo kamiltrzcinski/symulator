@@ -8,7 +8,8 @@ using namespace engine::core;
 using namespace srk::common;
 
 TEST(LevelCrossing, WarningDelay) {
-    EngineState state{""};
+    EngineState state;
+    state.set_session_id("");
     LevelCrossing lx;
     lx.uid = UID{1};
     lx.status = LevelCrossingStatus::WARNING;

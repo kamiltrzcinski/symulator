@@ -541,7 +541,7 @@ TEST(TrainFleet_TrailedSwitch, TickAll_EmitsTrailedDamaged_OnSectionCrossing)
         {
             const auto* sw = std::get_if<SwitchPositionChange>(&c);
             return sw && sw->uid == kZwr1 &&
-                   sw->position == SwitchPosition::TRAILED_DAMAGED;
+                   sw->new_position == SwitchPosition::TRAILED_DAMAGED;
         });
 
     EXPECT_TRUE(has_damaged_event)
