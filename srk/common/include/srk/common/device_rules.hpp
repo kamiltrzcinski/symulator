@@ -3,6 +3,7 @@
 #include <engine/core/command.hpp>
 #include <engine/core/control_system.hpp>
 #include <engine/core/state_view.hpp>
+#include <srk/common/route_graph.hpp>
 
 #include <optional>
 #include <string>
