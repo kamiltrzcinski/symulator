@@ -178,12 +178,11 @@ bool FlankProtectionPolicy::apply(const IStateView& state, RoutePath& path) cons
                 // Assuming DIVERGENT is safe is a heuristic that might lead to main tracks.
                 deflect_pos = SwitchPosition::DIVERGENT; 
             } else if (flank_sw->straight.neighbor_uid == sw->uid) {
-                    deflect_pos = SwitchPosition::DIVERGENT;
-                } else if (flank_sw->divergent.neighbor_uid == sw->uid) {
-                    deflect_pos = SwitchPosition::STRAIGHT;
-                }
-                path.flank_switches.push_back({RoutePathNode::Kind::SWITCH, flank_sw->uid, deflect_pos});
+                deflect_pos = SwitchPosition::DIVERGENT;
+            } else if (flank_sw->divergent.neighbor_uid == sw->uid) {
+                deflect_pos = SwitchPosition::STRAIGHT;
             }
+            path.flank_switches.push_back({RoutePathNode::Kind::SWITCH, flank_sw->uid, deflect_pos});
         }
     }
     return true;
