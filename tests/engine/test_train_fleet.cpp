@@ -484,7 +484,7 @@ TEST(TrainFleet_TrailedSwitch, ResolveNextSection_PopulatesTrailedUid_WhenWrongL
     EngineState state = make_topology(SwitchPosition::DIVERGENT);
 
     const NextSectionInfo info =
-        TrainFleet::resolve_next_section(state, kOtB, kZwr1);
+        TrainFleet::resolve_next_section(state, kOtB, kBndExitB);
 
     // The section beyond the switch (the trunk OT-A) must still be returned.
     ASSERT_TRUE(info.section_uid.has_value());
@@ -503,7 +503,7 @@ TEST(TrainFleet_TrailedSwitch, ResolveNextSection_NoTrailedUid_WhenCorrectLeg)
     EngineState state = make_topology(SwitchPosition::STRAIGHT);
 
     const NextSectionInfo info =
-        TrainFleet::resolve_next_section(state, kOtB, kZwr1);
+        TrainFleet::resolve_next_section(state, kOtB, kBndExitB);
 
     ASSERT_TRUE(info.section_uid.has_value());
     EXPECT_EQ(info.section_uid->value, kOtA.value);
@@ -522,7 +522,7 @@ TEST(TrainFleet_TrailedSwitch, TickAll_EmitsTrailedDamaged_OnSectionCrossing)
 
     TrainFleet fleet;
     // Train starts near the end of OT-B, moving toward ZWR-1.
-    fleet.add_train(make_fast_train(kOtB), kZwr1);
+    fleet.add_train(make_fast_train(kOtB), kBndExitB);
 
     std::vector<DeviceStateChange> all_changes;
     const TrainFleet::PipCallback cb = [](const std::vector<PipEvent>&) {};

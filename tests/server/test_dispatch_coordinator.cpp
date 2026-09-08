@@ -90,7 +90,8 @@ TEST_F(DispatchCoordinatorFixture, RejectedTelegram_ReturnsNullopt)
         kDstArea, kTrain, std::nullopt, {}, 1000);
 
     EXPECT_FALSE(result.has_value());
-    EXPECT_TRUE(db.written_telegrams.empty());
+    ASSERT_EQ(db.written_telegrams.size(), 1u);
+    EXPECT_EQ(db.written_telegrams[0].status, "REJECTED_STRICT_POLICY");
 }
 
 TEST_F(DispatchCoordinatorFixture, RejectedTelegram_NoEdrUpdate)

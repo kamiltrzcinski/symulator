@@ -312,7 +312,9 @@ TEST(Ml8Shl12_SLI, RejectsFromNonNeutral)
 TEST(Ml8Shl12_SLK, ResetsCounter)
 {
     srk::ml8::Ml8System sys;
-    auto st = make_state_with_block(BlockDirectionState::RESET_PENDING);
+    auto st = make_state_with_block(BlockDirectionState::NEUTRAL);
+    st.apply_block_section_direction(BL1, BlockDirectionState::RESET_PENDING);
+    st.set_current_tick(120000);
 
     Command cmd = ResetAxleCounterCmd{BL1};
     EXPECT_FALSE(sys.check_command(st, cmd).has_value());
