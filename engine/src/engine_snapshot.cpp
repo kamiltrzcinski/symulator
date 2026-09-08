@@ -53,6 +53,12 @@ const AlarmState* EngineSnapshot::find_alarm(UID alarm_uid) const noexcept
     return it != alarms.end() ? &it->second : nullptr;
 }
 
+const LevelCrossing* EngineSnapshot::find_level_crossing(UID uid) const noexcept
+{
+    auto it = level_crossings.find(uid);
+    return it != level_crossings.end() ? &it->second : nullptr;
+}
+
 // ── IStateView: for_each_* ────────────────────────────────────────────────────
 
 void EngineSnapshot::for_each_track_section(std::function<void(const TrackSection&)> fn) const
@@ -100,6 +106,12 @@ void EngineSnapshot::for_each_alarm(std::function<void(const AlarmState&)> fn) c
 void EngineSnapshot::for_each_boundary_node(std::function<void(const BoundaryNode&)> fn) const
 {
     for (auto& [_, v] : boundary_nodes)
+        fn(v);
+}
+
+void EngineSnapshot::for_each_level_crossing(std::function<void(const LevelCrossing&)> fn) const
+{
+    for (auto& [_, v] : level_crossings)
         fn(v);
 }
 

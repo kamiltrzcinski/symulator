@@ -53,6 +53,12 @@ const RouteState* EngineState::find_route(UID route_uid) const noexcept
     return it != routes_.end() ? &it->second : nullptr;
 }
 
+RouteState* EngineState::find_route_mut(UID route_uid) noexcept
+{
+    auto it = routes_.find(route_uid);
+    return it != routes_.end() ? &it->second : nullptr;
+}
+
 const AlarmState* EngineState::find_alarm(UID alarm_uid) const noexcept
 {
     auto it = alarms_.find(alarm_uid);

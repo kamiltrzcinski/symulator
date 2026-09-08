@@ -166,6 +166,7 @@ void EngineLoop::do_tick()
     snap->block_sections = state_.block_sections();
     snap->routes = state_.routes();
     snap->alarms = state_.alarms();
+    snap->level_crossings = state_.level_crossings();
     snap->trains = train_fleet_.snapshot_trains();
     snapshot_.publish(std::move(snap));
 

@@ -32,6 +32,7 @@ public:
     const Derailer* find_derailer(UID uid) const noexcept override;
     const BlockSection* find_block_section(UID uid) const noexcept override;
     const RouteState* find_route(UID route_uid) const noexcept override;
+    RouteState* find_route_mut(UID route_uid) noexcept;
     const AlarmState* find_alarm(UID alarm_uid) const noexcept override;
     const LevelCrossing* find_level_crossing(UID uid) const noexcept override;
 
@@ -105,6 +106,7 @@ public:
     }
     std::unordered_map<UID, RouteState, std::hash<UID>>& routes() { return routes_; }
     std::unordered_map<UID, AlarmState, std::hash<UID>>& alarms() { return alarms_; }
+    std::unordered_map<UID, LevelCrossing, std::hash<UID>>& level_crossings() { return level_crossings_; }
 
 private:
     std::string session_id_;

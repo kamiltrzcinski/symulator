@@ -34,6 +34,7 @@ struct EngineSnapshot final : public IStateView
     std::unordered_map<UID, BlockSection, std::hash<UID>> block_sections;
     std::unordered_map<UID, RouteState, std::hash<UID>> routes;
     std::unordered_map<UID, AlarmState, std::hash<UID>> alarms;
+    std::unordered_map<UID, LevelCrossing, std::hash<UID>> level_crossings;
     std::vector<TrainSnapshot> trains;
 
     // ── IStateView ────────────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ struct EngineSnapshot final : public IStateView
     const BlockSection* find_block_section(UID uid) const noexcept override;
     const RouteState* find_route(UID route_uid) const noexcept override;
     const AlarmState* find_alarm(UID alarm_uid) const noexcept override;
+    const LevelCrossing* find_level_crossing(UID uid) const noexcept override;
 
     void for_each_track_section(std::function<void(const TrackSection&)> fn) const override;
     void for_each_switch(std::function<void(const Switch&)> fn) const override;
@@ -54,6 +56,7 @@ struct EngineSnapshot final : public IStateView
     void for_each_route(std::function<void(const RouteState&)> fn) const override;
     void for_each_alarm(std::function<void(const AlarmState&)> fn) const override;
     void for_each_boundary_node(std::function<void(const BoundaryNode&)> fn) const override;
+    void for_each_level_crossing(std::function<void(const LevelCrossing&)> fn) const override;
 
     const std::string& session_id() const noexcept override { return session; }
     uint64_t current_tick() const noexcept override { return tick; }
