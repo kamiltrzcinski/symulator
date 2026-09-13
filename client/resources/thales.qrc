@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/thales">
+        <file>thales_sprites/semafor_pol_lewy.png</file>
+        <file>thales_sprites/tarcza_man_lewa.png</file>
+        <file>thales_sprites/przycisk_otsdzk.png</file>
+        <file>thales_sprites/btn_red.png</file>
+        <file>thales_sprites/btn_gray.png</file>
+        <file>thales_sprites/btn_blue.png</file>
+        <file>thales_sprites/nastawnia.png</file>
+        <file>thales_sprites/blokada_left.png</file>
+        <file>thales_sprites/blokada_right.png</file>
+        <file>thales_sprites/blokada_neutral.png</file>
+    </qresource>
+</RCC>
