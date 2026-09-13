@@ -9,7 +9,6 @@ qt_add_executable(symulator-client
     src/thales/thales_browser.cpp
     include/thales/topology_loader.hpp
     src/thales/topology_loader.cpp
-    resources/thales.qrc
 )
 
 target_include_directories(symulator-client PRIVATE
