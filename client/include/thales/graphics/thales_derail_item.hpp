@@ -2,9 +2,11 @@
 
 #include "thales/graphics/thales_element_graphic.hpp"
 #include <QString>
+#include <QColor>
 #include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QDateTime>
+#include <QPainterPath>
 
 class ThalesDerailGraphic : public ThalesElementGraphic {
 public:
@@ -17,7 +19,9 @@ public:
 
     enum Direction { Left, Right };
 
-    ThalesDerailGraphic(const QString& name, Direction dir = Right, DerailState state = Clear, engine::core::UID uid, QGraphicsItem* parent = nullptr);
+    ThalesDerailGraphic(const QString& name, Direction dir = Right, DerailState state = Clear, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesDerailGraphic(const QString& name, Direction dir, DerailState state, engine::core::UID uid, QGraphicsItem* parent = nullptr)
+        : ThalesDerailGraphic(name, dir, state, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -35,6 +39,5 @@ private:
     Direction m_dir;
     DerailState m_state;
     bool m_occupied{false};
-    
+    bool m_selected{false};
 };
-

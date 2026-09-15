@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_end_catena_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesEndCatenaGraphic::ThalesEndCatenaGraphic(const QString& trackNum, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_trackNum(trackNum) {
+// ============================================================================
+ThalesEndCatenaGraphic::ThalesEndCatenaGraphic(const QString& trackNum, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_trackNum(trackNum) {
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::NoButton);
 }
@@ -16,7 +20,7 @@ void ThalesEndCatenaGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 void ThalesEndCatenaGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -52,3 +56,4 @@ void ThalesEndCatenaGraphic::paint(QPainter* painter, const QStyleOptionGraphics
         painter->drawText(QRectF(8, -19, 25, 14), Qt::AlignVCenter | Qt::AlignLeft, m_trackNum);
     }
 }
+

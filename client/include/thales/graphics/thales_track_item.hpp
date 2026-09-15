@@ -2,14 +2,17 @@
 
 #include "thales/graphics/thales_element_graphic.hpp"
 #include <QString>
+#include <QColor>
 #include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QDateTime>
+#include <QPainterPath>
 
 class ThalesTrackGraphic : public ThalesElementGraphic {
 public:
     QString sectionId() const { return m_sectionId; }
-    void setSectionId(engine::core::UID uid) { m_sectionId = id; update(); }
+    void setSectionId(const QString& id) { m_sectionId = id; update(); }
+    void setSectionId(engine::core::UID uid) { m_uid = uid; update(); }
     qreal length() const { return m_length; }
     void setLength(qreal len) { m_length = len; prepareGeometryChange(); update(); }
     enum TrackState {
@@ -28,7 +31,9 @@ public:
         BufferStopRight     // Kozioł oporowy po prawej
     };
 
-    ThalesTrackGraphic(qreal length, TrackState state = Free, Termination term = None, const QString& trackNum = QString(), engine::core::UID uid, QGraphicsItem* parent = nullptr);
+    ThalesTrackGraphic(qreal length, TrackState state = Free, Termination term = None, const QString& trackNum = QString(), QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesTrackGraphic(qreal length, TrackState state, Termination term, const QString& trackNum, engine::core::UID uid, QGraphicsItem* parent = nullptr)
+        : ThalesTrackGraphic(length, state, term, trackNum, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -45,6 +50,5 @@ private:
     Termination m_termination;
     QString m_trackNum;
     QString m_trainNum;
-    
+    bool m_selected{false};
 };
-

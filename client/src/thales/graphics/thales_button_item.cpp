@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_button_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesButtonGraphic::ThalesButtonGraphic(const QString& text, Style style, bool hasArrow, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_text(text), m_style(style), m_hasArrow(hasArrow) {
+// ============================================================================
+ThalesButtonGraphic::ThalesButtonGraphic(const QString& text, Style style, bool hasArrow, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_text(text), m_style(style), m_hasArrow(hasArrow) {
     setAcceptHoverEvents(true);
 }
 
@@ -24,7 +28,7 @@ void ThalesButtonGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         update();
         event->accept();
     } else {
-        QGraphicsItem::mousePressEvent(event);
+        ThalesElementGraphic::mousePressEvent(event);
     }
 }
 
@@ -35,7 +39,7 @@ void ThalesButtonGraphic::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
         update();
         event->accept();
     } else {
-        QGraphicsItem::mouseReleaseEvent(event);
+        ThalesElementGraphic::mouseReleaseEvent(event);
     }
 }
 
@@ -116,23 +120,3 @@ void ThalesButtonGraphic::paint(QPainter* painter, const QStyleOptionGraphicsIte
     }
 }
 
-    auto btnOtski = new ThalesButtonGraphic("OTSKI1", ThalesButtonGraphic::BlueOT);
-    btnOtski->setPos(30, 48); m_scene->addItem(btnOtski);
-
-    auto btnOteskx = new ThalesButtonGraphic("OTESKX", ThalesButtonGraphic::BlueOT);
-    btnOteskx->setPos(115, 48); m_scene->addItem(btnOteskx);
-
-    auto btnOtswa = new ThalesButtonGraphic("OTSWA", ThalesButtonGraphic::BlueOT);
-    btnOtswa->setPos(200, 48); m_scene->addItem(btnOtswa);
-
-    auto btnOtpoa = new ThalesButtonGraphic("OTPOA1", ThalesButtonGraphic::BlueOT, true);
-    btnOtpoa->setPos(280, 48); m_scene->addItem(btnOtpoa);
-
-    auto btnLoff = new ThalesButtonGraphic("LOFF", ThalesButtonGraphic::GraySystem);
-    btnLoff->setPos(380, 48); m_scene->addItem(btnLoff);
-
-    auto btnHmi = new ThalesButtonGraphic("HMI", ThalesButtonGraphic::GraySystem);
-    btnHmi->setPos(445, 48); m_scene->addItem(btnHmi);
-
-    auto btnPzb = new ThalesButtonGraphic("PZB", ThalesButtonGraphic::RedPzb);
-    btnPzb->setPos(510, 48); m_scene->addItem(btnPzb);

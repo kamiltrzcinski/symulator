@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_signal_box_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesSignalBoxGraphic::ThalesSignalBoxGraphic(const QString& label, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_label(label) {
+// ============================================================================
+ThalesSignalBoxGraphic::ThalesSignalBoxGraphic(const QString& label, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_label(label) {
     setAcceptHoverEvents(true);
 }
 
@@ -15,7 +19,7 @@ void ThalesSignalBoxGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 void ThalesSignalBoxGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -76,3 +80,5 @@ void ThalesSignalBoxGraphic::paint(QPainter* painter, const QStyleOptionGraphics
     painter->setPen(QColor(180, 180, 180));
     painter->drawText(QRectF(0, 28, 36, 20), Qt::AlignCenter | Qt::AlignTop, m_label);
 }
+
+

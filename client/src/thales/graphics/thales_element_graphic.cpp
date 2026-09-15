@@ -1,6 +1,6 @@
 #include "thales/graphics/thales_element_graphic.hpp"
 
-ThalesElementGraphic::ThalesElementGraphic(engine::core::UID uid, QGraphicsItem* parent)
+ThalesElementGraphic::ThalesElementGraphic(QGraphicsItem* parent, engine::core::UID uid)
     : QGraphicsObject(parent), m_uid(uid) {
     setAcceptHoverEvents(true);
 }

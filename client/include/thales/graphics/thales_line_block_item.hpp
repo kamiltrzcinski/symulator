@@ -2,9 +2,11 @@
 
 #include "thales/graphics/thales_element_graphic.hpp"
 #include <QString>
+#include <QColor>
 #include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QDateTime>
+#include <QPainterPath>
 
 class ThalesLineBlockGraphic : public ThalesElementGraphic {
 public:
@@ -17,7 +19,9 @@ public:
         PermissionRequested,  // Żądanie pozwolenia (migająca żółta strzałka prążkowana)
         EmergencyChange       // Awaryjna zmiana kierunku (migająca czerwona)
     };
-    ThalesLineBlockGraphic(State state = Neutral, const QString& label = "", engine::core::UID uid, QGraphicsItem* parent = nullptr);
+    ThalesLineBlockGraphic(State state = Neutral, const QString& label = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesLineBlockGraphic(State state, const QString& label, engine::core::UID uid, QGraphicsItem* parent = nullptr)
+        : ThalesLineBlockGraphic(state, label, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -27,6 +31,5 @@ protected:
 private:
     State m_state;
     QString m_label;
-    
+    bool m_selected{false};
 };
-

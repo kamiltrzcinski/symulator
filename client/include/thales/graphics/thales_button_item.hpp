@@ -2,14 +2,16 @@
 
 #include "thales/graphics/thales_element_graphic.hpp"
 #include <QString>
+#include <QColor>
 #include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QDateTime>
+#include <QPainterPath>
 
 class ThalesButtonGraphic : public ThalesElementGraphic {
 public:
-    engine::core::UID uid() const { return m_uid; }
-    void setId(engine::core::UID uid) { m_uid = uid; }
+    QString id() const { return m_id; }
+    void setId(const QString& id) { m_id = id; }
     QString text() const { return m_text; }
     void setText(const QString& t) { m_text = t; update(); }
     enum Style {
@@ -18,7 +20,9 @@ public:
         RedPzb       // Wypełnienie bordowe, tekst czerwony (np. PZB)
     };
 
-    ThalesButtonGraphic(const QString& text, Style style = BlueOT, bool hasArrow = false, engine::core::UID uid, QGraphicsItem* parent = nullptr);
+    ThalesButtonGraphic(const QString& text, Style style = BlueOT, bool hasArrow = false, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesButtonGraphic(const QString& text, Style style, bool hasArrow, engine::core::UID uid, QGraphicsItem* parent = nullptr)
+        : ThalesButtonGraphic(text, style, hasArrow, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -31,6 +35,5 @@ private:
     Style m_style;
     bool m_hasArrow;
     bool m_pressed{false};
-    
+    QString m_id;
 };
-

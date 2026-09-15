@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_signal_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesSignalGraphic::ThalesSignalGraphic(const QString& name, SignalType type, SignalState state, bool labelAbove, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_name(name), m_type(type), m_state(state), m_labelAbove(labelAbove) {
+// ============================================================================
+ThalesSignalGraphic::ThalesSignalGraphic(const QString& name, SignalType type, SignalState state, bool labelAbove, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_name(name), m_type(type), m_state(state), m_labelAbove(labelAbove) {
     setAcceptHoverEvents(true);
     setZValue(10);
 }
@@ -32,7 +36,57 @@ void ThalesSignalGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
+}
+
+
+// ============================================================================
+// Solid train semaphore – filled triangle, vector-only, NO antialiasing.
+// Proportions scaled up ~1.33x.
+// ============================================================================
+static void drawSolidSemaphore(QPainter* painter, qreal cx, qreal cy, bool pointsLeft, const QColor& color) {
+    const qreal hw = 6.4;   // half width (tip → base)
+    const qreal ht = 6.5;   // half height (base spans ±ht)
+    const qreal ty = -0.6;  // tip is slightly above centre
+    QPolygonF tri;
+    if (pointsLeft) {
+        tri << QPointF(cx - hw, cy + ty)   // tip (leftmost)
+            << QPointF(cx + hw, cy - ht)   // base top-right
+            << QPointF(cx + hw, cy + ht);  // base bottom-right
+    } else {
+        tri << QPointF(cx + hw, cy + ty)   // tip (rightmost)
+            << QPointF(cx - hw, cy - ht)   // base top-left
+            << QPointF(cx - hw, cy + ht);  // base bottom-left
+    }
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(color);
+    painter->drawPolygon(tri);
+}
+
+// ============================================================================
+// Outline shunt semaphore – hollow chevron arrow, vector-only, NO antialiasing.
+// Proportions scaled up ~1.33x.
+// ============================================================================
+static void drawOutlineSemaphore(QPainter* painter, qreal cx, qreal cy, bool pointsLeft, const QColor& color) {
+    // 8-point hollow left-pointing chevron (manoeuvring / shunting signal)
+    static const qreal pts[8][2] = {
+        { 6.00,  7.33},
+        {-6.81,  0.24},
+        { 6.81, -7.33},
+        { 6.81, -3.84},
+        { 0.76, -0.47},
+        {-0.52,  0.24},
+        { 6.46,  4.19},
+        { 6.46,  7.45},
+    };
+    QPolygonF poly;
+    for (const auto& p : pts) {
+        const qreal x = pointsLeft ? p[0] : -p[0];
+        poly << QPointF(cx + x, cy + p[1]);
+    }
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(color);
+    painter->drawPolygon(poly);
 }
 
 void ThalesSignalGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -123,26 +177,4 @@ void ThalesSignalGraphic::paint(QPainter* painter, const QStyleOptionGraphicsIte
     }
 }
 
-    auto sig1 = new ThalesSignalGraphic("K1", ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Stop, true); sig1->setPos(60, sigY); m_scene->addItem(sig1);
-    auto lblSig1 = new ThalesLabelGraphic("Stój", QColor(155, 155, 155)); lblSig1->setPos(60, sigY+15); m_scene->addItem(lblSig1);
 
-    auto sig2 = new ThalesSignalGraphic("H2", ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::ProceedTrain, true); sig2->setPos(170, sigY); m_scene->addItem(sig2);
-    auto lblSig2 = new ThalesLabelGraphic("Jazda P.", QColor(0, 255, 0)); lblSig2->setPos(170, sigY+15); m_scene->addItem(lblSig2);
-
-    auto sig3 = new ThalesSignalGraphic("N1", ThalesSignalGraphic::ShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig3->setPos(280, sigY); m_scene->addItem(sig3);
-    auto lblSig3 = new ThalesLabelGraphic("Manewr", QColor(255, 255, 0)); lblSig3->setPos(280, sigY+15); m_scene->addItem(lblSig3);
-
-    auto sig4 = new ThalesSignalGraphic("S1", ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::SignalStopped, true); sig4->setPos(390, sigY); m_scene->addItem(sig4);
-    auto lblSig4 = new ThalesLabelGraphic("Zatrzymany", QColor(255, 0, 255)); lblSig4->setPos(390, sigY+15); m_scene->addItem(lblSig4);
-
-    auto sig5 = new ThalesSignalGraphic("Z1", ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Substitute, true); sig5->setPos(500, sigY); m_scene->addItem(sig5);
-    auto lblSig5 = new ThalesLabelGraphic("Zastepczy(Miga)", QColor(255, 255, 255)); lblSig5->setPos(500, sigY+15); m_scene->addItem(lblSig5);
-
-    auto sig6 = new ThalesSignalGraphic("H3", ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::Stop, true); sig6->setPos(625, sigY); m_scene->addItem(sig6);
-    auto lblSig6 = new ThalesLabelGraphic("Polsam+Man. Stoj", QColor(155, 155, 155)); lblSig6->setPos(625, sigY+15); m_scene->addItem(lblSig6);
-
-    auto sig7 = new ThalesSignalGraphic("H4", ThalesSignalGraphic::TrainAndShuntRight, ThalesSignalGraphic::ProceedTrain, true); sig7->setPos(765, sigY); m_scene->addItem(sig7);
-    auto lblSig7 = new ThalesLabelGraphic("Polsam+Man.Jazda", QColor(0, 255, 0)); lblSig7->setPos(765, sigY+15); m_scene->addItem(lblSig7);
-
-    auto sig9 = new ThalesSignalGraphic("Ms2", ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig9->setPos(905, sigY); m_scene->addItem(sig9);
-    auto lblSig9 = new ThalesLabelGraphic("Polsam Manewr+Poc.", QColor(255, 255, 0)); lblSig9->setPos(905, sigY+15); m_scene->addItem(lblSig9);

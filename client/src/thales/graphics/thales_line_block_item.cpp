@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_line_block_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesLineBlockGraphic::ThalesLineBlockGraphic(State state, const QString& label, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_state(state), m_label(label) {
+// ============================================================================
+ThalesLineBlockGraphic::ThalesLineBlockGraphic(State state, const QString& label, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_state(state), m_label(label) {
     setAcceptHoverEvents(true);
 }
 
@@ -15,7 +19,7 @@ void ThalesLineBlockGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 void ThalesLineBlockGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -114,12 +118,4 @@ void ThalesLineBlockGraphic::paint(QPainter* painter, const QStyleOptionGraphics
         painter->drawText(QRectF(0, -32, 100, 15), Qt::AlignCenter | Qt::AlignBottom, m_label);
     }
 }
-
-    auto blk1 = new ThalesLineBlockGraphic(ThalesLineBlockGraphic::Neutral, "Neutral"); blk1->setPos(30, blkY); m_scene->addItem(blk1);
-    auto blk2 = new ThalesLineBlockGraphic(ThalesLineBlockGraphic::Sending, "Sending"); blk2->setPos(130, blkY); m_scene->addItem(blk2);
-
-    auto blk3 = new ThalesLineBlockGraphic(ThalesLineBlockGraphic::Receiving, "Receiving"); blk3->setPos(230, blkY); m_scene->addItem(blk3);
-    auto blk4 = new ThalesLineBlockGraphic(ThalesLineBlockGraphic::PermissionRequested, "PermReq(Miga)"); blk4->setPos(330, blkY); m_scene->addItem(blk4);
-
-    auto blk5 = new ThalesLineBlockGraphic(ThalesLineBlockGraphic::EmergencyChange, "Emerg(Miga)"); blk5->setPos(430, blkY); m_scene->addItem(blk5);
 

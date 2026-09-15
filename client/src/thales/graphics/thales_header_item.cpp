@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_header_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesHeaderGraphic::ThalesHeaderGraphic(QGraphicsItem* parent)
-    : QGraphicsItem(parent) {
+// ============================================================================
+ThalesHeaderGraphic::ThalesHeaderGraphic(QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid) {
 }
 
 QRectF ThalesHeaderGraphic::boundingRect() const {
@@ -70,3 +74,4 @@ void ThalesHeaderGraphic::paint(QPainter* painter, const QStyleOptionGraphicsIte
     painter->setPen(QColor(0, 255, 0));
     painter->drawText(QRectF(245, 28, 85, 18), Qt::AlignCenter, "RSS");
 }
+

@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_switch_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesSwitchGraphic::ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied, SwitchState state, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_name(name), m_dir(dir), m_divergingOccupied(divergingOccupied), m_switchState(state) {
+// ============================================================================
+ThalesSwitchGraphic::ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied, SwitchState state, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_name(name), m_dir(dir), m_divergingOccupied(divergingOccupied), m_switchState(state) {
     setAcceptHoverEvents(true);
 }
 
@@ -15,7 +19,7 @@ void ThalesSwitchGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 void ThalesSwitchGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -121,23 +125,6 @@ void ThalesSwitchGraphic::paint(QPainter* painter, const QStyleOptionGraphicsIte
     }
 }
 
-    auto sw1 = new ThalesSwitchGraphic("SW1", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchNormal); sw1->setPos(50, swY); m_scene->addItem(sw1);
-    auto lblSw1 = new ThalesLabelGraphic("Wprost (Wolna)", QColor(155,155,155)); lblSw1->setPos(50, swY+25); m_scene->addItem(lblSw1);
-
-    auto sw2 = new ThalesSwitchGraphic("SW2", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchNormal); sw2->setDiverging(true); sw2->setPos(200, swY); m_scene->addItem(sw2);
-    auto lblSw2 = new ThalesLabelGraphic("Bok (Wolna)", QColor(155,155,155)); lblSw2->setPos(200, swY+25); m_scene->addItem(lblSw2);
-
-    auto sw3 = new ThalesSwitchGraphic("SW3", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchStopped); sw3->setPos(350, swY); m_scene->addItem(sw3);
-    auto lblSw3 = new ThalesLabelGraphic("Zastopowana", QColor(255,0,255)); lblSw3->setPos(350, swY+25); m_scene->addItem(lblSw3);
-
-    auto sw4 = new ThalesSwitchGraphic("SW4", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchNoControl); sw4->setPos(500, swY); m_scene->addItem(sw4);
-    auto lblSw4 = new ThalesLabelGraphic("Brak Kontroli", QColor(255,255,255)); lblSw4->setPos(500, swY+25); m_scene->addItem(lblSw4);
-
-    auto sw5 = new ThalesSwitchGraphic("SW5", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchDerailed); sw5->setPos(650, swY); m_scene->addItem(sw5);
-    auto lblSw5 = new ThalesLabelGraphic("Rozpruta (Wprost)", QColor(255,0,0)); lblSw5->setPos(650, swY+25); m_scene->addItem(lblSw5);
-
-    auto sw6 = new ThalesSwitchGraphic("SW6", ThalesSwitchGraphic::BranchUpRight, false, ThalesSwitchGraphic::SwitchDerailed); sw6->setDiverging(true); sw6->setPos(800, swY); m_scene->addItem(sw6);
-    auto lblSw6 = new ThalesLabelGraphic("Rozpruta (Bok)", QColor(255,0,0)); lblSw6->setPos(800, swY+25); m_scene->addItem(lblSw6);
 
 QPointF ThalesSwitchGraphic::branchEndpoint() const {
     qreal endX = (m_dir == BranchUpRight || m_dir == BranchDownRight) ? 45.0 : 25.0;

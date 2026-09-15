@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_derail_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesDerailGraphic::ThalesDerailGraphic(const QString& name, Direction dir, DerailState state, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_name(name), m_dir(dir), m_state(state) {
+// ============================================================================
+ThalesDerailGraphic::ThalesDerailGraphic(const QString& name, Direction dir, DerailState state, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_name(name), m_dir(dir), m_state(state) {
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -16,7 +20,7 @@ void ThalesDerailGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 void ThalesDerailGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
@@ -80,17 +84,3 @@ void ThalesDerailGraphic::paint(QPainter* painter, const QStyleOptionGraphicsIte
     }
 }
 
-    auto derail1 = new ThalesDerailGraphic("D1", ThalesDerailGraphic::Right, ThalesDerailGraphic::Placed); derail1->setPos(50, derY); m_scene->addItem(derail1);
-    auto lblDer1 = new ThalesLabelGraphic("Nałożona (Wolna)", QColor(155,155,155)); lblDer1->setPos(50, derY+15); m_scene->addItem(lblDer1);
-
-    auto derail2 = new ThalesDerailGraphic("D2", ThalesDerailGraphic::Right, ThalesDerailGraphic::Clear); derail2->setPos(170, derY); m_scene->addItem(derail2);
-    auto lblDer2 = new ThalesLabelGraphic("Zdjęta (Wolna)", QColor(155,155,155)); lblDer2->setPos(170, derY+15); m_scene->addItem(lblDer2);
-
-    auto derail3 = new ThalesDerailGraphic("D3", ThalesDerailGraphic::Right, ThalesDerailGraphic::NoControl); derail3->setPos(290, derY); m_scene->addItem(derail3);
-    auto lblDer3 = new ThalesLabelGraphic("Brak Kontroli (Miga)", QColor(255,255,255)); lblDer3->setPos(290, derY+15); m_scene->addItem(lblDer3);
-
-    auto derail4 = new ThalesDerailGraphic("D4", ThalesDerailGraphic::Right, ThalesDerailGraphic::Stopped); derail4->setPos(410, derY); m_scene->addItem(derail4);
-    auto lblDer4 = new ThalesLabelGraphic("Zastopowana", QColor(255,0,255)); lblDer4->setPos(410, derY+15); m_scene->addItem(lblDer4);
-
-    auto derail5 = new ThalesDerailGraphic("D5", ThalesDerailGraphic::Right, ThalesDerailGraphic::Clear); derail5->setOccupied(true); derail5->setPos(530, derY); m_scene->addItem(derail5);
-    auto lblDer5 = new ThalesLabelGraphic("Zdjeta (Zajeta)", QColor(255,0,0)); lblDer5->setPos(530, derY+15); m_scene->addItem(lblDer5);

@@ -1,17 +1,22 @@
 #include "thales/graphics/thales_pkpm_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesPkpmGraphic::ThalesPkpmGraphic(Direction dir, const QString& trackNum, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_dir(dir), m_trackNum(trackNum) {
+// ============================================================================
+ThalesPkpmGraphic::ThalesPkpmGraphic(Direction dir, const QString& trackNum, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_dir(dir), m_trackNum(trackNum) {
     setAcceptHoverEvents(true);
 }
+
 
 void ThalesPkpmGraphic::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         m_selected = !m_selected;
         update();
     }
-    QGraphicsItem::mousePressEvent(event);
+    ThalesElementGraphic::mousePressEvent(event);
 }
 
 QRectF ThalesPkpmGraphic::boundingRect() const {
@@ -59,12 +64,4 @@ void ThalesPkpmGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem*
         painter->drawText(QRectF(textX, -20, 28, 14), Qt::AlignVCenter | (m_dir == Right ? Qt::AlignRight : Qt::AlignLeft), m_trackNum);
     }
 }
-
-    auto pkpm108 = new ThalesPkpmGraphic(ThalesPkpmGraphic::Right, "108"); pkpm108->setPos(70, pkpmY); m_scene->addItem(pkpm108);
-
-
-    auto pkpm114 = new ThalesPkpmGraphic(ThalesPkpmGraphic::Left, "114"); pkpm114->setPos(180, pkpmY); m_scene->addItem(pkpm114);
-
-
-    auto pkpm19 = new ThalesPkpmGraphic(ThalesPkpmGraphic::Right); pkpm19->setPos(370, pkpmY); m_scene->addItem(pkpm19);
 

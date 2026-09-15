@@ -1,8 +1,13 @@
 #include "thales/graphics/thales_platform_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesPlatformGraphic::ThalesPlatformGraphic(const QString& text, qreal width, qreal height, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_text(text), m_width(width), m_height(height) {
+// Perony NIE podlegają zaznaczaniu myszą.
+// ============================================================================
+ThalesPlatformGraphic::ThalesPlatformGraphic(const QString& text, qreal width, qreal height, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_text(text), m_width(width), m_height(height) {
 }
 
 QRectF ThalesPlatformGraphic::boundingRect() const {
@@ -40,3 +45,4 @@ void ThalesPlatformGraphic::paint(QPainter* painter, const QStyleOptionGraphicsI
     painter->setPen(QColor(135, 155, 175)); // chabrowo-szary
     painter->drawText(r, Qt::AlignCenter, m_text);
 }
+

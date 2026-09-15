@@ -2,9 +2,11 @@
 
 #include "thales/graphics/thales_element_graphic.hpp"
 #include <QString>
+#include <QColor>
 #include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QDateTime>
+#include <QPainterPath>
 
 class ThalesSwitchGraphic : public ThalesElementGraphic {
 public:
@@ -32,7 +34,9 @@ public:
     void setDiverging(bool d) { m_diverging = d; update(); }
     QPointF branchEndpoint() const;
 
-    ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, engine::core::UID uid, QGraphicsItem* parent = nullptr);
+    ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesSwitchGraphic(engine::core::UID uid, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, QGraphicsItem* parent = nullptr)
+        : ThalesSwitchGraphic(QString::number(uid), dir, divergingOccupied, state, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -45,6 +49,5 @@ private:
     bool m_divergingOccupied;
     SwitchState m_switchState;
     bool m_diverging{false};
-    
+    bool m_selected{false};
 };
-

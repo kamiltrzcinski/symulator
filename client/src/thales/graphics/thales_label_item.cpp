@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_label_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesLabelGraphic::ThalesLabelGraphic(const QString& text, QColor color, bool isHeader, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_text(text), m_color(color), m_isHeader(isHeader) {
+// ============================================================================
+ThalesLabelGraphic::ThalesLabelGraphic(const QString& text, QColor color, bool isHeader, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_text(text), m_color(color), m_isHeader(isHeader) {
 }
 
 QRectF ThalesLabelGraphic::boundingRect() const {
@@ -22,3 +26,4 @@ void ThalesLabelGraphic::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
     painter->drawText(boundingRect(), Qt::AlignLeft | Qt::AlignTop, m_text);
 }
+

@@ -1,8 +1,12 @@
 #include "thales/graphics/thales_command_box_item.hpp"
 #include <QGraphicsSceneMouseEvent>
+#include <QDateTime>
+#include <QTimer>
+#include <cmath>
 
-ThalesCommandBoxGraphic::ThalesCommandBoxGraphic(qreal width, qreal height, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_width(width), m_height(height) {
+// ============================================================================
+ThalesCommandBoxGraphic::ThalesCommandBoxGraphic(qreal width, qreal height, QGraphicsItem* parent, engine::core::UID uid)
+    : ThalesElementGraphic(parent, uid), m_width(width), m_height(height) {
 }
 
 QRectF ThalesCommandBoxGraphic::boundingRect() const {
@@ -34,3 +38,4 @@ void ThalesCommandBoxGraphic::paint(QPainter* painter, const QStyleOptionGraphic
     painter->setPen(QColor(255, 60, 60));
     painter->drawText(QPointF(12, m_height + 18), "F1   F2");
 }
+
