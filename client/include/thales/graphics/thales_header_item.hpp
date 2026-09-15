@@ -10,7 +10,7 @@
 
 class ThalesHeaderGraphic : public ThalesElementGraphic {
 public:
-    ThalesHeaderGraphic(QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesHeaderGraphic(QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesHeaderGraphic(engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesHeaderGraphic(parent, uid) {}
     QRectF boundingRect() const override;

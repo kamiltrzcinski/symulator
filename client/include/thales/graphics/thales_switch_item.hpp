@@ -34,9 +34,9 @@ public:
     void setDiverging(bool d) { m_diverging = d; update(); }
     QPointF branchEndpoint() const;
 
-    ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesSwitchGraphic(const QString& name, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesSwitchGraphic(engine::core::UID uid, BranchDir dir, bool divergingOccupied = false, SwitchState state = SwitchNormal, QGraphicsItem* parent = nullptr)
-        : ThalesSwitchGraphic(QString::number(uid), dir, divergingOccupied, state, parent, uid) {}
+        : ThalesSwitchGraphic(QString::number(uid.value), dir, divergingOccupied, state, parent, uid) {}
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 

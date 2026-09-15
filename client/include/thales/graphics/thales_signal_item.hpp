@@ -32,7 +32,7 @@ public:
     SignalType signalType() const { return m_type; }
     void setSignalType(SignalType t) { m_type = t; prepareGeometryChange(); update(); }
 
-    ThalesSignalGraphic(const QString& name, SignalType type, SignalState state = Stop, bool labelAbove = true, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesSignalGraphic(const QString& name, SignalType type, SignalState state = Stop, bool labelAbove = true, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesSignalGraphic(const QString& name, SignalType type, SignalState state, bool labelAbove, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesSignalGraphic(name, type, state, labelAbove, parent, uid) {}
     QRectF boundingRect() const override;

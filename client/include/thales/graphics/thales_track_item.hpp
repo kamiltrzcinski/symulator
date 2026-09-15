@@ -31,7 +31,7 @@ public:
         BufferStopRight     // Kozioł oporowy po prawej
     };
 
-    ThalesTrackGraphic(qreal length, TrackState state = Free, Termination term = None, const QString& trackNum = QString(), QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesTrackGraphic(qreal length, TrackState state = Free, Termination term = None, const QString& trackNum = QString(), QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesTrackGraphic(qreal length, TrackState state, Termination term, const QString& trackNum, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesTrackGraphic(length, state, term, trackNum, parent, uid) {}
     QRectF boundingRect() const override;

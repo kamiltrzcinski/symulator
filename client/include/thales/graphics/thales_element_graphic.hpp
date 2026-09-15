@@ -8,7 +8,7 @@
 class ThalesElementGraphic : public QGraphicsObject {
     Q_OBJECT
 public:
-    explicit ThalesElementGraphic(QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    explicit ThalesElementGraphic(QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ~ThalesElementGraphic() override = default;
 
     engine::core::UID uid() const { return m_uid; }
@@ -23,6 +23,6 @@ signals:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
-    engine::core::UID m_uid{0};
+    engine::core::UID m_uid{};
     bool m_selected{false};
 };

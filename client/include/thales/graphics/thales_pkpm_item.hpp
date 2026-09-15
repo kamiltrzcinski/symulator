@@ -15,7 +15,7 @@ public:
         Right   // Trójkąt w prawo ▶
     };
 
-    ThalesPkpmGraphic(Direction dir, const QString& trackNum = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesPkpmGraphic(Direction dir, const QString& trackNum = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesPkpmGraphic(Direction dir, const QString& trackNum, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesPkpmGraphic(dir, trackNum, parent, uid) {}
     QRectF boundingRect() const override;

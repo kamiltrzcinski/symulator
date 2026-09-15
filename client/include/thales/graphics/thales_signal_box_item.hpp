@@ -12,7 +12,7 @@ class ThalesSignalBoxGraphic : public ThalesElementGraphic {
 public:
     QString name() const { return m_label; }
     void setName(const QString& n) { m_label = n; update(); }
-    ThalesSignalBoxGraphic(const QString& label, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesSignalBoxGraphic(const QString& label, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesSignalBoxGraphic(const QString& label, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesSignalBoxGraphic(label, parent, uid) {}
     QRectF boundingRect() const override;

@@ -11,7 +11,7 @@
 class ThalesLabelGraphic : public ThalesElementGraphic {
 public:
     QString text() const { return m_text; }
-    ThalesLabelGraphic(const QString& text, QColor color = QColor(155, 155, 155), bool isHeader = false, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesLabelGraphic(const QString& text, QColor color = QColor(155, 155, 155), bool isHeader = false, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesLabelGraphic(const QString& text, QColor color, bool isHeader, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesLabelGraphic(text, color, isHeader, parent, uid) {}
     QRectF boundingRect() const override;

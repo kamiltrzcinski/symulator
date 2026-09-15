@@ -19,7 +19,7 @@ public:
         PermissionRequested,  // Żądanie pozwolenia (migająca żółta strzałka prążkowana)
         EmergencyChange       // Awaryjna zmiana kierunku (migająca czerwona)
     };
-    ThalesLineBlockGraphic(State state = Neutral, const QString& label = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesLineBlockGraphic(State state = Neutral, const QString& label = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesLineBlockGraphic(State state, const QString& label, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesLineBlockGraphic(state, label, parent, uid) {}
     QRectF boundingRect() const override;

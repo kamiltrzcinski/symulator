@@ -19,7 +19,7 @@ public:
 
     enum Direction { Left, Right };
 
-    ThalesDerailGraphic(const QString& name, Direction dir = Right, DerailState state = Clear, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesDerailGraphic(const QString& name, Direction dir = Right, DerailState state = Clear, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesDerailGraphic(const QString& name, Direction dir, DerailState state, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesDerailGraphic(name, dir, state, parent, uid) {}
     QRectF boundingRect() const override;

@@ -10,7 +10,7 @@
 
 class ThalesCommandBoxGraphic : public ThalesElementGraphic {
 public:
-    ThalesCommandBoxGraphic(qreal width = 450, qreal height = 70, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesCommandBoxGraphic(qreal width = 450, qreal height = 70, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesCommandBoxGraphic(qreal width, qreal height, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesCommandBoxGraphic(width, height, parent, uid) {}
     QRectF boundingRect() const override;

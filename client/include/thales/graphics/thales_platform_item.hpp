@@ -10,7 +10,7 @@
 
 class ThalesPlatformGraphic : public ThalesElementGraphic {
 public:
-    ThalesPlatformGraphic(const QString& text, qreal width = 85, qreal height = 20, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesPlatformGraphic(const QString& text, qreal width = 85, qreal height = 20, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesPlatformGraphic(const QString& text, qreal width, qreal height, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesPlatformGraphic(text, width, height, parent, uid) {}
     QRectF boundingRect() const override;

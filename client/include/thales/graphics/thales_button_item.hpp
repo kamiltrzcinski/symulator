@@ -20,7 +20,7 @@ public:
         RedPzb       // Wypełnienie bordowe, tekst czerwony (np. PZB)
     };
 
-    ThalesButtonGraphic(const QString& text, Style style = BlueOT, bool hasArrow = false, QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesButtonGraphic(const QString& text, Style style = BlueOT, bool hasArrow = false, QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesButtonGraphic(const QString& text, Style style, bool hasArrow, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesButtonGraphic(text, style, hasArrow, parent, uid) {}
     QRectF boundingRect() const override;

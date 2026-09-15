@@ -10,7 +10,7 @@
 
 class ThalesEndCatenaGraphic : public ThalesElementGraphic {
 public:
-    ThalesEndCatenaGraphic(const QString& trackNum = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = 0);
+    ThalesEndCatenaGraphic(const QString& trackNum = "", QGraphicsItem* parent = nullptr, engine::core::UID uid = {});
     ThalesEndCatenaGraphic(const QString& trackNum, engine::core::UID uid, QGraphicsItem* parent = nullptr)
         : ThalesEndCatenaGraphic(trackNum, parent, uid) {}
     QRectF boundingRect() const override;
