@@ -13,6 +13,8 @@
 #include "thales/graphics/thales_switch_item.hpp"
 #include "thales/graphics/thales_track_item.hpp"
 #include <QGraphicsTextItem>
+#include <QPen>
+#include <QTimer>
 ThalesBrowserWindow::ThalesBrowserWindow(QWidget* parent)
     : QMainWindow(parent) {
 

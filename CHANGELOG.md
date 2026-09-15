@@ -30,6 +30,7 @@ All notable changes are documented here.
 - `client/thales`: Removed axle-counter section from the component browser (no such element exists in the Thales ML8 / RSS HMI).
 
 ### Fixed
+- `client/thales`: Included `<QTimer>` and `<QPen>` in `thales_browser.cpp` to resolve incomplete type compilation errors.
 - `client/thales`: Restored correct argument list for `ThalesSignalGraphic` calls in `thales_browser.cpp`.
 - `client/thales`: Used aggregate initialization for `engine::core::UID` default constructor arguments and accessed `uid.value` for string conversions.
 - `client/thales`: Aligned constructor signatures and delegating overloads across all 13 Thales HMI graphics classes.
