@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <memory>
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -32,12 +34,25 @@ private:
     bool m_highlighted;
 };
 
+class ThalesWindow;
+
+class ICommandHandler {
+public:
+    virtual ~ICommandHandler() = default;
+    virtual bool requiresSpecAuth() const = 0;
+    virtual void execute(ThalesWindow* window, const QString& cmd) = 0;
+};
+
 class ThalesWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit ThalesWindow(QWidget* parent = nullptr);
     ~ThalesWindow() override;
+
+    void setStatusText(const QString& text);
+    void highlightElement(const QString& id, const QColor& color);
+    void setElementColor(const QString& id, const QColor& color);
 
 private slots:
     void onCommandButtonClicked(const QString& cmd);
@@ -52,6 +67,7 @@ private:
     void ParseCommand(const QString& cmdStr);
     void executeSpecCommand();
     void resetState();
+    void registerCommands();
 
     QString m_inputBuffer;
     
@@ -77,4 +93,5 @@ private:
     QString m_pendingSpecCommand;
     
     QList<ThalesElementItem*> m_elements;
+    std::map<QString, std::unique_ptr<ICommandHandler>> m_commandHandlers;
 };

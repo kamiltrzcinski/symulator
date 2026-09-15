@@ -26,6 +26,7 @@ All notable changes are documented here.
 - `client/thales`: `ThalesSwitchGraphic` geometry reworked — two parallel horizontal rails with a diagonal blade between them (matching Thales ML8 pixel-art reference); 1 px gap between blade endpoints and each rail; antialiasing disabled for authentic pixel-perfect edges.
 - `client/thales`: `ThalesDerailGraphic` `NoControl` state corrected — only the indicator segment (vertical rectangle) blinks; track lines are permanently visible.
 - `client/thales`: `PermissionRequested` line-block state corrected — only the arrowhead portion blinks; the rectangular bar body is always visible.
+- `client/thales`: Refactored Thales ML8 HMI components into discrete modular classes under `client/include/thales/graphics/` and `client/src/thales/graphics/` with `ThalesElementGraphic` base class and `engine::core::UID` identifiers conforming to SOLID and ARCHITECTURE specs. Integrated `ThalesTrackTheme` into `libtrackview`.
 - `client/thales`: Removed axle-counter section from the component browser (no such element exists in the Thales ML8 / RSS HMI).
 
 ### Fixed

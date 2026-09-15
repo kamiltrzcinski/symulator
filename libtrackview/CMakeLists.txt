@@ -35,6 +35,7 @@ endif()
 
 add_library(trackview STATIC
     src/ebiscreen_theme.cpp
+    src/thales_theme.cpp
     src/qt_scene_renderer.cpp
 )
 

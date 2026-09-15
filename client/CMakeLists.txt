@@ -9,6 +9,20 @@ qt_add_executable(symulator-client
     src/thales/thales_browser.cpp
     include/thales/topology_loader.hpp
     src/thales/topology_loader.cpp
+    src/thales/graphics/thales_element_graphic.cpp
+    src/thales/graphics/thales_button_item.cpp
+    src/thales/graphics/thales_command_box_item.cpp
+    src/thales/graphics/thales_derail_item.cpp
+    src/thales/graphics/thales_end_catena_item.cpp
+    src/thales/graphics/thales_header_item.cpp
+    src/thales/graphics/thales_label_item.cpp
+    src/thales/graphics/thales_line_block_item.cpp
+    src/thales/graphics/thales_pkpm_item.cpp
+    src/thales/graphics/thales_platform_item.cpp
+    src/thales/graphics/thales_signal_box_item.cpp
+    src/thales/graphics/thales_signal_item.cpp
+    src/thales/graphics/thales_switch_item.cpp
+    src/thales/graphics/thales_track_item.cpp
 )
 
 target_include_directories(symulator-client PRIVATE

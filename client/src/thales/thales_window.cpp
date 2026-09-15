@@ -6,6 +6,55 @@
 #include <QShortcut>
 #include <QDebug>
 
+class PocCommandHandler : public ICommandHandler {
+public:
+    bool requiresSpecAuth() const override { return false; }
+    void execute(ThalesWindow* window, const QString& cmd) override {
+        window->setStatusText("KOM: Polecenie " + cmd + " zaakceptowane");
+        // Extract elements from cmd (e.g. "S1, POC")
+        QStringList parts = cmd.split(",");
+        for (const QString& part : parts) {
+            QString id = part.trimmed();
+            if (id != "POC") {
+                window->setElementColor(id, Qt::green);
+                window->highlightElement(id, Qt::transparent); // remove highlight
+            }
+        }
+    }
+};
+
+class ManCommandHandler : public ICommandHandler {
+public:
+    bool requiresSpecAuth() const override { return false; }
+    void execute(ThalesWindow* window, const QString& cmd) override {
+        window->setStatusText("KOM: Polecenie " + cmd + " zaakceptowane");
+        QStringList parts = cmd.split(",");
+        for (const QString& part : parts) {
+            QString id = part.trimmed();
+            if (id != "MAN") {
+                window->setElementColor(id, Qt::yellow);
+                window->highlightElement(id, Qt::transparent);
+            }
+        }
+    }
+};
+
+class DpzCommandHandler : public ICommandHandler {
+public:
+    bool requiresSpecAuth() const override { return true; }
+    void execute(ThalesWindow* window, const QString& cmd) override {
+        window->setStatusText("KOM: Wykonano polecenie specjalne: " + cmd);
+        QStringList parts = cmd.split(",");
+        for (const QString& part : parts) {
+            QString id = part.trimmed();
+            if (id != "DPZ") {
+                window->setElementColor(id, Qt::magenta);
+                window->highlightElement(id, Qt::transparent);
+            }
+        }
+    }
+};
+
 ThalesElementItem::ThalesElementItem(const QString& id, qreal x, qreal y, qreal w, qreal h, QGraphicsItem* parent)
     : QObject(), QGraphicsRectItem(x, y, w, h, parent), m_id(id), m_highlighted(false) {
     setBrush(Qt::gray);
@@ -37,6 +86,8 @@ ThalesWindow::ThalesWindow(QWidget* parent)
     : QMainWindow(parent), m_state(State::IDLE) {
     setupUi();
     
+    registerCommands();
+
     m_specTimer = new QTimer(this);
     m_specTimer->setSingleShot(true);
     connect(m_specTimer, &QTimer::timeout, this, &ThalesWindow::onSpecTimeout);
@@ -72,6 +123,33 @@ ThalesWindow::ThalesWindow(QWidget* parent)
 }
 
 ThalesWindow::~ThalesWindow() = default;
+
+void ThalesWindow::registerCommands() {
+    m_commandHandlers["POC"] = std::make_unique<PocCommandHandler>();
+    m_commandHandlers["MAN"] = std::make_unique<ManCommandHandler>();
+    m_commandHandlers["DPZ"] = std::make_unique<DpzCommandHandler>();
+    // Other commands would be registered here...
+}
+
+void ThalesWindow::setStatusText(const QString& text) {
+    m_komLine->setText(text);
+}
+
+void ThalesWindow::highlightElement(const QString& id, const QColor& color) {
+    for (auto* el : m_elements) {
+        if (el->getId() == id) {
+            el->setHighlight(color != Qt::transparent, color);
+        }
+    }
+}
+
+void ThalesWindow::setElementColor(const QString& id, const QColor& color) {
+    for (auto* el : m_elements) {
+        if (el->getId() == id) {
+            el->setPathColor(color);
+        }
+    }
+}
 
 void ThalesWindow::setupUi() {
     QWidget* centralWidget = new QWidget(this);
@@ -133,19 +211,13 @@ void ThalesWindow::onCommandButtonClicked(const QString& cmd) {
 void ThalesWindow::onElementClicked(const QString& id) {
     if (m_state != State::IDLE) return;
     
-    // Zdarzenia z QGraphicsItem na klikniecie mysza beda jedynie doklejac identyfikatory
     if (!m_inputBuffer.isEmpty() && !m_inputBuffer.endsWith(", ")) {
         m_inputBuffer += ", ";
     }
     m_inputBuffer += id + ", ";
     m_inputLine->setText(m_inputBuffer);
     
-    // Highlight logic
-    for (auto* el : m_elements) {
-        if (el->getId() == id) {
-            el->setHighlight(true, Qt::yellow);
-        }
-    }
+    highlightElement(id, Qt::yellow);
 }
 
 void ThalesWindow::onEnterPressed() {
@@ -157,12 +229,29 @@ void ThalesWindow::onEnterPressed() {
 void ThalesWindow::ParseCommand(const QString& cmdStr) {
     QString cmd = cmdStr.trimmed();
     
-    // Check if it is a special command requiring authorization
-    if (cmd.contains("DPZ") || cmd.contains("ZW")) {
+    // Find the command token in the string (e.g. "POC", "DPZ")
+    QString commandName;
+    for (auto it = m_commandHandlers.begin(); it != m_commandHandlers.end(); ++it) {
+        if (cmd.contains(it->first)) {
+            commandName = it->first;
+            break;
+        }
+    }
+
+    if (commandName.isEmpty()) {
+        setStatusText("KOM: Nieznana komenda.");
+        return;
+    }
+
+    ICommandHandler* handler = m_commandHandlers[commandName].get();
+
+    if (handler->requiresSpecAuth()) {
         // KROK 1: Inicjalizacja komendy (SPEC)
-        for (auto* el : m_elements) {
-            if (cmd.contains(el->getId())) {
-                el->setHighlight(true, QColor(255, 165, 0)); // Pomaranczowy
+        QStringList parts = cmd.split(",");
+        for (const QString& part : parts) {
+            QString id = part.trimmed();
+            if (id != commandName) {
+                highlightElement(id, QColor(255, 165, 0)); // Pomaranczowy
             }
         }
         m_komLine->setText("KOM: Komenda niebezpieczna. Wymagana autoryzacja SPEC.");
@@ -179,23 +268,10 @@ void ThalesWindow::ParseCommand(const QString& cmdStr) {
 
 void ThalesWindow::processCommand(const QString& cmd) {
     // Normal command execution (KROK 4)
-    m_komLine->setText("KOM: Polecenie " + cmd + " zaakceptowane");
-    
-    if (cmd.contains("POC")) {
-        // Rysowanie trasy (kolor zielony dla POC)
-        for (auto* el : m_elements) {
-            if (cmd.contains(el->getId())) {
-                el->setPathColor(Qt::green);
-                el->setHighlight(false);
-            }
-        }
-    } else if (cmd.contains("MAN")) {
-        // Rysowanie trasy (kolor zolty dla MAN)
-        for (auto* el : m_elements) {
-            if (cmd.contains(el->getId())) {
-                el->setPathColor(Qt::yellow);
-                el->setHighlight(false);
-            }
+    for (auto it = m_commandHandlers.begin(); it != m_commandHandlers.end(); ++it) {
+        if (cmd.contains(it->first)) {
+            it->second->execute(this, cmd);
+            break;
         }
     }
     
@@ -211,13 +287,10 @@ void ThalesWindow::onSpecButtonClicked() {
 
 void ThalesWindow::executeSpecCommand() {
     // KROK 3: Zatwierdzenie autoryzacji
-    m_komLine->setText("KOM: Wykonano polecenie specjalne: " + m_pendingSpecCommand);
-    
-    // Znika pomaranczowe podswietlenie, przerysowuje element
-    for (auto* el : m_elements) {
-        if (m_pendingSpecCommand.contains(el->getId())) {
-            el->setPathColor(Qt::magenta); // Faktycznie wyslana komenda
-            el->setHighlight(false);
+    for (auto it = m_commandHandlers.begin(); it != m_commandHandlers.end(); ++it) {
+        if (m_pendingSpecCommand.contains(it->first)) {
+            it->second->execute(this, m_pendingSpecCommand);
+            break;
         }
     }
     
