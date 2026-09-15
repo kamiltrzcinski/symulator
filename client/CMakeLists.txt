@@ -31,6 +31,7 @@ target_include_directories(symulator-client PRIVATE
 )
 
 target_link_libraries(symulator-client PRIVATE
+    engine
     trackview
     symulator_proto
     Qt6::Widgets

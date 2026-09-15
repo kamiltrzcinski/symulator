@@ -30,6 +30,7 @@ All notable changes are documented here.
 - `client/thales`: Removed axle-counter section from the component browser (no such element exists in the Thales ML8 / RSS HMI).
 
 ### Fixed
+- `client/cmake`: Linked `engine` target to `symulator-client` to resolve missing `<engine/core/types.hpp>` header dependency.
 - `ci`: Set `QT_QPA_PLATFORM=offscreen` environment variable in the Windows Qt test suite job (`.github/workflows/ci.yml`) to prevent test runner hangs.
 - `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
 
