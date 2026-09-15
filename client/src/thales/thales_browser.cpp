@@ -139,38 +139,38 @@ void ThalesBrowserWindow::setupBrowser() {
     int sigY = 225;
     
     auto trkSig1 = new ThalesTrackGraphic(80, ThalesTrackGraphic::Free); trkSig1->setAcceptedMouseButtons(Qt::NoButton); trkSig1->setPos(30, sigY); m_scene->addItem(trkSig1);
-    auto sig1 = new ThalesSignalGraphic("K1", engine::core::UID{0}, ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Stop, true); sig1->setPos(60, sigY); m_scene->addItem(sig1);
+    auto sig1 = new ThalesSignalGraphic("K1", ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Stop, true); sig1->setPos(60, sigY); m_scene->addItem(sig1);
     auto lblSig1 = new ThalesLabelGraphic("Stój", QColor(155, 155, 155)); lblSig1->setPos(60, sigY+15); m_scene->addItem(lblSig1);
 
     auto trkSig2 = new ThalesTrackGraphic(80, ThalesTrackGraphic::RouteLockedTrain); trkSig2->setAcceptedMouseButtons(Qt::NoButton); trkSig2->setPos(140, sigY); m_scene->addItem(trkSig2);
-    auto sig2 = new ThalesSignalGraphic("H2", engine::core::UID{0}, ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::ProceedTrain, true); sig2->setPos(170, sigY); m_scene->addItem(sig2);
+    auto sig2 = new ThalesSignalGraphic("H2", ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::ProceedTrain, true); sig2->setPos(170, sigY); m_scene->addItem(sig2);
     auto lblSig2 = new ThalesLabelGraphic("Jazda P.", QColor(0, 255, 0)); lblSig2->setPos(170, sigY+15); m_scene->addItem(lblSig2);
 
     auto trkSig3 = new ThalesTrackGraphic(80, ThalesTrackGraphic::RouteLockedShunt); trkSig3->setAcceptedMouseButtons(Qt::NoButton); trkSig3->setPos(250, sigY); m_scene->addItem(trkSig3);
-    auto sig3 = new ThalesSignalGraphic("N1", engine::core::UID{0}, ThalesSignalGraphic::ShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig3->setPos(280, sigY); m_scene->addItem(sig3);
+    auto sig3 = new ThalesSignalGraphic("N1", ThalesSignalGraphic::ShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig3->setPos(280, sigY); m_scene->addItem(sig3);
     auto lblSig3 = new ThalesLabelGraphic("Manewr", QColor(255, 255, 0)); lblSig3->setPos(280, sigY+15); m_scene->addItem(lblSig3);
 
     auto trkSig4 = new ThalesTrackGraphic(80, ThalesTrackGraphic::Free); trkSig4->setAcceptedMouseButtons(Qt::NoButton); trkSig4->setPos(360, sigY); m_scene->addItem(trkSig4);
-    auto sig4 = new ThalesSignalGraphic("S1", engine::core::UID{0}, ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::SignalStopped, true); sig4->setPos(390, sigY); m_scene->addItem(sig4);
+    auto sig4 = new ThalesSignalGraphic("S1", ThalesSignalGraphic::TrainRight, ThalesSignalGraphic::SignalStopped, true); sig4->setPos(390, sigY); m_scene->addItem(sig4);
     auto lblSig4 = new ThalesLabelGraphic("Zatrzymany", QColor(255, 0, 255)); lblSig4->setPos(390, sigY+15); m_scene->addItem(lblSig4);
 
     auto trkSig5 = new ThalesTrackGraphic(80, ThalesTrackGraphic::Free); trkSig5->setAcceptedMouseButtons(Qt::NoButton); trkSig5->setPos(470, sigY); m_scene->addItem(trkSig5);
-    auto sig5 = new ThalesSignalGraphic("Z1", engine::core::UID{0}, ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Substitute, true); sig5->setPos(500, sigY); m_scene->addItem(sig5);
+    auto sig5 = new ThalesSignalGraphic("Z1", ThalesSignalGraphic::TrainLeft, ThalesSignalGraphic::Substitute, true); sig5->setPos(500, sigY); m_scene->addItem(sig5);
     auto lblSig5 = new ThalesLabelGraphic("Zastepczy(Miga)", QColor(255, 255, 255)); lblSig5->setPos(500, sigY+15); m_scene->addItem(lblSig5);
 
     // Semafor polsamoczynny z manewrowym - Stop
     auto trkSig6 = new ThalesTrackGraphic(100, ThalesTrackGraphic::Free); trkSig6->setAcceptedMouseButtons(Qt::NoButton); trkSig6->setPos(590, sigY); m_scene->addItem(trkSig6);
-    auto sig6 = new ThalesSignalGraphic("H3", engine::core::UID{0}, ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::Stop, true); sig6->setPos(625, sigY); m_scene->addItem(sig6);
+    auto sig6 = new ThalesSignalGraphic("H3", ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::Stop, true); sig6->setPos(625, sigY); m_scene->addItem(sig6);
     auto lblSig6 = new ThalesLabelGraphic("Polsam+Man. Stoj", QColor(155, 155, 155)); lblSig6->setPos(625, sigY+15); m_scene->addItem(lblSig6);
 
     // Semafor polsamoczynny z manewrowym - Jazda pociagowa (zielony)
     auto trkSig7 = new ThalesTrackGraphic(100, ThalesTrackGraphic::RouteLockedTrain); trkSig7->setAcceptedMouseButtons(Qt::NoButton); trkSig7->setPos(730, sigY); m_scene->addItem(trkSig7);
-    auto sig7 = new ThalesSignalGraphic("H4", engine::core::UID{0}, ThalesSignalGraphic::TrainAndShuntRight, ThalesSignalGraphic::ProceedTrain, true); sig7->setPos(765, sigY); m_scene->addItem(sig7);
+    auto sig7 = new ThalesSignalGraphic("H4", ThalesSignalGraphic::TrainAndShuntRight, ThalesSignalGraphic::ProceedTrain, true); sig7->setPos(765, sigY); m_scene->addItem(sig7);
     auto lblSig7 = new ThalesLabelGraphic("Polsam+Man.Jazda", QColor(0, 255, 0)); lblSig7->setPos(765, sigY+15); m_scene->addItem(lblSig7);
 
     // Semafor polsamoczynny z manewrowym - Jazda manewrowa z pociagowym
     auto trkSig9 = new ThalesTrackGraphic(100, ThalesTrackGraphic::RouteLockedShunt); trkSig9->setAcceptedMouseButtons(Qt::NoButton); trkSig9->setPos(870, sigY); m_scene->addItem(trkSig9);
-    auto sig9 = new ThalesSignalGraphic("Ms2", engine::core::UID{0}, ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig9->setPos(905, sigY); m_scene->addItem(sig9);
+    auto sig9 = new ThalesSignalGraphic("Ms2", ThalesSignalGraphic::TrainAndShuntLeft, ThalesSignalGraphic::ProceedShunt, true); sig9->setPos(905, sigY); m_scene->addItem(sig9);
     auto lblSig9 = new ThalesLabelGraphic("Polsam Manewr+Poc.", QColor(255, 255, 0)); lblSig9->setPos(905, sigY+15); m_scene->addItem(lblSig9);
 
 
