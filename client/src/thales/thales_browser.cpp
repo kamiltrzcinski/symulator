@@ -279,8 +279,3 @@ void ThalesBrowserWindow::setupBrowser() {
     m_scene->setSceneRect(0, 0, 1100, 1000);
 }
 
-QPointF ThalesSwitchGraphic::branchEndpoint() const {
-    qreal endX = (m_dir == BranchUpRight || m_dir == BranchDownRight) ? 45.0 : 25.0;
-    qreal endY = (m_dir == BranchUpRight || m_dir == BranchUpLeft) ? -25.0 : 25.0;
-    return mapToScene(QPointF(endX, endY));
-}

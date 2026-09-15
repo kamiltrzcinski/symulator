@@ -30,6 +30,7 @@ All notable changes are documented here.
 - `client/thales`: Removed axle-counter section from the component browser (no such element exists in the Thales ML8 / RSS HMI).
 
 ### Fixed
+- `client/thales`: Removed duplicate `ThalesSwitchGraphic::branchEndpoint()` definition from `thales_browser.cpp`.
 - `client/cmake`: Added Thales graphics headers to `symulator-client` sources in `client/CMakeLists.txt` so AUTOMOC generates moc definitions for `ThalesElementGraphic`.
 - `client/thales`: Included `<QTimer>` and `<QPen>` in `thales_browser.cpp` to resolve incomplete type compilation errors.
 - `client/thales`: Restored correct argument list for `ThalesSignalGraphic` calls in `thales_browser.cpp`.
