@@ -11,6 +11,7 @@ from pathlib import Path
 
 SCRIPT_BY_SYSTEM = {
     "Linux": ("bash", "scripts/deps/install_linux.sh"),
+    "Gentoo": ("bash", "scripts/deps/install_gentoo.sh"),
     "Darwin": ("bash", "scripts/deps/install_macos.sh"),
     "Windows": (
         "powershell",
@@ -66,6 +67,46 @@ PRINT_ONLY_COMMANDS = {
             "nasm",
         ],
     ],
+    "Gentoo": [
+        ["sudo", "emerge", "--sync"],
+        [
+            "sudo",
+            "emerge",
+            "-v",
+            "--noreplace",
+            "dev-vcs/git",
+            "dev-build/cmake",
+            "dev-build/ninja",
+            "sys-devel/gcc",
+            "llvm-core/clang",
+            "virtual/pkgconfig",
+            "app-arch/zip",
+            "net-misc/curl",
+            "app-arch/unzip",
+            "app-arch/tar",
+            "dev-lang/python",
+            "dev-build/autoconf",
+            "dev-build/autoconf-archive",
+            "dev-build/automake",
+            "dev-build/libtool",
+            "x11-libs/libxcb",
+            "x11-libs/libX11",
+            "media-libs/glu",
+            "x11-libs/libXrender",
+            "x11-libs/libXi",
+            "x11-libs/libxkbcommon",
+            "media-libs/mesa",
+            "x11-libs/libICE",
+            "x11-libs/libSM",
+            "dev-cpp/asio",
+            "media-libs/alsa-lib",
+            "media-libs/libpulse",
+            "media-libs/gstreamer",
+            "media-libs/gst-plugins-base",
+            "x11-libs/libXrandr",
+            "dev-lang/nasm",
+        ],
+    ],
     "Darwin": [
         ["brew", "update"],
         [
@@ -105,6 +146,14 @@ PRINT_ONLY_COMMANDS = {
 }
 
 
+def detect_system() -> str:
+    system = platform.system()
+    if system == "Linux":
+        if Path("/etc/gentoo-release").exists():
+            return "Gentoo"
+    return system
+
+
 def run_command(command: list[str], *, cwd: Path) -> None:
     printable = " ".join(command)
     print(f"[run] {printable}")
@@ -122,7 +171,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--host-system",
-        choices=["Linux", "Darwin", "Windows"],
+        choices=["Linux", "Gentoo", "Darwin", "Windows"],
         default=None,
         help="Override detected host OS (for print-only validation).",
     )
@@ -133,7 +182,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    detected_system = platform.system()
+    detected_system = detect_system()
     system_name = args.host_system or detected_system
     if system_name not in SCRIPT_BY_SYSTEM:
         raise RuntimeError(f"Unsupported host OS: {system_name}")
