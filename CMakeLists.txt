@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 # ── Version — single source of truth is CHANGELOG.md ───────────────────────
 # Look for the first line matching "## [X.Y.Z]"
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md" _cl_lines LIMIT_COUNT 30)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md" _cl_lines LIMIT_COUNT 200)
 foreach(_cl_line IN LISTS _cl_lines)
     if(_cl_line MATCHES "^## \\[([0-9]+\\.[0-9]+\\.[0-9]+)\\]")
         set(SYMULATOR_VERSION "${CMAKE_MATCH_1}")

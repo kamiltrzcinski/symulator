@@ -8,17 +8,35 @@ All notable changes are documented here.
 - `engine`: Implemented Phase 1, 2, 3, 4 (Flank protection, overlap delay, trailing collisions, frontend interactivity flags, pytest regressions).
 - `server/pg_db_writer`: Real SHA-256 audit hash via OpenSSL EVP stored to `session.events.audit_hash`.
 - `tests/engine/test_train_fleet`: Three unit tests for trailing switch detection (`TrainFleet_TrailedSwitch`).
+- `client/thales`: Added `ThalesBrowserWindow` — a standalone component library viewer for the Thales ML8 / RSS HMI, accessible from the main window. Implements pixel-perfect, vector-only rendering of all trackside elements: track sections (7 states), buffer stops, train number display, signals (solid/outline/compound semaphores including shunting and substitute), PKPM markers, catenary end markers, derails, switches, platforms, line-block indicators, and the signal-box icon.
+- `client/thales`: Added `ThalesTrackGraphic` — track section with 7 states (`Free`, `Occupied`, `RouteLockedTrain`, `RouteLockedShunt`, `MagentaRelease`, `PreReset`, `FaultBlinking`), buffer-stop terminations, and optional train-number overlay rendered in Consolas with a physical gap in the rail line.
+- `client/thales`: Added `ThalesSignalGraphic` — semaphore renderer supporting `TrainLeft`, `TrainRight`, `ShuntLeft`, `ShuntRight`, `TrainAndShuntLeft`, `TrainAndShuntRight` types with states `Stop`, `ProceedTrain`, `ProceedShunt`, `SignalStopped`, `Substitute` (blinking white). Full solid-triangle + hollow-chevron compound symbol for semi-automatic signals with shunting capability.
+- `client/thales`: Added `ThalesSwitchGraphic` — junction renderer with two parallel rails and a diagonal blade; supports `SwitchNormal`, `SwitchStopped`, `SwitchNoControl` (blade blinks white, rails static), `SwitchDerailed` (blade disappears/red alternating), straight/diverging positions, and occupied-diverging (red) colouring. Selection ellipse rotates along blade axis.
+- `client/thales`: Added `ThalesDerailGraphic` — derail renderer with `Placed`, `Clear`, `Stopped`, `NoControl` states. In `NoControl` only the indicator rectangle blinks white; the track segments remain static.
+- `client/thales`: Added `ThalesLineBlockGraphic` — line-block direction indicator with `Neutral`, `Sending`, `Receiving`, `PermissionRequested` (static bar + blinking arrowhead only), `EmergencyChange` (blinking red arrow) states.
+- `client/thales`: Added `ThalesSignalBoxGraphic`, `ThalesPkpmGraphic`, `ThalesEndCatenaGraphic`, `ThalesPlatformGraphic`, `ThalesCommandBoxGraphic`, `ThalesHeaderGraphic`, `ThalesButtonGraphic`, `ThalesLabelGraphic` supporting all remaining HMI elements.
 
 ### Changed
 - `docker/init.sql`: Added `audit_hash TEXT NOT NULL` column to `session.events`.
 - `tests/integration/test_trailing_collision.py`: Removed placeholder `assert True` file.
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures, command dictionaries, and detailed specifications for all EbiLock (EbiScreen 300) workstations.
 - `docs(ui_spec)`: Added comprehensive step-by-step procedures and complete specs for Thales ML8 (ESTW L90 5) workstations.
-
-### Changed
 - `ui`: Reverted the base Thales ML8 client UI and entry point implementation to rethink the architecture based on the new `ui_spec`.
+- `client/thales`: `FaultBlinking` track state now flashes the entire section uniformly (solid red → solid white alternating at 500 ms) instead of the previous interleaved dash-pattern approach.
+- `client/thales`: `ThalesSwitchGraphic` geometry reworked — two parallel horizontal rails with a diagonal blade between them (matching Thales ML8 pixel-art reference); 1 px gap between blade endpoints and each rail; antialiasing disabled for authentic pixel-perfect edges.
+- `client/thales`: `ThalesDerailGraphic` `NoControl` state corrected — only the indicator segment (vertical rectangle) blinks; track lines are permanently visible.
+- `client/thales`: `PermissionRequested` line-block state corrected — only the arrowhead portion blinks; the rectangular bar body is always visible.
+- `client/thales`: Refactored Thales ML8 HMI components into discrete modular classes under `client/include/thales/graphics/` and `client/src/thales/graphics/` with `ThalesElementGraphic` base class and `engine::core::UID` identifiers conforming to SOLID and ARCHITECTURE specs. Integrated `ThalesTrackTheme` into `libtrackview`.
+- `client/thales`: Removed axle-counter section from the component browser (no such element exists in the Thales ML8 / RSS HMI).
 
 ### Fixed
+- `client/thales`: Removed duplicate `ThalesSwitchGraphic::branchEndpoint()` definition from `thales_browser.cpp`.
+- `client/cmake`: Added Thales graphics headers to `symulator-client` sources in `client/CMakeLists.txt` so AUTOMOC generates moc definitions for `ThalesElementGraphic`.
+- `client/thales`: Included `<QTimer>` and `<QPen>` in `thales_browser.cpp` to resolve incomplete type compilation errors.
+- `client/thales`: Restored correct argument list for `ThalesSignalGraphic` calls in `thales_browser.cpp`.
+- `client/thales`: Used aggregate initialization for `engine::core::UID` default constructor arguments and accessed `uid.value` for string conversions.
+- `client/thales`: Aligned constructor signatures and delegating overloads across all 13 Thales HMI graphics classes.
+- `client/cmake`: Linked `engine` target to `symulator-client` to resolve missing `<engine/core/types.hpp>` header dependency.
 - `ci`: Set `QT_QPA_PLATFORM=offscreen` environment variable in the Windows Qt test suite job (`.github/workflows/ci.yml`) to prevent test runner hangs.
 - `scripts`: Fixed `configure_ninja.py` failing on Windows without MSVC in PATH by auto-detecting and sourcing the Visual Studio environment using `vswhere` and `vcvarsall.bat`.
 
